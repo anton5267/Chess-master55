@@ -1,0 +1,25 @@
+@page
+@model Disable2faModel
+@{
+    ViewData["Title"] = Localizer["Manage_Disable2faTitle"];
+    ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
+}
+
+<partial name="_StatusMessage" for="StatusMessage" />
+<h3>@ViewData["Title"]</h3>
+
+<div class="alert alert-warning" role="alert">
+    <p>
+        <strong>@Localizer["Manage_Disable2faWarningTitle"]</strong>
+    </p>
+    <p>
+        @Localizer["Manage_Disable2faWarningBody"]
+        <a asp-page="./ResetAuthenticator">@Localizer["Manage_ResetAuthenticatorKeysLink"]</a>
+    </p>
+</div>
+
+<div>
+    <form method="post">
+        <button class="btn btn-danger" type="submit">@Localizer["Manage_Disable2faButton"]</button>
+    </form>
+</div>

@@ -1,0 +1,12 @@
+# Deprecated: CI/CD is managed via GitHub Actions in .github/workflows/master_chess-bg.yml
+trigger: none
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - script: |
+      echo "Azure Pipelines is deprecated for this repository."
+      echo "Use GitHub Actions workflow: .github/workflows/master_chess-bg.yml"
+    displayName: Deprecated Pipeline Notice

@@ -1,0 +1,5 @@
+root = true
+
+[*.{resx,cs,cshtml,js,css,json,md,yml,yaml}]
+charset = utf-8
+insert_final_newline = true

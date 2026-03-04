@@ -1,0 +1,52 @@
+@{
+    this.ViewData["Title"] = Localizer["About_Title"];
+}
+
+<section class="about-container">
+    <h2 class="about-title title-text">@Localizer["About_ProjectTitle"]</h2>
+    <p class="about-description">
+        @Localizer["About_Description"]
+        <br /><br />
+
+        <img class="about-img-web" src="~/img/ezgif.com-gif-maker.gif" alt="@Localizer["About_ImageGameAlt"]" /><br /><br />
+
+        @Localizer["About_FeaturesTitle"]
+        <ul class="about-feature-list">
+            <li><b>@Localizer["About_Feature_MoveValidation"]</b></li>
+            <li><b>@Localizer["About_Feature_Check"]</b></li>
+            <li><b>@Localizer["About_Feature_Checkmate"]</b></li>
+            <li><b>@Localizer["About_Feature_Stalemate"]</b></li>
+            <li><b>@Localizer["About_Feature_Draw"]</b></li>
+            <li><b>@Localizer["About_Feature_OfferDraw"]</b></li>
+            <li><b>@Localizer["About_Feature_Threefold"]</b></li>
+            <li><b>@Localizer["About_Feature_Fivefold"]</b></li>
+            <li><b>@Localizer["About_Feature_Resign"]</b></li>
+            <li><b>@Localizer["About_Feature_Castling"]</b></li>
+            <li><b>@Localizer["About_Feature_PawnPromotion"]</b></li>
+            <li><b>@Localizer["About_Feature_EnPassant"]</b></li>
+            <li><b>@Localizer["About_Feature_Points"]</b></li>
+            <li><b>@Localizer["About_Feature_TakenPiecesHistory"]</b></li>
+            <li><b>@Localizer["About_Feature_NotationHistory"]</b></li>
+            <li><b>@Localizer["About_Feature_UserAuthentication"]</b></li>
+            <li><b>@Localizer["About_Feature_HighlightLastMove"]</b></li>
+            <li><b>@Localizer["About_Feature_GameLobby"]</b></li>
+            <li><b>@Localizer["About_Feature_GameChat"]</b></li>
+            <li><b>@Localizer["About_Feature_LobbyChat"]</b></li>
+            <li><b>@Localizer["About_Feature_StatsPage"]</b></li>
+            <li><b>@Localizer["About_Feature_EloRating"]</b></li>
+            <li><b>@Localizer["About_Feature_FiftyMove"]</b></li>
+        </ul>
+
+        @Localizer["About_InspiredBy"]
+        <br />
+        <img class="about-img-console" src="~/img/console_chess.jpg" alt="@Localizer["About_ImageConsoleAlt"]" /><br /><br />
+
+        <address>
+            <b>Anton Lyshtva</b><br />
+            Email: antonlistva47@gmail.com<br />
+
+            <i class="fab fa-github"></i> <a href="https://github.com/anton5267/Chess-master55" target="_blank">@Localizer["About_SourceWeb"]</a><br />
+            <i class="fab fa-github"></i> <a href="https://github.com/anton5267/Chess-master55" target="_blank">@Localizer["About_SourceConsole"]</a>
+        </address>
+    </p>
+</section>

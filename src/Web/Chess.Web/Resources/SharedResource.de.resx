@@ -1,0 +1,1071 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value>
+  </resheader>
+  <data name="Language" xml:space="preserve">
+    <value>Sprache</value>
+  </data>
+  <data name="Nav_Home" xml:space="preserve">
+    <value>Heim</value>
+  </data>
+  <data name="Nav_Play" xml:space="preserve">
+    <value>Spielen</value>
+  </data>
+  <data name="Nav_Stats" xml:space="preserve">
+    <value>Statistiken</value>
+  </data>
+  <data name="Nav_About" xml:space="preserve">
+    <value>Um</value>
+  </data>
+  <data name="Nav_Register" xml:space="preserve">
+    <value>Registrieren</value>
+  </data>
+  <data name="Nav_Login" xml:space="preserve">
+    <value>Login</value>
+  </data>
+  <data name="Nav_Logout" xml:space="preserve">
+    <value>Abmelden</value>
+  </data>
+  <data name="Nav_Admin" xml:space="preserve">
+    <value>Admin</value>
+  </data>
+  <data name="Nav_Manage" xml:space="preserve">
+    <value>Verwalten</value>
+  </data>
+  <data name="Nav_Hello" xml:space="preserve">
+    <value>Hallo {0}!</value>
+  </data>
+  <data name="Footer_GitHubProject" xml:space="preserve">
+    <value>GitHub-Projekt</value>
+  </data>
+  <data name="Cookie_BannerText" xml:space="preserve">
+    <value>Wir verwenden Cookies, um zu verstehen, wie Sie unsere Website nutzen, und um Ihr Erlebnis zu verbessern.</value>
+  </data>
+  <data name="Cookie_LearnMore" xml:space="preserve">
+    <value>Erfahren Sie mehr</value>
+  </data>
+  <data name="Cookie_Accept" xml:space="preserve">
+    <value>Akzeptieren</value>
+  </data>
+  <data name="Cookie_Close" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
+  <data name="PasswordToggle_Show" xml:space="preserve">
+    <value>Passwort anzeigen</value>
+  </data>
+  <data name="PasswordToggle_Hide" xml:space="preserve">
+    <value>Passwort verbergen</value>
+  </data>
+  <data name="Home_Title" xml:space="preserve">
+    <value>Heim</value>
+  </data>
+  <data name="Home_CardPlayTitle" xml:space="preserve">
+    <value>Spielen</value>
+  </data>
+  <data name="Home_CardPlayDescription" xml:space="preserve">
+    <value>Spiele einen Freund</value>
+  </data>
+  <data name="Home_CardStatsTitle" xml:space="preserve">
+    <value>Statistiken</value>
+  </data>
+  <data name="Home_CardStatsDescription" xml:space="preserve">
+    <value>Spieldiagramme und -analysen</value>
+  </data>
+  <data name="Home_CardAboutTitle" xml:space="preserve">
+    <value>Um</value>
+  </data>
+  <data name="Home_CardAboutDescription" xml:space="preserve">
+    <value>Informationen zur Website-Erstellung</value>
+  </data>
+  <data name="Stats_Title" xml:space="preserve">
+    <value>Statistiken</value>
+  </data>
+  <data name="Stats_EloRating" xml:space="preserve">
+    <value>IHRE ELO-BEWERTUNG</value>
+  </data>
+  <data name="Stats_AllUsers" xml:space="preserve">
+    <value>ALLE BENUTZER</value>
+  </data>
+  <data name="Stats_TotalUsers" xml:space="preserve">
+    <value>GESAMTBENUTZER</value>
+  </data>
+  <data name="Stats_LastThirtyDaysUsers" xml:space="preserve">
+    <value>LETZTE 30 TAGE NEUE BENUTZER</value>
+  </data>
+  <data name="Stats_TotalGames" xml:space="preserve">
+    <value>TOTAL SPIELE</value>
+  </data>
+  <data name="Stats_MostGamesUser" xml:space="preserve">
+    <value>DIE MEISTEN SPIELE-BENUTZER</value>
+  </data>
+  <data name="Stats_MostWinsUser" xml:space="preserve">
+    <value>MEISTER GEWINNT BENUTZER</value>
+  </data>
+  <data name="Stats_Games" xml:space="preserve">
+    <value>Spiele</value>
+  </data>
+  <data name="Stats_Ending" xml:space="preserve">
+    <value>Ende</value>
+  </data>
+  <data name="Stats_Wins" xml:space="preserve">
+    <value>Siege</value>
+  </data>
+  <data name="Stats_Draws" xml:space="preserve">
+    <value>Zieht</value>
+  </data>
+  <data name="Stats_Losses" xml:space="preserve">
+    <value>Verluste</value>
+  </data>
+  <data name="Stats_ChartTitle" xml:space="preserve">
+    <value>Statistiken für {0}-Spiele insgesamt</value>
+  </data>
+  <data name="Game_Title" xml:space="preserve">
+    <value>Spielelobby</value>
+  </data>
+  <data name="Game_PointsSuffix" xml:space="preserve">
+    <value>Punkte</value>
+  </data>
+  <data name="Game_BoardLabel" xml:space="preserve">
+    <value>Planke</value>
+  </data>
+  <data name="Game_PiecesLabel" xml:space="preserve">
+    <value>Stücke</value>
+  </data>
+  <data name="Game_DeclareThreefold" xml:space="preserve">
+    <value>Deklarieren Sie 3F Draw</value>
+  </data>
+  <data name="Game_OfferDraw" xml:space="preserve">
+    <value>Angebotsverlosung</value>
+  </data>
+  <data name="Game_Resign" xml:space="preserve">
+    <value>Zurücktreten</value>
+  </data>
+  <data name="Game_TypeMessage" xml:space="preserve">
+    <value>Geben Sie eine Nachricht ein</value>
+  </data>
+  <data name="Game_EnterName" xml:space="preserve">
+    <value>Geben Sie Ihren Namen ein</value>
+  </data>
+  <data name="Game_CreateRoom" xml:space="preserve">
+    <value>RAUM SCHAFFEN</value>
+  </data>
+  <data name="Game_RoomsTitle" xml:space="preserve">
+    <value>SPIELRÄUME</value>
+  </data>
+  <data name="Game_ChatTitle" xml:space="preserve">
+    <value>CHAT</value>
+  </data>
+  <data name="Js_RoomSuffix" xml:space="preserve">
+    <value>Das Zimmer von {name}</value>
+  </data>
+  <data name="Js_Join" xml:space="preserve">
+    <value>VERBINDEN</value>
+  </data>
+  <data name="Js_YourTurn" xml:space="preserve">
+    <value>Du bist dran!</value>
+  </data>
+  <data name="Js_PlayerTurnFormat" xml:space="preserve">
+    <value>{name} ist an der Reihe!</value>
+  </data>
+  <data name="Js_WaitingForOpponent" xml:space="preserve">
+    <value>WARTEN AUF GEGNER...</value>
+  </data>
+  <data name="Js_NotAvailable" xml:space="preserve">
+    <value>N / A</value>
+  </data>
+  <data name="Js_DrawRequestSent" xml:space="preserve">
+    <value>Ziehungsanfrage gesendet!</value>
+  </data>
+  <data name="Js_CheckmateWinFormat" xml:space="preserve">
+    <value>SCHACHMATT! {name} GEWINNEN!</value>
+  </data>
+  <data name="Js_Stalemate" xml:space="preserve">
+    <value>PATT!</value>
+  </data>
+  <data name="Js_Draw" xml:space="preserve">
+    <value>ZIEHEN!</value>
+  </data>
+  <data name="Js_ThreefoldDeclaredByFormat" xml:space="preserve">
+    <value>Von {name} zur dreifachen Wiederholungsauslosung erklärt!</value>
+  </data>
+  <data name="Js_FivefoldDraw" xml:space="preserve">
+    <value>Fünffache Wiederholungsauslosung!</value>
+  </data>
+  <data name="Js_ResignedFormat" xml:space="preserve">
+    <value>{name} zurückgetreten!</value>
+  </data>
+  <data name="Js_LeftYouWinFormat" xml:space="preserve">
+    <value>{name} LINKS. SIE GEWINNEN!</value>
+  </data>
+  <data name="Js_FiftyMoveDraw" xml:space="preserve">
+    <value>50-Zügiges Remis!</value>
+  </data>
+  <data name="Js_Check" xml:space="preserve">
+    <value>ÜBERPRÜFEN!</value>
+  </data>
+  <data name="Js_KingInCheck" xml:space="preserve">
+    <value>König ist im Schach!</value>
+  </data>
+  <data name="Js_WillOpenCheck" xml:space="preserve">
+    <value>Werde einen Scheck eröffnen!</value>
+  </data>
+  <data name="Js_InvalidMove" xml:space="preserve">
+    <value>Ungültiger Zug!</value>
+  </data>
+  <data name="Js_Yes" xml:space="preserve">
+    <value>JA</value>
+  </data>
+  <data name="Js_No" xml:space="preserve">
+    <value>NEIN</value>
+  </data>
+  <data name="Js_DrawRequestQuestionFormat" xml:space="preserve">
+    <value>{name} hat um eine Verlosung gebeten! Akzeptieren Sie?</value>
+  </data>
+  <data name="Js_DrawOfferRejectedFormat" xml:space="preserve">
+    <value>{name} lehnte das Angebot ab!</value>
+  </data>
+  <data name="Id_LoginTitle" xml:space="preserve">
+    <value>Einloggen</value>
+  </data>
+  <data name="Id_LoginSubtitle" xml:space="preserve">
+    <value>Verwenden Sie zum Anmelden ein lokales Konto.</value>
+  </data>
+  <data name="Id_Email" xml:space="preserve">
+    <value>E-Mail</value>
+  </data>
+  <data name="Id_Password" xml:space="preserve">
+    <value>Passwort</value>
+  </data>
+  <data name="Id_ConfirmPassword" xml:space="preserve">
+    <value>Passwort bestätigen</value>
+  </data>
+  <data name="Id_LoginButton" xml:space="preserve">
+    <value>Einloggen</value>
+  </data>
+  <data name="Id_ForgotPassword" xml:space="preserve">
+    <value>Passwort vergessen?</value>
+  </data>
+  <data name="Id_RegisterAsNew" xml:space="preserve">
+    <value>Registrieren Sie sich als neuer Benutzer</value>
+  </data>
+  <data name="Id_ResendConfirmation" xml:space="preserve">
+    <value>E-Mail-Bestätigung erneut senden</value>
+  </data>
+  <data name="Id_RegisterTitle" xml:space="preserve">
+    <value>Registrieren</value>
+  </data>
+  <data name="Id_RegisterSubtitle" xml:space="preserve">
+    <value>Erstellen Sie ein neues Konto.</value>
+  </data>
+  <data name="Id_RegisterButton" xml:space="preserve">
+    <value>Registrieren</value>
+  </data>
+  <data name="Id_RememberMe" xml:space="preserve">
+    <value>Erinnere dich an mich?</value>
+  </data>
+  <data name="Id_InvalidLoginAttempt" xml:space="preserve">
+    <value>Ungültiger Anmeldeversuch.</value>
+  </data>
+  <data name="Manage_AccountTitle" xml:space="preserve">
+    <value>Verwalten Sie Ihr Konto</value>
+  </data>
+  <data name="Manage_AccountSubtitle" xml:space="preserve">
+    <value>Ändern Sie Ihre Kontoeinstellungen</value>
+  </data>
+  <data name="Manage_Profile" xml:space="preserve">
+    <value>Profil</value>
+  </data>
+  <data name="Manage_Email" xml:space="preserve">
+    <value>E-Mail</value>
+  </data>
+  <data name="Manage_Password" xml:space="preserve">
+    <value>Passwort</value>
+  </data>
+  <data name="Manage_ExternalLogins" xml:space="preserve">
+    <value>Externe Anmeldungen</value>
+  </data>
+  <data name="Manage_TwoFactor" xml:space="preserve">
+    <value>Zwei-Faktor-Authentifizierung</value>
+  </data>
+  <data name="Manage_PersonalData" xml:space="preserve">
+    <value>Persönliche Daten</value>
+  </data>
+  <data name="Manage_ChangePasswordTitle" xml:space="preserve">
+    <value>Kennwort ändern</value>
+  </data>
+  <data name="Manage_SetPasswordTitle" xml:space="preserve">
+    <value>Passwort festlegen</value>
+  </data>
+  <data name="Manage_SetPasswordHeading" xml:space="preserve">
+    <value>Legen Sie Ihr Passwort fest</value>
+  </data>
+  <data name="Manage_SetPasswordInfo" xml:space="preserve">
+    <value>Sie haben keinen lokalen Benutzernamen/Passwort für diese Site. Fügen Sie eines hinzu, damit Sie sich ohne externe Anmeldung anmelden können.</value>
+  </data>
+  <data name="Manage_UpdatePassword" xml:space="preserve">
+    <value>Passwort aktualisieren</value>
+  </data>
+  <data name="Manage_SetPasswordButton" xml:space="preserve">
+    <value>Passwort festlegen</value>
+  </data>
+  <data name="Manage_Save" xml:space="preserve">
+    <value>Speichern</value>
+  </data>
+  <data name="Manage_CurrentPassword" xml:space="preserve">
+    <value>Aktuelles Passwort</value>
+  </data>
+  <data name="Manage_NewPassword" xml:space="preserve">
+    <value>Neues Passwort</value>
+  </data>
+  <data name="Manage_ConfirmNewPassword" xml:space="preserve">
+    <value>Bestätigen Sie das neue Passwort</value>
+  </data>
+  <data name="Manage_PhoneNumber" xml:space="preserve">
+    <value>Telefonnummer</value>
+  </data>
+  <data name="Manage_PasswordChanged" xml:space="preserve">
+    <value>Ihr Passwort wurde geändert.</value>
+  </data>
+  <data name="Manage_PasswordSet" xml:space="preserve">
+    <value>Ihr Passwort wurde festgelegt.</value>
+  </data>
+  <data name="Manage_ProfileUpdated" xml:space="preserve">
+    <value>Ihr Profil wurde aktualisiert.</value>
+  </data>
+  <data name="Validation_StringLength" xml:space="preserve">
+    <value>Der {0} muss mindestens {2} und maximal {1} Zeichen lang sein.</value>
+  </data>
+  <data name="Validation_PasswordMismatch" xml:space="preserve">
+    <value>Das Passwort und das Bestätigungspasswort stimmen nicht überein.</value>
+  </data>
+  <data name="Validation_NewPasswordMismatch" xml:space="preserve">
+    <value>Das neue Passwort und das Bestätigungspasswort stimmen nicht überein.</value>
+  </data>
+  <data name="Manage_Disable2faButton" xml:space="preserve">
+    <value>Deaktivieren Sie 2FA</value>
+  </data>
+  <data name="Manage_DeleteDataWarning" xml:space="preserve">
+    <value>Durch das Löschen dieser Daten wird Ihr Konto dauerhaft entfernt und kann nicht wiederhergestellt werden.</value>
+  </data>
+  <data name="Manage_EnableAuthenticatorTitle" xml:space="preserve">
+    <value>Authentifizierungs-App konfigurieren</value>
+  </data>
+  <data name="Manage_DeleteButton" xml:space="preserve">
+    <value>Löschen</value>
+  </data>
+  <data name="Manage_EmailUnchanged" xml:space="preserve">
+    <value>Ihre E-Mail-Adresse bleibt unverändert.</value>
+  </data>
+  <data name="Manage_ForgetBrowser" xml:space="preserve">
+    <value>Vergessen Sie diesen Browser</value>
+  </data>
+  <data name="Id_RecoveryCodeVerificationDescription" xml:space="preserve">
+    <value>Sie haben die Anmeldung mit einem Wiederherstellungscode beantragt. Diese Anmeldung wird erst gespeichert, wenn Sie bei der Anmeldung einen Authentifizierungs-App-Code angeben oder 2FA deaktivieren und sich erneut anmelden.</value>
+  </data>
+  <data name="Manage_MustGenerateRecoveryCodesBeforeLogin" xml:space="preserve">
+    <value>Du musst</value>
+  </data>
+  <data name="Id_RegisterConfirmationNormallyEmailed" xml:space="preserve">
+    <value>Normalerweise würde dies per E-Mail gesendet werden:</value>
+  </data>
+  <data name="Manage_PersonalDataTitle" xml:space="preserve">
+    <value>Persönliche Daten</value>
+  </data>
+  <data name="Manage_PersonalDataDescription" xml:space="preserve">
+    <value>Ihr Konto enthält personenbezogene Daten, die Sie uns zur Verfügung gestellt haben. Auf dieser Seite können Sie diese Daten herunterladen oder löschen.</value>
+  </data>
+  <data name="Manage_DownloadPersonalDataTitle" xml:space="preserve">
+    <value>Laden Sie Ihre Daten herunter</value>
+  </data>
+  <data name="Manage_GenerateRecoveryCodesBody" xml:space="preserve">
+    <value>Durch die Generierung neuer Wiederherstellungscodes werden die in Authentifizierungs-Apps verwendeten Schlüssel nicht geändert. Wenn Sie den in einer Authentifizierungs-App verwendeten Schlüssel ändern möchten, sollten Sie dies tun</value>
+  </data>
+  <data name="Manage_CurrentBrowserForgotten" xml:space="preserve">
+    <value>Der aktuelle Browser wurde vergessen. Bei der nächsten Anmeldung über diesen Browser werden Sie zur Eingabe Ihres 2FA-Codes aufgefordert.</value>
+  </data>
+  <data name="Id_LogoutSuccess" xml:space="preserve">
+    <value>Sie haben sich erfolgreich von der Anwendung abgemeldet.</value>
+  </data>
+  <data name="Manage_GenerateRecoveryCodesTitle" xml:space="preserve">
+    <value>Generieren Sie Wiederherstellungscodes für die Zwei-Faktor-Authentifizierung (2FA).</value>
+  </data>
+  <data name="Id_ConfirmEmailSuccess" xml:space="preserve">
+    <value>Vielen Dank für die Bestätigung Ihrer E-Mail.</value>
+  </data>
+  <data name="Id_RecoveryCodeVerificationTitle" xml:space="preserve">
+    <value>Überprüfung des Wiederherstellungscodes</value>
+  </data>
+  <data name="Manage_DownloadButton" xml:space="preserve">
+    <value>Herunterladen</value>
+  </data>
+  <data name="Manage_EnableAuthenticatorStep3" xml:space="preserve">
+    <value>Nach dem Scannen des QR-Codes oder der Eingabe des Schlüssels stellt Ihre Authentifizierungs-App einen eindeutigen Code bereit. Geben Sie den Code unten ein.</value>
+  </data>
+  <data name="Id_ExternalLoginInfoLoadConfirmationError" xml:space="preserve">
+    <value>Fehler beim Laden der externen Anmeldeinformationen während der Bestätigung.</value>
+  </data>
+  <data name="Id_UnableToLoadTwoFactorUser" xml:space="preserve">
+    <value>Der Benutzer für die Zwei-Faktor-Authentifizierung konnte nicht geladen werden.</value>
+  </data>
+  <data name="Manage_ResetAuthenticatorButton" xml:space="preserve">
+    <value>Authentifikatorschlüssel zurücksetzen</value>
+  </data>
+  <data name="Id_ResetPasswordEmailSubject" xml:space="preserve">
+    <value>Passwort zurücksetzen</value>
+  </data>
+  <data name="Manage_ChangeEmailConfirmationSent" xml:space="preserve">
+    <value>Bestätigungslink zum Ändern der gesendeten E-Mail. Bitte überprüfen Sie Ihre E-Mails.</value>
+  </data>
+  <data name="Manage_VerificationCodePlaceholder" xml:space="preserve">
+    <value>Bitte geben Sie den Code ein.</value>
+  </data>
+  <data name="Id_ResendEmailConfirmationTitle" xml:space="preserve">
+    <value>E-Mail-Bestätigung erneut senden</value>
+  </data>
+  <data name="Id_ClickHereToLogin" xml:space="preserve">
+    <value>Klicken Sie hier, um sich anzumelden</value>
+  </data>
+  <data name="Manage_RecoveryCodesTitle" xml:space="preserve">
+    <value>Wiederherstellungscodes</value>
+  </data>
+  <data name="Id_LogoutAction" xml:space="preserve">
+    <value>Klicken Sie hier, um sich abzumelden</value>
+  </data>
+  <data name="Id_RegisterConfirmationClickLink" xml:space="preserve">
+    <value>Klicken Sie hier, um Ihr Konto zu bestätigen</value>
+  </data>
+  <data name="Manage_DeleteUserUnexpectedError" xml:space="preserve">
+    <value>Beim Löschen des Benutzers ist ein unerwarteter Fehler aufgetreten.</value>
+  </data>
+  <data name="Id_TwoFactorTitle" xml:space="preserve">
+    <value>Zwei-Faktor-Authentifizierung</value>
+  </data>
+  <data name="Id_EnterEmailSubtitle" xml:space="preserve">
+    <value>Geben Sie Ihre E-Mail-Adresse ein.</value>
+  </data>
+  <data name="Manage_CanGenerateRecoveryCodes" xml:space="preserve">
+    <value>Du kannst</value>
+  </data>
+  <data name="Id_LockoutTitle" xml:space="preserve">
+    <value>Ausgesperrt</value>
+  </data>
+  <data name="Id_ResetPasswordButton" xml:space="preserve">
+    <value>Passwort zurücksetzen</value>
+  </data>
+  <data name="Id_NoAuthenticatorDevice" xml:space="preserve">
+    <value>Sie haben keinen Zugriff auf Ihr Authentifizierungsgerät? Du kannst</value>
+  </data>
+  <data name="Manage_MustAcceptPolicyFor2fa" xml:space="preserve">
+    <value>Sie müssen die Richtlinie akzeptieren, bevor Sie die Zwei-Faktor-Authentifizierung aktivieren können.</value>
+  </data>
+  <data name="Id_RecoveryCodePlaceholder" xml:space="preserve">
+    <value>Wiederherstellungscode</value>
+  </data>
+  <data name="Manage_2faDisabledStatus" xml:space="preserve">
+    <value>2FA wurde deaktiviert. Sie können 2FA wieder aktivieren, wenn Sie eine Authentifizierungs-App einrichten.</value>
+  </data>
+  <data name="Manage_RemoveLoginTitle" xml:space="preserve">
+    <value>Entfernen Sie dieses {0}-Login aus Ihrem Konto</value>
+  </data>
+  <data name="Manage_GenerateNewRecoveryCodes" xml:space="preserve">
+    <value>Generieren Sie einen neuen Satz Wiederherstellungscodes</value>
+  </data>
+  <data name="Id_ForgotPasswordConfirmationTitle" xml:space="preserve">
+    <value>Passwortbestätigung vergessen</value>
+  </data>
+  <data name="Manage_NewEmail" xml:space="preserve">
+    <value>Neue E-Mail</value>
+  </data>
+  <data name="Manage_PrivacyNotAccepted" xml:space="preserve">
+    <value>Datenschutz- und Cookie-Richtlinien wurden nicht akzeptiert.</value>
+  </data>
+  <data name="Id_RegisterConfirmationNoEmailSender" xml:space="preserve">
+    <value>Für diese App ist derzeit kein echter E-Mail-Absender registriert, siehe</value>
+  </data>
+  <data name="Id_AccessDeniedTitle" xml:space="preserve">
+    <value>Zugriff verweigert</value>
+  </data>
+  <data name="Id_ResetPasswordEmailBody" xml:space="preserve">
+    <value>Bitte setzen Sie Ihr Passwort zurück, indem Sie &lt;a href='{0}'&gt;hier klicken&lt;/a&gt;.</value>
+  </data>
+  <data name="Manage_AuthenticatorKeyResetStatus" xml:space="preserve">
+    <value>Ihr Authentifizierungs-App-Schlüssel wurde zurückgesetzt. Konfigurieren Sie Ihre Authentifizierungs-App mit dem neuen Schlüssel.</value>
+  </data>
+  <data name="Manage_RecoveryCodesLeftFormat" xml:space="preserve">
+    <value>Sie haben noch {0}-Wiederherstellungscodes übrig.</value>
+  </data>
+  <data name="Id_ResetButton" xml:space="preserve">
+    <value>Zurücksetzen</value>
+  </data>
+  <data name="Id_ConfirmEmailError" xml:space="preserve">
+    <value>Fehler beim Bestätigen Ihrer E-Mail.</value>
+  </data>
+  <data name="Id_AccessDeniedMessage" xml:space="preserve">
+    <value>Sie haben keinen Zugriff auf diese Ressource.</value>
+  </data>
+  <data name="Id_ForgotPasswordConfirmationMessage" xml:space="preserve">
+    <value>Bitte überprüfen Sie Ihre E-Mails, um Ihr Passwort zurückzusetzen.</value>
+  </data>
+  <data name="Manage_ShouldGenerateRecoveryCodes" xml:space="preserve">
+    <value>Du solltest</value>
+  </data>
+  <data name="Manage_NoRecoveryCodesLeft" xml:space="preserve">
+    <value>Sie haben keine Wiederherstellungscodes mehr.</value>
+  </data>
+  <data name="Id_ForgotPasswordTitle" xml:space="preserve">
+    <value>Passwort vergessen?</value>
+  </data>
+  <data name="Id_ErrorChangingEmail" xml:space="preserve">
+    <value>Fehler beim Ändern der E-Mail-Adresse.</value>
+  </data>
+  <data name="Manage_ExternalLoginsTitle" xml:space="preserve">
+    <value>Verwalten Sie Ihre externen Logins</value>
+  </data>
+  <data name="Manage_Disable2faUnexpectedError" xml:space="preserve">
+    <value>Beim Deaktivieren von 2FA ist ein unerwarteter Fehler aufgetreten.</value>
+  </data>
+  <data name="Id_RegisterConfirmationTitle" xml:space="preserve">
+    <value>Registrierungsbestätigung</value>
+  </data>
+  <data name="Id_UnableToLoadUserByEmail" xml:space="preserve">
+    <value>Der Benutzer mit der E-Mail-Adresse „{0}“ kann nicht geladen werden.</value>
+  </data>
+  <data name="Manage_EnableQrCodeGeneration" xml:space="preserve">
+    <value>Aktivieren Sie die QR-Code-Generierung</value>
+  </data>
+  <data name="Id_RecoveryCode" xml:space="preserve">
+    <value>Wiederherstellungscode</value>
+  </data>
+  <data name="Manage_ExternalLoginNotRemoved" xml:space="preserve">
+    <value>Der externe Login wurde nicht entfernt.</value>
+  </data>
+  <data name="Manage_ExternalLoginAdded" xml:space="preserve">
+    <value>Der externe Login wurde hinzugefügt.</value>
+  </data>
+  <data name="Manage_PersonalDataFileName" xml:space="preserve">
+    <value>PersonalData.json</value>
+  </data>
+  <data name="Id_RememberThisMachine" xml:space="preserve">
+    <value>Denken Sie an diese Maschine</value>
+  </data>
+  <data name="Id_ExternalLoginAssociateTitle" xml:space="preserve">
+    <value>Verknüpfen Sie Ihr {0}-Konto.</value>
+  </data>
+  <data name="Manage_iOS" xml:space="preserve">
+    <value>iOS</value>
+  </data>
+  <data name="Manage_VerifyButton" xml:space="preserve">
+    <value>Verifizieren</value>
+  </data>
+  <data name="Manage_DeleteDataAndCloseAccount" xml:space="preserve">
+    <value>Daten löschen und mein Konto schließen</value>
+  </data>
+  <data name="Id_RegisterConfirmationCheckEmail" xml:space="preserve">
+    <value>Bitte überprüfen Sie Ihre E-Mails, um Ihr Konto zu bestätigen.</value>
+  </data>
+  <data name="Manage_TwoFactorTitle" xml:space="preserve">
+    <value>Zwei-Faktor-Authentifizierung (2FA)</value>
+  </data>
+  <data name="Id_ExternalProviderErrorFormat" xml:space="preserve">
+    <value>Fehler vom externen Anbieter: {0}</value>
+  </data>
+  <data name="Id_ResetPasswordConfirmationMessage" xml:space="preserve">
+    <value>Ihr Passwort wurde zurückgesetzt. Bitte</value>
+  </data>
+  <data name="Id_ResendButton" xml:space="preserve">
+    <value>Erneut senden</value>
+  </data>
+  <data name="Manage_ResetAuthenticatorTitle" xml:space="preserve">
+    <value>Authentifikatorschlüssel zurücksetzen</value>
+  </data>
+  <data name="Id_LoginWithRecoveryCodeLink" xml:space="preserve">
+    <value>Melden Sie sich mit einem Wiederherstellungscode an</value>
+  </data>
+  <data name="Id_LockoutMessage" xml:space="preserve">
+    <value>Dieses Konto wurde gesperrt. Bitte versuchen Sie es später erneut.</value>
+  </data>
+  <data name="Id_InvalidAuthenticatorCode" xml:space="preserve">
+    <value>Ungültiger Authentifizierungscode.</value>
+  </data>
+  <data name="Id_ResetPasswordTitle" xml:space="preserve">
+    <value>Passwort zurücksetzen</value>
+  </data>
+  <data name="Manage_Disable2faTitle" xml:space="preserve">
+    <value>Zwei-Faktor-Authentifizierung (2FA) deaktivieren</value>
+  </data>
+  <data name="Id_ExternalLoginDescription" xml:space="preserve">
+    <value>Sie haben sich erfolgreich mit {0} authentifiziert. Bitte geben Sie unten eine E-Mail-Adresse für diese Website ein und klicken Sie auf Registrieren, um die Anmeldung abzuschließen.</value>
+  </data>
+  <data name="Manage_ResetAuthenticatorBody" xml:space="preserve">
+    <value>Durch diesen Vorgang wird 2FA deaktiviert, bis Sie Ihre Authentifizierungs-App verifizieren. Wenn Sie die Konfiguration nicht abschließen, verlieren Sie möglicherweise den Zugriff auf Ihr Konto.</value>
+  </data>
+  <data name="Manage_ResetAuthenticatorKeysLink" xml:space="preserve">
+    <value>Setzen Sie Ihre Authentifizierungsschlüssel zurück.</value>
+  </data>
+  <data name="Id_LogoutTitle" xml:space="preserve">
+    <value>Abmelden</value>
+  </data>
+  <data name="Manage_CannotGenerateRecoveryCodes" xml:space="preserve">
+    <value>Wiederherstellungscodes für den Benutzer können nicht generiert werden, da 2FA nicht aktiviert ist.</value>
+  </data>
+  <data name="Manage_And" xml:space="preserve">
+    <value>Und</value>
+  </data>
+  <data name="Id_ConfirmEmailTitle" xml:space="preserve">
+    <value>E-Mail bestätigen</value>
+  </data>
+  <data name="Manage_EmailTitle" xml:space="preserve">
+    <value>E-Mail verwalten</value>
+  </data>
+  <data name="Manage_Or" xml:space="preserve">
+    <value>oder</value>
+  </data>
+  <data name="Manage_ExternalLoginProviderKey" xml:space="preserve">
+    <value>Schlüssel des externen Anmeldeanbieters</value>
+  </data>
+  <data name="Id_DocsLinkText" xml:space="preserve">
+    <value>diese Dokumente</value>
+  </data>
+  <data name="Manage_ExternalLoginLoadInfoError" xml:space="preserve">
+    <value>Beim Laden der externen Anmeldeinformationen ist ein unerwarteter Fehler aufgetreten.</value>
+  </data>
+  <data name="Id_ConfirmEmailChangeTitle" xml:space="preserve">
+    <value>E-Mail-Änderung bestätigen</value>
+  </data>
+  <data name="Manage_AuthenticatorApp" xml:space="preserve">
+    <value>Authentifizierungs-App</value>
+  </data>
+  <data name="Manage_Disable2faWarningBody" xml:space="preserve">
+    <value>Durch die Deaktivierung von 2FA werden die in Authentifizierungs-Apps verwendeten Schlüssel nicht geändert. Wenn Sie den in einer Authentifizierungs-App verwendeten Schlüssel ändern möchten, sollten Sie dies tun</value>
+  </data>
+  <data name="Id_VerificationEmailSent" xml:space="preserve">
+    <value>Bestätigungs-E-Mail gesendet. Bitte überprüfen Sie Ihre E-Mails.</value>
+  </data>
+  <data name="Manage_ResetRecoveryCodesButton" xml:space="preserve">
+    <value>Wiederherstellungscodes zurücksetzen</value>
+  </data>
+  <data name="Id_ResetPasswordCodeRequired" xml:space="preserve">
+    <value>Zum Zurücksetzen des Passworts muss ein Code angegeben werden.</value>
+  </data>
+  <data name="Manage_SetUpAuthenticatorApp" xml:space="preserve">
+    <value>Authentifizierungs-App einrichten</value>
+  </data>
+  <data name="Manage_EnableAuthenticatorIntro" xml:space="preserve">
+    <value>Gehen Sie folgendermaßen vor, um eine Authentifizierungs-App zu verwenden:</value>
+  </data>
+  <data name="Manage_RecoveryCodesLossWarning" xml:space="preserve">
+    <value>Wenn Sie Ihr Gerät verlieren und keine Wiederherstellungscodes haben, verlieren Sie den Zugriff auf Ihr Konto.</value>
+  </data>
+  <data name="Manage_RecoveryCodesGenerated" xml:space="preserve">
+    <value>Sie haben neue Wiederherstellungscodes generiert.</value>
+  </data>
+  <data name="Id_ExternalLoginInfoLoadError" xml:space="preserve">
+    <value>Fehler beim Laden der externen Anmeldeinformationen.</value>
+  </data>
+  <data name="Manage_ChangeEmailButton" xml:space="preserve">
+    <value>E-Mail ändern</value>
+  </data>
+  <data name="Id_InvalidRecoveryCode" xml:space="preserve">
+    <value>Ungültiger Wiederherstellungscode eingegeben.</value>
+  </data>
+  <data name="Manage_AuthenticatorKey" xml:space="preserve">
+    <value>Authentifikatorschlüssel</value>
+  </data>
+  <data name="Manage_GenerateRecoveryCodesButton" xml:space="preserve">
+    <value>Wiederherstellungscodes generieren</value>
+  </data>
+  <data name="Manage_OneRecoveryCodeLeft" xml:space="preserve">
+    <value>Sie haben noch 1 Wiederherstellungscode übrig.</value>
+  </data>
+  <data name="Manage_VerificationCodeInvalid" xml:space="preserve">
+    <value>Der Bestätigungscode ist ungültig.</value>
+  </data>
+  <data name="Manage_Android" xml:space="preserve">
+    <value>Android</value>
+  </data>
+  <data name="Manage_CannotDisable2fa" xml:space="preserve">
+    <value>2FA kann für den Benutzer nicht deaktiviert werden, da es derzeit nicht aktiviert ist.</value>
+  </data>
+  <data name="Id_AuthenticatorCode" xml:space="preserve">
+    <value>Authentifizierungscode</value>
+  </data>
+  <data name="Manage_ResetAuthenticatorWarning" xml:space="preserve">
+    <value>Wenn Sie Ihren Authentifizierungsschlüssel zurücksetzen, funktioniert Ihre Authentifizierungs-App erst, wenn Sie sie neu konfigurieren.</value>
+  </data>
+  <data name="Manage_ExternalLoginNotAdded" xml:space="preserve">
+    <value>Der externe Login wurde nicht hinzugefügt. Externe Anmeldungen können nur einem Konto zugeordnet werden.</value>
+  </data>
+  <data name="Manage_EnableAuthenticatorStep1" xml:space="preserve">
+    <value>Laden Sie eine Zwei-Faktor-Authentifikator-App wie Microsoft Authenticator herunter</value>
+  </data>
+  <data name="Manage_LearnHowTo" xml:space="preserve">
+    <value>Erfahren Sie, wie es geht</value>
+  </data>
+  <data name="Manage_AuthenticatorVerified" xml:space="preserve">
+    <value>Ihre Authentifizierungs-App wurde überprüft.</value>
+  </data>
+  <data name="Manage_EnableAuthenticatorStep2" xml:space="preserve">
+    <value>Scannen Sie den QR-Code oder geben Sie diesen Schlüssel {0} in Ihre Authentifizierungs-App ein. Leerzeichen und Groß-/Kleinschreibung spielen keine Rolle.</value>
+  </data>
+  <data name="Manage_NewEmailPlaceholder" xml:space="preserve">
+    <value>Bitte geben Sie eine neue E-Mail-Adresse ein.</value>
+  </data>
+  <data name="Id_EmailChangeConfirmed" xml:space="preserve">
+    <value>Vielen Dank für die Bestätigung Ihrer E-Mail-Änderung.</value>
+  </data>
+  <data name="Manage_SendVerificationEmail" xml:space="preserve">
+    <value>Verifizierungs-E-Mail senden</value>
+  </data>
+  <data name="Manage_AddAnotherLoginService" xml:space="preserve">
+    <value>Fügen Sie einen weiteren Dienst hinzu, um sich anzumelden.</value>
+  </data>
+  <data name="Manage_Remove" xml:space="preserve">
+    <value>Entfernen</value>
+  </data>
+  <data name="Manage_ExternalLoginRemoved" xml:space="preserve">
+    <value>Der externe Login wurde entfernt.</value>
+  </data>
+  <data name="Manage_Disable2faWarningTitle" xml:space="preserve">
+    <value>Diese Aktion deaktiviert nur 2FA.</value>
+  </data>
+  <data name="Manage_RegisteredLogins" xml:space="preserve">
+    <value>Registrierte Logins</value>
+  </data>
+  <data name="Id_TwoFactorDescription" xml:space="preserve">
+    <value>Ihr Login ist mit einer Authentifizierungs-App geschützt. Geben Sie unten Ihren Authentifizierungscode ein.</value>
+  </data>
+  <data name="Manage_DeletePersonalDataTitle" xml:space="preserve">
+    <value>Persönliche Daten löschen</value>
+  </data>
+  <data name="Manage_VerificationCode" xml:space="preserve">
+    <value>Bestätigungscode</value>
+  </data>
+  <data name="Manage_AddAuthenticatorApp" xml:space="preserve">
+    <value>Authentifizierungs-App hinzufügen</value>
+  </data>
+  <data name="Manage_PutCodesInSafePlace" xml:space="preserve">
+    <value>Bewahren Sie diese Codes an einem sicheren Ort auf.</value>
+  </data>
+  <data name="Manage_ResetAuthenticatorApp" xml:space="preserve">
+    <value>Authentifizierungs-App zurücksetzen</value>
+  </data>
+  <data name="Manage_NullValue" xml:space="preserve">
+    <value>null</value>
+  </data>
+  <data name="Id_ErrorChangingUserName" xml:space="preserve">
+    <value>Fehler beim Ändern des Benutzernamens.</value>
+  </data>
+  <data name="Id_ResetPasswordSubtitle" xml:space="preserve">
+    <value>Setzen Sie Ihr Passwort zurück.</value>
+  </data>
+  <data name="Id_ResetPasswordConfirmationTitle" xml:space="preserve">
+    <value>Passwortbestätigung zurücksetzen</value>
+  </data>
+  <data name="LanguageOption_en" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="LanguageOption_uk" xml:space="preserve">
+    <value>Українська</value>
+  </data>
+  <data name="LanguageOption_de" xml:space="preserve">
+    <value>Deutsch</value>
+  </data>
+  <data name="LanguageOption_pl" xml:space="preserve">
+    <value>Polski</value>
+  </data>
+  <data name="LanguageOption_es" xml:space="preserve">
+    <value>Español</value>
+  </data>
+  <data name="Error_Title" xml:space="preserve">
+    <value>Fehler</value>
+  </data>
+  <data name="Error_Header" xml:space="preserve">
+    <value>Fehler.</value>
+  </data>
+  <data name="Error_Subheader" xml:space="preserve">
+    <value>Bei der Bearbeitung Ihrer Anfrage ist ein Fehler aufgetreten.</value>
+  </data>
+  <data name="Error_RequestId" xml:space="preserve">
+    <value>Anfrage-ID:</value>
+  </data>
+  <data name="Error_DevelopmentMode" xml:space="preserve">
+    <value>Entwicklungsmodus</value>
+  </data>
+  <data name="Error_DevelopmentDescription" xml:space="preserve">
+    <value>Wenn Sie zur Entwicklungsumgebung wechseln, werden detailliertere Informationen zum Fehler angezeigt.</value>
+  </data>
+  <data name="Error_DevelopmentWarning" xml:space="preserve">
+    <value>Die Entwicklungsumgebung sollte für bereitgestellte Anwendungen nicht aktiviert werden.</value>
+  </data>
+  <data name="Error_DevelopmentHint" xml:space="preserve">
+    <value>Für lokales Debuggen legen Sie ASPNETCORE_ENVIRONMENT=Development fest und starten Sie die App neu.</value>
+  </data>
+  <data name="Home_PlayImageAlt" xml:space="preserve">
+    <value>Bild abspielen</value>
+  </data>
+  <data name="Home_StatsImageAlt" xml:space="preserve">
+    <value>Statistikbild</value>
+  </data>
+  <data name="Home_AboutImageAlt" xml:space="preserve">
+    <value>Über Bild</value>
+  </data>
+  <data name="Home_HistoryParagraph1" xml:space="preserve">
+    <value>Die Geschichte des Schachs lässt sich fast 1500 Jahre zurückverfolgen, obwohl die frühesten Ursprünge ungewiss sind. Der früheste Vorgänger des Spiels stammt wahrscheinlich aus Indien, vor dem 6. Jahrhundert n. Chr. Von Indien aus verbreitete sich das Spiel nach Persien. Als die Araber Persien eroberten, wurde Schach von der muslimischen Welt übernommen und verbreitete sich anschließend nach Südeuropa. In Europa entwickelte sich Schach im 15. Jahrhundert ungefähr zu seiner heutigen Form.</value>
+  </data>
+  <data name="Home_HistoryParagraph2" xml:space="preserve">
+    <value>„Romantisches Schach“ war vom späten 15. Jahrhundert bis in die 1880er Jahre der vorherrschende Spielstil. Auf die Epoche der Romantik folgten die Epochen des Wissenschaftlichen, Hypermodernen und Neuen Dynamismus. 1886 fand die erste offizielle Schachweltmeisterschaft statt. 1997 besiegte ein Computer einen Weltmeister im berühmten Spiel Deep Blue gegen Garry Kasparov. Später wurden Online-Schach- und Computeranalysen für jedermann allgemein zugänglich.</value>
+  </data>
+  <data name="About_Title" xml:space="preserve">
+    <value>Um</value>
+  </data>
+  <data name="About_ProjectTitle" xml:space="preserve">
+    <value>Schachprojekt</value>
+  </data>
+  <data name="About_Description" xml:space="preserve">
+    <value>Das Spiel wurde hauptsächlich zum Üben von C# OOP, ASP.NET Core, Entity Framework Core, JS, HTML und CSS entwickelt. SignalR ist für Live-Multiplayer und Chessboardjs für das Board-Rendering integriert.</value>
+  </data>
+  <data name="About_ImageGameAlt" xml:space="preserve">
+    <value>Bild eines Schachspiels</value>
+  </data>
+  <data name="About_FeaturesTitle" xml:space="preserve">
+    <value>Folgende Funktionen sind implementiert:</value>
+  </data>
+  <data name="About_Feature_MoveValidation" xml:space="preserve">
+    <value>Validierung verschieben</value>
+  </data>
+  <data name="About_Feature_Check" xml:space="preserve">
+    <value>Überprüfen</value>
+  </data>
+  <data name="About_Feature_Checkmate" xml:space="preserve">
+    <value>Schachmatt</value>
+  </data>
+  <data name="About_Feature_Stalemate" xml:space="preserve">
+    <value>Patt</value>
+  </data>
+  <data name="About_Feature_Draw" xml:space="preserve">
+    <value>Ziehen</value>
+  </data>
+  <data name="About_Feature_OfferDraw" xml:space="preserve">
+    <value>Angebotsverlosung</value>
+  </data>
+  <data name="About_Feature_Threefold" xml:space="preserve">
+    <value>Dreifache Wiederholungsziehung</value>
+  </data>
+  <data name="About_Feature_Fivefold" xml:space="preserve">
+    <value>Fünffache Wiederholungsziehung</value>
+  </data>
+  <data name="About_Feature_Resign" xml:space="preserve">
+    <value>Zurücktreten</value>
+  </data>
+  <data name="About_Feature_Castling" xml:space="preserve">
+    <value>Rochade</value>
+  </data>
+  <data name="About_Feature_PawnPromotion" xml:space="preserve">
+    <value>Bauernförderung</value>
+  </data>
+  <data name="About_Feature_EnPassant" xml:space="preserve">
+    <value>En Passant Capture</value>
+  </data>
+  <data name="About_Feature_Points" xml:space="preserve">
+    <value>Punkteberechnung</value>
+  </data>
+  <data name="About_Feature_TakenPiecesHistory" xml:space="preserve">
+    <value>Geschichte der genommenen Stücke</value>
+  </data>
+  <data name="About_Feature_NotationHistory" xml:space="preserve">
+    <value>Bewegungsverlauf in algebraischer Notation</value>
+  </data>
+  <data name="About_Feature_UserAuthentication" xml:space="preserve">
+    <value>Benutzerauthentifizierung</value>
+  </data>
+  <data name="About_Feature_HighlightLastMove" xml:space="preserve">
+    <value>Markieren Sie „Letzter Zug“.</value>
+  </data>
+  <data name="About_Feature_GameLobby" xml:space="preserve">
+    <value>Spielelobby</value>
+  </data>
+  <data name="About_Feature_GameChat" xml:space="preserve">
+    <value>Spielchat</value>
+  </data>
+  <data name="About_Feature_LobbyChat" xml:space="preserve">
+    <value>Lobby-Chat</value>
+  </data>
+  <data name="About_Feature_StatsPage" xml:space="preserve">
+    <value>Statistikseite</value>
+  </data>
+  <data name="About_Feature_EloRating" xml:space="preserve">
+    <value>ELO-Bewertungsberechnung</value>
+  </data>
+  <data name="About_Feature_FiftyMove" xml:space="preserve">
+    <value>Remis mit 50 Zügen</value>
+  </data>
+  <data name="About_InspiredBy" xml:space="preserve">
+    <value>Das Projekt ist von der Konsolenversion von Schach inspiriert:</value>
+  </data>
+  <data name="About_ImageConsoleAlt" xml:space="preserve">
+    <value>Konsolenschachbild</value>
+  </data>
+  <data name="About_SourceWeb" xml:space="preserve">
+    <value>Chess.Web – Quellcode</value>
+  </data>
+  <data name="About_SourceConsole" xml:space="preserve">
+    <value>Chess.Console – Quellcode</value>
+  </data>
+  <data name="Game_PawnAlt" xml:space="preserve">
+    <value>Bauer</value>
+  </data>
+  <data name="Game_KnightAlt" xml:space="preserve">
+    <value>Ritter</value>
+  </data>
+  <data name="Game_BishopAlt" xml:space="preserve">
+    <value>Bischof</value>
+  </data>
+  <data name="Game_RookAlt" xml:space="preserve">
+    <value>Turm</value>
+  </data>
+  <data name="Game_QueenAlt" xml:space="preserve">
+    <value>Königin</value>
+  </data>
+  <data name="Game_BoardTheme_Classic" xml:space="preserve">
+    <value>Klassiker</value>
+  </data>
+  <data name="Game_BoardTheme_Forest" xml:space="preserve">
+    <value>Wald</value>
+  </data>
+  <data name="Game_BoardTheme_Midnight" xml:space="preserve">
+    <value>Mitternacht</value>
+  </data>
+  <data name="Game_PieceTheme_Wikipedia" xml:space="preserve">
+    <value>Wikipedia</value>
+  </data>
+  <data name="Game_PieceTheme_Alpha" xml:space="preserve">
+    <value>Alpha</value>
+  </data>
+  <data name="Game_PieceTheme_Leipzig" xml:space="preserve">
+    <value>Leipzig</value>
+  </data>
+  <data name="Id_EmailPlaceholder" xml:space="preserve">
+    <value>name@example.com</value>
+  </data>
+  <data name="Id_PasswordPlaceholder" xml:space="preserve">
+    <value>Passwort</value>
+  </data>
+  <data name="Id_LoginExternalTitle" xml:space="preserve">
+    <value>Verwenden Sie einen anderen Dienst, um sich anzumelden.</value>
+  </data>
+  <data name="Id_RegisterExternalTitle" xml:space="preserve">
+    <value>Nutzen Sie für die Registrierung einen anderen Dienst.</value>
+  </data>
+  <data name="Id_NoExternalLoginProviders" xml:space="preserve">
+    <value>Es sind keine externen Authentifizierungsdienste konfiguriert. Sehen Sie sich das an</value>
+  </data>
+  <data name="Id_ExternalArticleLinkText" xml:space="preserve">
+    <value>Artikel über das Einrichten externer Logins</value>
+  </data>
+  <data name="Id_LoginUsingProvider" xml:space="preserve">
+    <value>Melden Sie sich mit Ihrem {0}-Konto an</value>
+  </data>
+  <data name="Id_ConfirmEmailSubject" xml:space="preserve">
+    <value>Bestätigen Sie Ihre E-Mail</value>
+  </data>
+  <data name="Id_ConfirmEmailBody" xml:space="preserve">
+    <value>Bitte bestätigen Sie Ihr Konto, indem Sie &lt;a href='{0}'&gt;hier klicken&lt;/a&gt;.</value>
+  </data>
+  <data name="Manage_OldPasswordPlaceholder" xml:space="preserve">
+    <value>Bitte geben Sie Ihr aktuelles Passwort ein.</value>
+  </data>
+  <data name="Manage_NewPasswordPlaceholder" xml:space="preserve">
+    <value>Bitte geben Sie Ihr neues Passwort ein.</value>
+  </data>
+  <data name="Manage_ConfirmPasswordPlaceholder" xml:space="preserve">
+    <value>Bitte bestätigen Sie Ihr Passwort.</value>
+  </data>
+  <data name="Manage_UsernamePlaceholder" xml:space="preserve">
+    <value>Ihr Benutzername</value>
+  </data>
+  <data name="Manage_PhonePlaceholder" xml:space="preserve">
+    <value>Bitte geben Sie Ihre Telefonnummer ein.</value>
+  </data>
+  <data name="Manage_SetPhoneUnexpectedError" xml:space="preserve">
+    <value>Unerwarteter Fehler beim Versuch, die Telefonnummer festzulegen.</value>
+  </data>
+  <data name="Identity_UnableToLoadUser" xml:space="preserve">
+    <value>Der Benutzer mit der ID „{0}“ kann nicht geladen werden.</value>
+  </data>
+  <data name="DefaultError" xml:space="preserve">
+    <value>Es ist ein unbekannter Fehler aufgetreten.</value>
+  </data>
+  <data name="ConcurrencyFailure" xml:space="preserve">
+    <value>Optimistischer Parallelitätsfehler, Objekt wurde geändert.</value>
+  </data>
+  <data name="PasswordMismatch" xml:space="preserve">
+    <value>Falsches Passwort.</value>
+  </data>
+  <data name="InvalidToken" xml:space="preserve">
+    <value>Ungültiges Token.</value>
+  </data>
+  <data name="LoginAlreadyAssociated" xml:space="preserve">
+    <value>Ein Benutzer mit diesem Login existiert bereits.</value>
+  </data>
+  <data name="InvalidUserName" xml:space="preserve">
+    <value>Der Benutzername „{0}“ ist ungültig und darf nur Buchstaben oder Ziffern enthalten.</value>
+  </data>
+  <data name="InvalidEmail" xml:space="preserve">
+    <value>E-Mail „{0}“ ist ungültig.</value>
+  </data>
+  <data name="DuplicateUserName" xml:space="preserve">
+    <value>Der Benutzername „{0}“ ist bereits vergeben.</value>
+  </data>
+  <data name="DuplicateEmail" xml:space="preserve">
+    <value>E-Mail „{0}“ ist bereits vergeben.</value>
+  </data>
+  <data name="InvalidRoleName" xml:space="preserve">
+    <value>Der Rollenname „{0}“ ist ungültig.</value>
+  </data>
+  <data name="DuplicateRoleName" xml:space="preserve">
+    <value>Der Rollenname „{0}“ ist bereits vergeben.</value>
+  </data>
+  <data name="UserAlreadyHasPassword" xml:space="preserve">
+    <value>Der Benutzer hat bereits ein Passwort festgelegt.</value>
+  </data>
+  <data name="UserLockoutNotEnabled" xml:space="preserve">
+    <value>Die Sperrung ist für diesen Benutzer nicht aktiviert.</value>
+  </data>
+  <data name="UserAlreadyInRole" xml:space="preserve">
+    <value>Benutzer bereits in der Rolle „{0}“.</value>
+  </data>
+  <data name="UserNotInRole" xml:space="preserve">
+    <value>Der Benutzer ist nicht in der Rolle „{0}“.</value>
+  </data>
+  <data name="PasswordTooShort" xml:space="preserve">
+    <value>Passwörter müssen mindestens {0} Zeichen lang sein.</value>
+  </data>
+  <data name="PasswordRequiresNonAlphanumeric" xml:space="preserve">
+    <value>Passwörter müssen mindestens ein nicht alphanumerisches Zeichen enthalten.</value>
+  </data>
+  <data name="PasswordRequiresDigit" xml:space="preserve">
+    <value>Passwörter müssen mindestens eine Ziffer ('0'-'9') haben.</value>
+  </data>
+  <data name="PasswordRequiresLower" xml:space="preserve">
+    <value>Passwörter müssen mindestens einen Kleinbuchstaben ('a'-'z') enthalten.</value>
+  </data>
+  <data name="PasswordRequiresUpper" xml:space="preserve">
+    <value>Passwörter müssen mindestens einen Großbuchstaben („A“–„Z“) enthalten.</value>
+  </data>
+  <data name="PasswordRequiresUniqueChars" xml:space="preserve">
+    <value>Passwörter müssen mindestens {0} verschiedene Zeichen enthalten.</value>
+  </data>
+  <data name="RecoveryCodeRedemptionFailed" xml:space="preserve">
+    <value>Das Einlösen des Wiederherstellungscodes ist fehlgeschlagen.</value>
+  </data>
+</root>

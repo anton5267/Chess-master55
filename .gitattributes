@@ -1,0 +1,4 @@
+*.resx text working-tree-encoding=UTF-8
+*.cs text working-tree-encoding=UTF-8
+*.cshtml text working-tree-encoding=UTF-8
+*.js text working-tree-encoding=UTF-8

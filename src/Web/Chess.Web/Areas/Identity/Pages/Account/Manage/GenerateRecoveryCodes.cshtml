@@ -1,0 +1,27 @@
+@page
+@model GenerateRecoveryCodesModel
+@{
+    ViewData["Title"] = Localizer["Manage_GenerateRecoveryCodesTitle"];
+    ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
+}
+
+<partial name="_StatusMessage" for="StatusMessage" />
+<h3>@ViewData["Title"]</h3>
+<div class="alert alert-warning" role="alert">
+    <p>
+        <span class="glyphicon glyphicon-warning-sign"></span>
+        <strong>@Localizer["Manage_PutCodesInSafePlace"]</strong>
+    </p>
+    <p>
+        @Localizer["Manage_RecoveryCodesLossWarning"]
+    </p>
+    <p>
+        @Localizer["Manage_GenerateRecoveryCodesBody"]
+        <a asp-page="./ResetAuthenticator">@Localizer["Manage_ResetAuthenticatorKeysLink"]</a>
+    </p>
+</div>
+<div>
+    <form method="post">
+        <button class="btn btn-danger" type="submit">@Localizer["Manage_GenerateRecoveryCodesButton"]</button>
+    </form>
+</div>

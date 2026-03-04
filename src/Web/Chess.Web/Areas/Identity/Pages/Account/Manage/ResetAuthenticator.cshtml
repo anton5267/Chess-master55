@@ -1,0 +1,23 @@
+@page
+@model ResetAuthenticatorModel
+@{
+    ViewData["Title"] = Localizer["Manage_ResetAuthenticatorTitle"];
+    ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
+}
+
+<partial name="_StatusMessage" for="StatusMessage" />
+<h3>@ViewData["Title"]</h3>
+<div class="alert alert-warning" role="alert">
+    <p>
+        <span class="glyphicon glyphicon-warning-sign"></span>
+        <strong>@Localizer["Manage_ResetAuthenticatorWarning"]</strong>
+    </p>
+    <p>
+        @Localizer["Manage_ResetAuthenticatorBody"]
+    </p>
+</div>
+<div>
+    <form id="reset-authenticator-form" method="post">
+        <button id="reset-authenticator-button" class="btn btn-danger" type="submit">@Localizer["Manage_ResetAuthenticatorButton"]</button>
+    </form>
+</div>

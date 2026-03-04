@@ -1,0 +1,23 @@
+@model ErrorViewModel
+@{
+    this.ViewData["Title"] = Localizer["Error_Title"];
+}
+
+<h1 class="text-danger">@Localizer["Error_Header"]</h1>
+<h2 class="text-danger">@Localizer["Error_Subheader"]</h2>
+
+@if (this.Model.ShowRequestId)
+{
+    <p>
+        <strong>@Localizer["Error_RequestId"]</strong> <code>@this.Model.RequestId</code>
+    </p>
+}
+
+<h3>@Localizer["Error_DevelopmentMode"]</h3>
+<p>
+    @Localizer["Error_DevelopmentDescription"]
+</p>
+<p>
+    <strong>@Localizer["Error_DevelopmentWarning"]</strong>
+    @Localizer["Error_DevelopmentHint"]
+</p>

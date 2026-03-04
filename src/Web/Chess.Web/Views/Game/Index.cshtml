@@ -1,0 +1,179 @@
+@using System.Collections.Generic
+@using System.Text.Json
+@{
+    this.ViewData["Title"] = Localizer["Game_Title"];
+
+    var jsTranslations = new Dictionary<string, string>
+    {
+        ["roomSuffix"] = Localizer["Js_RoomSuffix"],
+        ["join"] = Localizer["Js_Join"],
+        ["yourTurn"] = Localizer["Js_YourTurn"],
+        ["playerTurnFormat"] = Localizer["Js_PlayerTurnFormat"],
+        ["waitingForOpponent"] = Localizer["Js_WaitingForOpponent"],
+        ["notAvailable"] = Localizer["Js_NotAvailable"],
+        ["drawRequestSent"] = Localizer["Js_DrawRequestSent"],
+        ["checkmateWinFormat"] = Localizer["Js_CheckmateWinFormat"],
+        ["stalemate"] = Localizer["Js_Stalemate"],
+        ["draw"] = Localizer["Js_Draw"],
+        ["threefoldDeclaredByFormat"] = Localizer["Js_ThreefoldDeclaredByFormat"],
+        ["fivefoldDraw"] = Localizer["Js_FivefoldDraw"],
+        ["resignedFormat"] = Localizer["Js_ResignedFormat"],
+        ["leftYouWinFormat"] = Localizer["Js_LeftYouWinFormat"],
+        ["fiftyMoveDraw"] = Localizer["Js_FiftyMoveDraw"],
+        ["check"] = Localizer["Js_Check"],
+        ["kingInCheck"] = Localizer["Js_KingInCheck"],
+        ["willOpenCheck"] = Localizer["Js_WillOpenCheck"],
+        ["invalidMove"] = Localizer["Js_InvalidMove"],
+        ["yes"] = Localizer["Js_Yes"],
+        ["no"] = Localizer["Js_No"],
+        ["drawRequestQuestionFormat"] = Localizer["Js_DrawRequestQuestionFormat"],
+        ["drawOfferRejectedFormat"] = Localizer["Js_DrawOfferRejectedFormat"],
+    };
+}
+
+<script>
+    window.chessI18n = @Html.Raw(JsonSerializer.Serialize(jsTranslations));
+</script>
+
+<environment names="Development">
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.js" asp-append-version="true"></script>
+    <script src="~/lib/chessboard-js/chessboard-1.0.0.js" asp-append-version="true"></script>
+</environment>
+<environment names="Staging,Production">
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script src="~/lib/chessboard-js/chessboard-1.0.0.min.js" asp-append-version="true"></script>
+</environment>
+
+<main class="main container-fluid text-center">
+    <article class="main-playground row">
+        <section class="main-playground-white player-stats column left">
+            <div class="player-name-container">
+                <i class="far fa-user fa-sm"></i>
+                <h1 class="main-playground-white-name player-name"></h1>
+            </div>
+            <div class="main-playground-white-rating player-rating"></div>
+            <div class="main-playground-white-points player-points"><span class="white-points-value player-points-value">0</span> @Localizer["Game_PointsSuffix"]</div>
+            <div class="main-playground-white-taken-pieces taken-pieces-container">
+                <div class="taken-pieces">
+                    <img src="~/img/chesspieces/wikipedia/bP.png" alt="@Localizer["Game_PawnAlt"]" />
+                    <span class="taken-pieces-black-pawn-value">0</span>
+                </div>
+                <div class="taken-pieces">
+                    <img src="~/img/chesspieces/wikipedia/bN.png" alt="@Localizer["Game_KnightAlt"]" />
+                    <span class="taken-pieces-black-knight-value">0</span>
+                </div>
+                <div class="taken-pieces">
+                    <img src="~/img/chesspieces/wikipedia/bB.png" alt="@Localizer["Game_BishopAlt"]" />
+                    <span class="taken-pieces-black-bishop-value">0</span>
+                </div>
+                <div class="taken-pieces">
+                    <img src="~/img/chesspieces/wikipedia/bR.png" alt="@Localizer["Game_RookAlt"]" />
+                    <span class="taken-pieces-black-rook-value">0</span>
+                </div>
+                <div class="taken-pieces">
+                    <img src="~/img/chesspieces/wikipedia/bQ.png" alt="@Localizer["Game_QueenAlt"]" />
+                    <span class="taken-pieces-black-queen-value">0</span>
+                </div>
+            </div>
+            <ul class="main-playground-white-move-history player-move-history list-group"></ul>
+        </section>
+
+        <section class="main-playground-board-container column middle">
+            <div class="board-settings-container">
+                <label class="board-settings-label" for="board-theme-select">@Localizer["Game_BoardLabel"]</label>
+                <select class="board-settings-select" id="board-theme-select">
+                    <option value="classic">@Localizer["Game_BoardTheme_Classic"]</option>
+                    <option value="forest">@Localizer["Game_BoardTheme_Forest"]</option>
+                    <option value="midnight">@Localizer["Game_BoardTheme_Midnight"]</option>
+                </select>
+
+                <label class="board-settings-label" for="piece-theme-select">@Localizer["Game_PiecesLabel"]</label>
+                <select class="board-settings-select" id="piece-theme-select">
+                    <option value="wikipedia">@Localizer["Game_PieceTheme_Wikipedia"]</option>
+                    <option value="alpha">@Localizer["Game_PieceTheme_Alpha"]</option>
+                    <option value="leipzig">@Localizer["Game_PieceTheme_Leipzig"]</option>
+                </select>
+            </div>
+            <h6 class="status-bar-container"><i class="fas fa-arrow-alt-circle-right"></i> <span class="status-bar-text"></span> <span class="status-bar-check-notification"></span></h6>
+            <div id="board"></div>
+            <div class="game-btn-container">
+                <button type="submit" class="threefold-draw-btn option-btn game-btn btn" disabled><i class="fas fa-equals"></i> @Localizer["Game_DeclareThreefold"]</button>
+                <button type="submit" class="offer-draw-btn option-btn game-btn btn"><i class="far fa-handshake"></i> @Localizer["Game_OfferDraw"]</button>
+                <button type="submit" class="resign-btn option-btn game-btn btn"><i class="far fa-flag"></i> @Localizer["Game_Resign"]</button>
+            </div>
+            <div class="game-chat-container chat-container">
+                <div class="game-chat-window-wrapper chat-window-wrapper">
+                    <ul class="game-chat-window chat-window"></ul>
+                </div>
+                <div class="game-chat-input-wrapper chat-input-wrapper">
+                    <input type="text" class="game-chat-input chat-input" placeholder="@Localizer["Game_TypeMessage"]" autofocus />
+                    <button type="submit" class="game-chat-send-btn chat-send-btn game-btn">></button>
+                </div>
+            </div>
+        </section>
+
+        <section class="main-playground-black player-stats column right">
+            <div class="player-name-container">
+                <i class="fas fa-user fa-sm"></i>
+                <h1 class="main-playground-black-name player-name"></h1>
+            </div>
+            <div class="main-playground-black-rating player-rating"></div>
+            <div class="main-playground-black-points player-points"><span class="black-points-value player-points-value">0</span> @Localizer["Game_PointsSuffix"]</div>
+            <div class="main-playground-black-taken-pieces taken-pieces-container">
+                <div class="taken-pieces">
+                    <img src="~/img/chesspieces/wikipedia/wP.png" alt="@Localizer["Game_PawnAlt"]" />
+                    <span class="taken-pieces-white-pawn-value">0</span>
+                </div>
+                <div class="taken-pieces">
+                    <img src="~/img/chesspieces/wikipedia/wN.png" alt="@Localizer["Game_KnightAlt"]" />
+                    <span class="taken-pieces-white-knight-value">0</span>
+                </div>
+                <div class="taken-pieces">
+                    <img src="~/img/chesspieces/wikipedia/wB.png" alt="@Localizer["Game_BishopAlt"]" />
+                    <span class="taken-pieces-white-bishop-value">0</span>
+                </div>
+                <div class="taken-pieces">
+                    <img src="~/img/chesspieces/wikipedia/wR.png" alt="@Localizer["Game_RookAlt"]" />
+                    <span class="taken-pieces-white-rook-value">0</span>
+                </div>
+                <div class="taken-pieces">
+                    <img src="~/img/chesspieces/wikipedia/wQ.png" alt="@Localizer["Game_QueenAlt"]" />
+                    <span class="taken-pieces-white-queen-value">0</span>
+                </div>
+            </div>
+            <ul class="main-playground-black-move-history player-move-history list-group"></ul>
+        </section>
+    </article>
+
+    <article class="game-lobby">
+        <section class="game-lobby-input-container form">
+            <input type="text" class="game-lobby-input-name" placeholder="@Localizer["Game_EnterName"]" autofocus />
+            <button type="submit" class="game-lobby-input-create-btn game-btn">@Localizer["Game_CreateRoom"]</button>
+        </section>
+
+        <section class="game-lobby-title-container">
+            <div class="game-lobby-title-room">@Localizer["Game_RoomsTitle"]</div>
+            <div class="game-lobby-title-chat">@Localizer["Game_ChatTitle"]</div>
+        </section>
+
+        <section class="game-lobby-room-chat-container">
+            <div class="game-lobby-room-container"></div>
+            <div class="game-lobby-chat-container chat-container">
+                <div class="game-lobby-chat-window-wrapper chat-window-wrapper">
+                    <ul class="game-lobby-chat-window chat-window"></ul>
+                </div>
+                <div class="game-lobby-chat-input-wrapper chat-input-wrapper">
+                    <input type="text" class="game-lobby-chat-input chat-input" placeholder="@Localizer["Game_TypeMessage"]" autofocus />
+                    <button type="submit" class="game-lobby-chat-send-btn chat-send-btn game-btn">></button>
+                </div>
+            </div>
+        </section>
+    </article>
+</main>
+
+<environment names="Development">
+    <script src="~/js/game.bundle.js" asp-append-version="true"></script>
+</environment>
+<environment names="Staging,Production">
+    <script src="~/js/game.bundle.min.js" asp-append-version="true"></script>
+</environment>

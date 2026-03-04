@@ -1,0 +1,23 @@
+@page
+@model RegisterConfirmationModel
+@{
+    ViewData["Title"] = Localizer["Id_RegisterConfirmationTitle"];
+}
+
+<h1>@ViewData["Title"]</h1>
+@{
+    if (@Model.DisplayConfirmAccountLink)
+    {
+<p>
+    @Localizer["Id_RegisterConfirmationNoEmailSender"] <a href="https://aka.ms/aspaccountconf">@Localizer["Id_DocsLinkText"]</a>.
+    @Localizer["Id_RegisterConfirmationNormallyEmailed"] <a id="confirm-link" href="@Model.EmailConfirmationUrl">@Localizer["Id_RegisterConfirmationClickLink"]</a>
+</p>
+    }
+    else
+    {
+<p>
+        @Localizer["Id_RegisterConfirmationCheckEmail"]
+</p>
+    }
+}
+
