@@ -173,6 +173,21 @@ namespace Chess.Web.Hubs.Sessions
             try
             {
                 this.RemoveStaleWaitingSessionsByUserId(userId, connectionId);
+                this.CleanupFinishedBotGamesByUserId(userId);
+
+                if (this.TryGetActiveBotSessionByUserId(userId, out var activeBotSession))
+                {
+                    if (activeBotSession.ConnectionId.Equals(connectionId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        error = "Current game is still active.";
+                    }
+                    else
+                    {
+                        error = "Another bot game is already active for this account.";
+                    }
+
+                    return false;
+                }
 
                 if (this.players.TryGetValue(connectionId, out var existingSession))
                 {
@@ -537,6 +552,66 @@ namespace Chess.Web.Hubs.Sessions
                 this.players.TryRemove(staleConnectionId, out _);
                 this.waitingConnections.Remove(staleConnectionId);
             }
+        }
+
+        private void CleanupFinishedBotGamesByUserId(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return;
+            }
+
+            var finishedBotGameIds = this.games
+                .Where(x =>
+                    x.Value.IsBotGame &&
+                    x.Value.Game.GameOver != GameOver.None &&
+                    (
+                        (!string.IsNullOrWhiteSpace(x.Value.Player1.UserId) &&
+                         x.Value.Player1.UserId.Equals(userId, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrWhiteSpace(x.Value.Player2.UserId) &&
+                         x.Value.Player2.UserId.Equals(userId, StringComparison.OrdinalIgnoreCase))))
+                .Select(x => x.Key)
+                .ToList();
+
+            foreach (var gameId in finishedBotGameIds)
+            {
+                if (this.games.TryGetValue(gameId, out var gameSession))
+                {
+                    this.CleanupFinishedBotGame(gameSession);
+                }
+            }
+        }
+
+        private bool TryGetActiveBotSessionByUserId(string userId, out PlayerSession playerSession)
+        {
+            playerSession = null;
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return false;
+            }
+
+            foreach (var session in this.players.Values)
+            {
+                if (session.IsBot ||
+                    string.IsNullOrWhiteSpace(session.UserId) ||
+                    !session.UserId.Equals(userId, StringComparison.OrdinalIgnoreCase) ||
+                    string.IsNullOrWhiteSpace(session.GameId))
+                {
+                    continue;
+                }
+
+                if (this.games.TryGetValue(session.GameId, out var gameSession) &&
+                    gameSession.IsBotGame &&
+                    gameSession.Game.GameOver == GameOver.None &&
+                    (session.State == PlayerSessionState.Playing || session.State == PlayerSessionState.Disconnected))
+                {
+                    playerSession = session;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void CleanupFinishedBotGame(GameSession gameSession)

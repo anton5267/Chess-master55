@@ -241,4 +241,82 @@ public class InMemoryGameSessionStoreTests
         store.TryGetGameById(firstGameId, out _).Should().BeFalse();
         store.TryGetPlayer(firstBotConnectionId, out _).Should().BeFalse();
     }
+
+    [Fact]
+    public void TryCreateBotGame_ShouldRejectSecondActiveBotGame_ForSameUserOnAnotherConnection()
+    {
+        using var store = new InMemoryGameSessionStore(new SystemClock());
+        var services = new ServiceCollection()
+            .AddTransient<INotificationService, NotificationService>()
+            .AddTransient<ICheckService, CheckService>()
+            .AddTransient<IDrawService, DrawService>()
+            .AddTransient<IUtilityService, UtilityService>()
+            .BuildServiceProvider();
+
+        store.TryCreateBotGame(
+            "human-conn-1",
+            "human-user",
+            "human_player",
+            1280,
+            services,
+            out _,
+            out _,
+            out var firstError).Should().BeTrue(firstError);
+
+        var createdSecond = store.TryCreateBotGame(
+            "human-conn-2",
+            "human-user",
+            "human_player",
+            1280,
+            services,
+            out _,
+            out _,
+            out var secondError);
+
+        createdSecond.Should().BeFalse();
+        secondError.Should().Be("Another bot game is already active for this account.");
+    }
+
+    [Fact]
+    public void TryCreateBotGame_ShouldAllowNewConnection_AfterFinishedBotGame_ForSameUser()
+    {
+        using var store = new InMemoryGameSessionStore(new SystemClock());
+        var services = new ServiceCollection()
+            .AddTransient<INotificationService, NotificationService>()
+            .AddTransient<ICheckService, CheckService>()
+            .AddTransient<IDrawService, DrawService>()
+            .AddTransient<IUtilityService, UtilityService>()
+            .BuildServiceProvider();
+
+        store.TryCreateBotGame(
+            "human-conn-1",
+            "human-user",
+            "human_player",
+            1280,
+            services,
+            out _,
+            out var firstGameSession,
+            out var firstError).Should().BeTrue(firstError);
+
+        firstGameSession.Should().NotBeNull();
+        var firstGameId = firstGameSession.GameId;
+        firstGameSession.Game.GameOver = GameOver.Stalemate;
+
+        var createdSecond = store.TryCreateBotGame(
+            "human-conn-2",
+            "human-user",
+            "human_player",
+            1280,
+            services,
+            out var secondHumanSession,
+            out var secondGameSession,
+            out var secondError);
+
+        createdSecond.Should().BeTrue(secondError);
+        secondHumanSession.Should().NotBeNull();
+        secondHumanSession.ConnectionId.Should().Be("human-conn-2");
+        secondGameSession.Should().NotBeNull();
+        secondGameSession.GameId.Should().NotBe(firstGameId);
+        store.TryGetGameById(firstGameId, out _).Should().BeFalse();
+    }
 }
