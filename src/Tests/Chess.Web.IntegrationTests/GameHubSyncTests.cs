@@ -564,6 +564,47 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
+    public async Task StartVsBot_WhenInvokedConcurrently_ShouldReuseSingleActiveGame()
+    {
+        await this.SeedUserAsync("bot-user-idempotent-2", "bot-idempotent-2@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-idempotent-2", "bot-idempotent-2@example.com");
+
+        var startQueue = new Queue<JsonElement>();
+        using var startSignal = new SemaphoreSlim(0, int.MaxValue);
+        connection.On<JsonElement>("Start", payload =>
+        {
+            lock (startQueue)
+            {
+                startQueue.Enqueue(payload);
+            }
+
+            startSignal.Release();
+        });
+
+        await connection.StartAsync();
+
+        var firstInvoke = connection.InvokeAsync<JsonElement>("StartVsBot", "humanbotconcurrent");
+        var secondInvoke = connection.InvokeAsync<JsonElement>("StartVsBot", "humanbotconcurrent");
+
+        var players = await Task.WhenAll(firstInvoke, secondInvoke);
+        players[0].GetProperty("id").GetString().Should().Be(players[1].GetProperty("id").GetString());
+
+        var firstStart = await WaitNextStart(startQueue, startSignal, timeoutMs: 15000);
+        var firstGameId = firstStart.GetProperty("game").GetProperty("id").GetString();
+        firstGameId.Should().NotBeNullOrWhiteSpace();
+
+        await Task.Delay(150);
+        var allStartGameIds = new List<string> { firstGameId! };
+        while (startSignal.CurrentCount > 0)
+        {
+            var nextStart = await WaitNextStart(startQueue, startSignal, timeoutMs: 2000);
+            allStartGameIds.Add(nextStart.GetProperty("game").GetProperty("id").GetString()!);
+        }
+
+        allStartGameIds.Should().OnlyContain(x => x == firstGameId);
+    }
+
+    [Fact]
     public async Task StartVsBot_WhenBotStarts_ShouldMakeFirstMove()
     {
         var botStartedAtLeastOnce = false;

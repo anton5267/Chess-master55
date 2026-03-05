@@ -180,20 +180,6 @@ namespace Chess.Web.Hubs.Sessions
                 this.CleanupFinishedGamesByUserId(userId);
                 this.CleanupStaleDisconnectedSessionsByUserId(userId);
 
-                if (this.TryGetActiveBotSessionByUserId(userId, out var activeBotSession))
-                {
-                    if (activeBotSession.ConnectionId.Equals(connectionId, StringComparison.OrdinalIgnoreCase))
-                    {
-                        error = "Current game is still active.";
-                    }
-                    else
-                    {
-                        error = "Another bot game is already active for this account.";
-                    }
-
-                    return false;
-                }
-
                 if (this.players.TryGetValue(connectionId, out var existingSession))
                 {
                     if (existingSession.State == PlayerSessionState.Idle)
@@ -202,16 +188,38 @@ namespace Chess.Web.Hubs.Sessions
                     }
                     else if (existingSession.State == PlayerSessionState.Playing &&
                              !string.IsNullOrWhiteSpace(existingSession.GameId) &&
-                             this.games.TryGetValue(existingSession.GameId, out var existingGameSession) &&
-                             existingGameSession.Game.GameOver != GameOver.None)
+                             this.games.TryGetValue(existingSession.GameId, out var existingGameSession))
                     {
-                        this.CleanupFinishedGame(existingGameSession);
+                        if (existingGameSession.IsBotGame &&
+                            existingGameSession.Game.GameOver == GameOver.None &&
+                            !existingSession.IsBot)
+                        {
+                            playerSession = existingSession;
+                            gameSession = existingGameSession;
+                            return true;
+                        }
+
+                        if (existingGameSession.Game.GameOver != GameOver.None)
+                        {
+                            this.CleanupFinishedGame(existingGameSession);
+                        }
+                        else
+                        {
+                            error = "Current game is still active.";
+                            return false;
+                        }
                     }
                     else
                     {
                         error = "Current game is still active.";
                         return false;
                     }
+                }
+
+                if (this.TryGetActiveBotSessionByUserId(userId, out _))
+                {
+                    error = "Another bot game is already active for this account.";
+                    return false;
                 }
 
                 var humanPlayer = Factory.GetPlayer(name, connectionId, userId);

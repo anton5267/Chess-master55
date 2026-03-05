@@ -1,6 +1,7 @@
 namespace Chess.Web.IntegrationTests;
 
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Reflection;
 
 using Chess.Common.Enums;
@@ -288,6 +289,55 @@ public class InMemoryGameSessionStoreTests
     }
 
     [Fact]
+    public void TryCreateBotGame_ShouldReuseActiveGame_ForSameConnection()
+    {
+        using var store = new InMemoryGameSessionStore(new SystemClock());
+        var services = new ServiceCollection()
+            .AddTransient<INotificationService, NotificationService>()
+            .AddTransient<ICheckService, CheckService>()
+            .AddTransient<IDrawService, DrawService>()
+            .AddTransient<IUtilityService, UtilityService>()
+            .BuildServiceProvider();
+
+        store.TryCreateBotGame(
+            "human-conn",
+            "human-user",
+            "human_player",
+            1280,
+            services,
+            out var firstHumanSession,
+            out var firstGameSession,
+            out var firstError).Should().BeTrue(firstError);
+
+        firstHumanSession.Should().NotBeNull();
+        firstGameSession.Should().NotBeNull();
+        var firstGameId = firstGameSession.GameId;
+
+        var createdSecond = store.TryCreateBotGame(
+            "human-conn",
+            "human-user",
+            "human_player",
+            1280,
+            services,
+            out var secondHumanSession,
+            out var secondGameSession,
+            out var secondError);
+
+        createdSecond.Should().BeTrue(secondError);
+        secondError.Should().BeNull();
+        secondHumanSession.Should().NotBeNull();
+        secondGameSession.Should().NotBeNull();
+        secondHumanSession.ConnectionId.Should().Be("human-conn");
+        secondGameSession.GameId.Should().Be(firstGameId);
+
+        var players = GetPlayersDictionary(store);
+        players.Values.Count(x => !x.IsBot && x.State == PlayerSessionState.Playing && x.UserId == "human-user").Should().Be(1);
+
+        var games = GetGamesDictionary(store);
+        games.Count.Should().Be(1);
+    }
+
+    [Fact]
     public void TryCreateBotGame_ShouldRejectSecondActiveBotGame_ForSameUserOnAnotherConnection()
     {
         using var store = new InMemoryGameSessionStore(new SystemClock());
@@ -563,5 +613,15 @@ public class InMemoryGameSessionStoreTests
         var players = field!.GetValue(store) as ConcurrentDictionary<string, PlayerSession>;
         players.Should().NotBeNull();
         return players!;
+    }
+
+    private static ConcurrentDictionary<string, GameSession> GetGamesDictionary(InMemoryGameSessionStore store)
+    {
+        var field = typeof(InMemoryGameSessionStore).GetField("games", BindingFlags.Instance | BindingFlags.NonPublic);
+        field.Should().NotBeNull();
+
+        var games = field!.GetValue(store) as ConcurrentDictionary<string, GameSession>;
+        games.Should().NotBeNull();
+        return games!;
     }
 }
