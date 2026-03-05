@@ -169,4 +169,48 @@ public class GameLegalMovesTests
         game.ChessBoard.GetSquareByName("e4").Piece.Should().NotBeNull();
         game.ChessBoard.GetSquareByName("e2").Piece.Should().BeNull();
     }
+
+    [Fact]
+    public async Task MakeMoveAsync_ShouldRejectMove_WhenGameAlreadyOver()
+    {
+        var services = new ServiceCollection()
+            .AddTransient<INotificationService, NotificationService>()
+            .AddTransient<ICheckService, CheckService>()
+            .AddTransient<IDrawService, DrawService>()
+            .AddTransient<IUtilityService, UtilityService>()
+            .BuildServiceProvider();
+
+        var whitePlayer = new Player("white", "white-conn", "white-id")
+        {
+            Color = Color.White,
+            HasToMove = true,
+        };
+
+        var blackPlayer = new Player("black", "black-conn", "black-id")
+        {
+            Color = Color.Black,
+            HasToMove = false,
+        };
+
+        var game = new Game(
+            whitePlayer,
+            blackPlayer,
+            services.GetRequiredService<INotificationService>(),
+            services.GetRequiredService<ICheckService>(),
+            services.GetRequiredService<IDrawService>(),
+            services.GetRequiredService<IUtilityService>(),
+            services);
+
+        game.GameOver = GameOver.Checkmate;
+        var sourceBefore = game.ChessBoard.GetSquareByName("e2").Piece;
+        var targetBefore = game.ChessBoard.GetSquareByName("e4").Piece;
+
+        var moved = await game.MakeMoveAsync("e2", "e4", targetFen: null, persistHistory: false);
+
+        moved.Should().BeFalse();
+        game.Turn.Should().Be(1);
+        game.GameOver.Should().Be(GameOver.Checkmate);
+        game.ChessBoard.GetSquareByName("e2").Piece.Should().BeSameAs(sourceBefore);
+        game.ChessBoard.GetSquareByName("e4").Piece.Should().Be(targetBefore);
+    }
 }

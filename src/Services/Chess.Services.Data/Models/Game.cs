@@ -117,6 +117,11 @@
 
         public async Task<bool> MakeMoveAsync(string source, string target, string targetFen, bool persistHistory = true)
         {
+            if (this.GameOver != GameOver.None)
+            {
+                return false;
+            }
+
             this.Move.Source = this.ChessBoard
                 .GetSquareByName(source);
             this.Move.Target = this.ChessBoard

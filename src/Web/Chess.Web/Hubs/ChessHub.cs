@@ -24,6 +24,13 @@ namespace Chess.Web.Hubs
             var game = gameSession.Game;
             var isBotGame = gameSession.IsBotGame;
 
+            if (game.GameOver != GameOver.None)
+            {
+                await this.SyncPositionToCaller(game);
+                await this.SyncTerminalStateToCallerIfNeeded(game);
+                return;
+            }
+
             source = source?.Trim().ToLowerInvariant();
             target = target?.Trim().ToLowerInvariant();
 
