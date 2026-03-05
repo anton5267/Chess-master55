@@ -486,6 +486,47 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
+    public async Task StartVsBot_ShouldEventuallyGiveHumanTurnWithLegalMoves()
+    {
+        await this.SeedUserAsync("bot-user-human-turn-1", "bot-human-turn-1@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-human-turn-1", "bot-human-turn-1@example.com");
+
+        var startTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var syncQueue = new Queue<SyncMessage>();
+        using var syncSignal = new SemaphoreSlim(0, int.MaxValue);
+
+        connection.On<JsonElement>("Start", payload => startTcs.TrySetResult(payload));
+        connection.On<string, string, long, string>("SyncPosition", (fen, movingPlayerName, turnNumber, movingPlayerId) =>
+        {
+            lock (syncQueue)
+            {
+                syncQueue.Enqueue(new SyncMessage(fen, movingPlayerName, turnNumber, movingPlayerId));
+            }
+
+            syncSignal.Release();
+        });
+
+        await connection.StartAsync();
+        var humanPlayer = await connection.InvokeAsync<JsonElement>("StartVsBot", "human_turn_probe");
+        var humanPlayerId = humanPlayer.GetProperty("id").GetString();
+        humanPlayerId.Should().NotBeNullOrWhiteSpace();
+        await WaitWithTimeout(startTcs.Task);
+
+        await connection.InvokeAsync("RequestSync");
+        var latest = await WaitNextSync(syncQueue, syncSignal, timeoutMs: 15000);
+        for (var i = 0; i < 6 && !string.Equals(latest.MovingPlayerId, humanPlayerId, StringComparison.Ordinal); i++)
+        {
+            latest = await WaitNextSync(syncQueue, syncSignal, timeoutMs: 15000);
+        }
+
+        latest.MovingPlayerId.Should().Be(humanPlayerId);
+
+        var legalMoves = await connection.InvokeAsync<JsonElement[]>("GetLegalMoves");
+        legalMoves.Should().NotBeNull();
+        legalMoves.Should().NotBeEmpty();
+    }
+
+    [Fact]
     public async Task AfterHumanMove_InBotGame_ShouldReceiveBotReplyAndTurnBack()
     {
         await this.SeedUserAsync("bot-user-2", "bot2@example.com");
