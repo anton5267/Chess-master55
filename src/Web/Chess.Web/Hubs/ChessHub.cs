@@ -17,6 +17,8 @@ namespace Chess.Web.Hubs
 
     public partial class GameHub
     {
+        private const string BotUserIdMarker = "__bot__";
+
         public async Task MoveSelected(string source, string target, string sourceFen, string targetFen)
         {
             var gameSession = this.GetGameSession();
@@ -432,6 +434,12 @@ namespace Chess.Web.Hubs
 
         private async Task HandleGameOverEventAsync(Game game, Player player, GameOver gameOver, bool isBotGame)
         {
+            if (isBotGame && this.IsBotEventPlayer(player))
+            {
+                // Bot game terminal events are published by bot orchestrator to avoid duplicate GameOver messages.
+                return;
+            }
+
             var opponent = this.GetOpponentPlayer(game, player);
 
             await this.Clients.Group(game.Id).SendAsync("GameOver", player, gameOver);
@@ -440,6 +448,13 @@ namespace Chess.Web.Hubs
             {
                 await this.UpdateStatsAsync(player, opponent, gameOver);
             }
+        }
+
+        private bool IsBotEventPlayer(Player player)
+        {
+            return player != null &&
+                !string.IsNullOrWhiteSpace(player.UserId) &&
+                string.Equals(player.UserId, BotUserIdMarker, StringComparison.OrdinalIgnoreCase);
         }
 
         private void HandleCompleteMoveEvent(Game game, Player player, HistoryUpdateArgs args)
