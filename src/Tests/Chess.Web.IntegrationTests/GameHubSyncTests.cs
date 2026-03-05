@@ -685,6 +685,48 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         updateStatusAfterGameOver.Should().Be(0);
     }
 
+    [Fact]
+    public async Task BotGame_RequestSync_AfterTerminalState_ShouldReplayGameOverToCaller()
+    {
+        await this.SeedUserAsync("bot-user-terminal-3", "bot-terminal-3@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-terminal-3", "bot-terminal-3@example.com");
+
+        var startTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var gameOverQueue = new Queue<(JsonElement Player, int GameOver)>();
+        using var gameOverSignal = new SemaphoreSlim(0, int.MaxValue);
+
+        connection.On<JsonElement>("Start", payload => startTcs.TrySetResult(payload));
+        connection.On<JsonElement, int>("GameOver", (player, gameOver) =>
+        {
+            lock (gameOverQueue)
+            {
+                gameOverQueue.Enqueue((player, gameOver));
+            }
+
+            gameOverSignal.Release();
+        });
+
+        await connection.StartAsync();
+        var humanPlayer = await connection.InvokeAsync<JsonElement>("StartVsBot", "human_bot_terminal_3");
+        var humanName = humanPlayer.GetProperty("name").GetString();
+
+        var startPayload = await WaitWithTimeout(startTcs.Task);
+        var gameId = startPayload.GetProperty("game").GetProperty("id").GetString();
+        gameId.Should().NotBeNullOrWhiteSpace();
+
+        this.ConfigureBotTerminalPosition(gameId!, checkmate: true);
+
+        await connection.InvokeAsync("RequestSync");
+        var firstGameOver = await WaitNextGameOver(gameOverQueue, gameOverSignal, timeoutMs: 15000);
+        firstGameOver.GameOver.Should().Be((int)GameOver.Checkmate);
+        firstGameOver.Player.GetProperty("name").GetString().Should().Be(humanName);
+
+        await connection.InvokeAsync("RequestSync");
+        var secondGameOver = await WaitNextGameOver(gameOverQueue, gameOverSignal, timeoutMs: 5000);
+        secondGameOver.GameOver.Should().Be((int)GameOver.Checkmate);
+        secondGameOver.Player.GetProperty("name").GetString().Should().Be(humanName);
+    }
+
     private HubConnection CreateHubConnection(string userId, string userName)
     {
         var baseAddress = this.factory.Server.BaseAddress ?? new Uri("http://localhost");
@@ -719,6 +761,22 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         if (!await signal.WaitAsync(timeoutMs))
         {
             throw new TimeoutException("Timed out while waiting for SyncPosition.");
+        }
+
+        lock (queue)
+        {
+            return queue.Dequeue();
+        }
+    }
+
+    private static async Task<(JsonElement Player, int GameOver)> WaitNextGameOver(
+        Queue<(JsonElement Player, int GameOver)> queue,
+        SemaphoreSlim signal,
+        int timeoutMs = 10000)
+    {
+        if (!await signal.WaitAsync(timeoutMs))
+        {
+            throw new TimeoutException("Timed out while waiting for GameOver.");
         }
 
         lock (queue)
