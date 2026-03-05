@@ -408,14 +408,23 @@ namespace Chess.Web.Hubs
             await gameSession.BotTurnLock.WaitAsync();
             try
             {
-                if (game.GameOver != GameOver.None ||
-                    !string.Equals(game.MovingPlayer.Id, botSession.ConnectionId, StringComparison.OrdinalIgnoreCase))
+                if (this.ShouldAbortBotTurn(game, botSession))
                 {
                     return;
                 }
 
                 this.logger.LogInformation("BotTurnScheduled GameId={GameId} Trigger={Trigger}", game.Id, trigger);
                 await Task.Delay(Random.Shared.Next(300, 701));
+
+                if (this.ShouldAbortBotTurn(game, botSession))
+                {
+                    this.logger.LogInformation(
+                        "BotTurnCancelled GameId={GameId} Trigger={Trigger} Reason=StateChangedAfterDelay GameOver={GameOver}",
+                        game.Id,
+                        trigger,
+                        game.GameOver);
+                    return;
+                }
 
                 var candidateMoves = game.GetLegalMoves().ToList();
                 if (candidateMoves.Count == 0)
@@ -430,6 +439,16 @@ namespace Chess.Web.Hubs
 
                 while (candidateMoves.Count > 0)
                 {
+                    if (this.ShouldAbortBotTurn(game, botSession))
+                    {
+                        this.logger.LogInformation(
+                            "BotTurnCancelled GameId={GameId} Trigger={Trigger} Reason=StateChangedDuringCandidates GameOver={GameOver}",
+                            game.Id,
+                            trigger,
+                            game.GameOver);
+                        return;
+                    }
+
                     var botMove = this.SelectBotMoveCandidate(game, candidateMoves);
                     this.RemoveCandidate(candidateMoves, botMove);
 
@@ -560,6 +579,12 @@ namespace Chess.Web.Hubs
             return gameOver == GameOver.Checkmate
                 ? botSession.Player
                 : null;
+        }
+
+        private bool ShouldAbortBotTurn(Game game, PlayerSession botSession)
+        {
+            return game.GameOver != GameOver.None ||
+                !string.Equals(game.MovingPlayer.Id, botSession.ConnectionId, StringComparison.OrdinalIgnoreCase);
         }
 
         private async Task PublishBotGameOverAsync(Game game, Player winner, GameOver gameOver)

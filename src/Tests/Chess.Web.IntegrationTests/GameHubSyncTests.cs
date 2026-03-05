@@ -642,6 +642,67 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
+    public async Task BotGame_WhenResignedDuringBotDelay_ShouldNotPublishBotSyncAfterGameOver()
+    {
+        await this.SeedUserAsync("bot-user-resign-race-1", "bot-resign-race-1@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-resign-race-1", "bot-resign-race-1@example.com");
+
+        var startTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var syncQueue = new Queue<SyncMessage>();
+        var syncAfterGameOver = new List<SyncMessage>();
+        using var syncSignal = new SemaphoreSlim(0, int.MaxValue);
+        var resignGameOverTcs = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var gameOverReceived = 0;
+        var syncLock = new object();
+
+        connection.On<JsonElement>("Start", payload => startTcs.TrySetResult(payload));
+        connection.On<JsonElement, int>("GameOver", (_, gameOver) =>
+        {
+            Interlocked.Exchange(ref gameOverReceived, 1);
+            resignGameOverTcs.TrySetResult(gameOver);
+        });
+        connection.On<string, string, long, string>("SyncPosition", (fen, movingPlayerName, turnNumber, movingPlayerId) =>
+        {
+            var sync = new SyncMessage(fen, movingPlayerName, turnNumber, movingPlayerId);
+            lock (syncLock)
+            {
+                syncQueue.Enqueue(sync);
+                if (Volatile.Read(ref gameOverReceived) == 1)
+                {
+                    syncAfterGameOver.Add(sync);
+                }
+            }
+
+            syncSignal.Release();
+        });
+
+        await connection.StartAsync();
+        await connection.InvokeAsync<JsonElement>("StartVsBot", "bot_resign_1");
+
+        var startPayload = await WaitWithTimeout(startTcs.Task);
+        var gameId = startPayload.GetProperty("game").GetProperty("id").GetString();
+        gameId.Should().NotBeNullOrWhiteSpace();
+
+        this.ConfigureBotPendingTurnPosition(gameId!);
+
+        await connection.InvokeAsync("RequestSync");
+        var syncBeforeResign = await WaitNextSync(syncQueue, syncSignal, timeoutMs: 15000);
+        syncBeforeResign.TurnNumber.Should().Be(20);
+
+        await connection.InvokeAsync("Resign");
+
+        var resignGameOver = await WaitWithTimeout(resignGameOverTcs.Task, timeoutMs: 15000);
+        resignGameOver.Should().Be((int)GameOver.Resign);
+
+        await Task.Delay(1200);
+
+        lock (syncLock)
+        {
+            syncAfterGameOver.Should().BeEmpty();
+        }
+    }
+
+    [Fact]
     public async Task BotGame_AfterGameOver_LateSyncOrStatus_ShouldNotOverrideTerminalStatus()
     {
         await this.SeedUserAsync("bot-user-terminal-2", "bot-terminal-2@example.com");
