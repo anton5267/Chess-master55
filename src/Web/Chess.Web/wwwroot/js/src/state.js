@@ -89,6 +89,7 @@ export function createState() {
         legalMoves: [],
         legalMovesRequestId: 0,
         pendingSyncTimeoutId: null,
+        pendingBotRecoveryTimeoutId: null,
         boardInitialized: false,
         selectedBoardTheme: getStoredValue(storageKeys.boardTheme, "classic", boardThemes),
         selectedPieceTheme: getStoredValue(storageKeys.pieceTheme, "wikipedia", pieceThemes),

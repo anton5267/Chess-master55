@@ -327,6 +327,10 @@
       clearTimeout(state.pendingSyncTimeoutId);
       state.pendingSyncTimeoutId = null;
     }
+    if (state.pendingBotRecoveryTimeoutId) {
+      clearTimeout(state.pendingBotRecoveryTimeoutId);
+      state.pendingBotRecoveryTimeoutId = null;
+    }
     if (state.board) {
       state.board.orientation("white");
       state.board.position("start", false);
@@ -534,6 +538,25 @@
     clearTimeout(state.pendingSyncTimeoutId);
     state.pendingSyncTimeoutId = null;
   }
+  function clearBotRecoveryWatchdog(state) {
+    if (!state.pendingBotRecoveryTimeoutId) {
+      return;
+    }
+    clearTimeout(state.pendingBotRecoveryTimeoutId);
+    state.pendingBotRecoveryTimeoutId = null;
+  }
+  function isBotToMove(state) {
+    if (!state.isBotGame) {
+      return false;
+    }
+    if (state.botPlayerId && state.activeMovingPlayerId) {
+      return state.botPlayerId === state.activeMovingPlayerId;
+    }
+    if (state.botPlayerName && state.activeMovingPlayerName) {
+      return state.botPlayerName === state.activeMovingPlayerName;
+    }
+    return false;
+  }
   function scheduleSyncWatchdog2(connection, state) {
     clearSyncWatchdog(state);
     state.pendingSyncTimeoutId = setTimeout(() => {
@@ -542,6 +565,21 @@
       }
       connection.invoke("RequestSync").catch((err) => console.error(err));
     }, 900);
+  }
+  function scheduleBotRecoveryWatchdog(connection, state) {
+    clearBotRecoveryWatchdog(state);
+    state.pendingBotRecoveryTimeoutId = setTimeout(() => {
+      if (!state.isGameStarted || state.hasGameEnded) {
+        return;
+      }
+      if (state.connectionState === "reconnecting" || state.connectionState === "disconnected") {
+        return;
+      }
+      if (state.isYourTurn || !isBotToMove(state)) {
+        return;
+      }
+      connection.invoke("RequestSync").catch((err) => console.error(err));
+    }, 1400);
   }
   function applySyncPosition(state, elements, fen, movingPlayerId, movingPlayerName) {
     if (!state.board || !fen) {
@@ -585,6 +623,7 @@
   function syncTurnDependentState(connection, elements, state, movingPlayerId, movingPlayerName) {
     clearHintSquares();
     if (state.hasGameEnded) {
+      clearBotRecoveryWatchdog(state);
       state.isYourTurn = false;
       state.legalMoves = [];
       state.legalMovesRequestId += 1;
@@ -593,6 +632,11 @@
     }
     updateStatus(elements, state, movingPlayerId, movingPlayerName);
     refreshLegalMoves(connection, state);
+    if (!state.isYourTurn && isBotToMove(state)) {
+      scheduleBotRecoveryWatchdog(connection, state);
+    } else {
+      clearBotRecoveryWatchdog(state);
+    }
     if (state.isGameStarted && state.connectionState !== "reconnecting") {
       elements.board.style.pointerEvents = "auto";
     } else if (!state.isGameStarted || state.connectionState === "reconnecting" || state.connectionState === "disconnected") {
@@ -627,6 +671,8 @@
     connection.onreconnecting(function onReconnecting() {
       state.connectionState = "reconnecting";
       state.isYourTurn = false;
+      clearSyncWatchdog(state);
+      clearBotRecoveryWatchdog(state);
       elements.board.style.pointerEvents = "none";
     });
     connection.onreconnected(function onReconnected() {
@@ -639,6 +685,7 @@
       state.connectionState = "disconnected";
       state.isYourTurn = false;
       clearSyncWatchdog(state);
+      clearBotRecoveryWatchdog(state);
       elements.board.style.pointerEvents = "none";
     });
     connection.on("AddRoom", function onAddRoom(player) {
@@ -753,6 +800,7 @@
       state.legalMoves = [];
       state.legalMovesRequestId += 1;
       clearSyncWatchdog(state);
+      clearBotRecoveryWatchdog(state);
       clearHintSquares();
       elements.statusText.style.color = "purple";
       elements.board.style.pointerEvents = "none";
@@ -1131,6 +1179,7 @@
       legalMoves: [],
       legalMovesRequestId: 0,
       pendingSyncTimeoutId: null,
+      pendingBotRecoveryTimeoutId: null,
       boardInitialized: false,
       selectedBoardTheme: getStoredValue(storageKeys.boardTheme, "classic", boardThemes),
       selectedPieceTheme: getStoredValue(storageKeys.pieceTheme, "wikipedia", pieceThemes),

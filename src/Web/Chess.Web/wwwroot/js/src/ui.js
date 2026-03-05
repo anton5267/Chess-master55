@@ -192,6 +192,10 @@ export function resetGameUi(elements, state) {
         clearTimeout(state.pendingSyncTimeoutId);
         state.pendingSyncTimeoutId = null;
     }
+    if (state.pendingBotRecoveryTimeoutId) {
+        clearTimeout(state.pendingBotRecoveryTimeoutId);
+        state.pendingBotRecoveryTimeoutId = null;
+    }
 
     if (state.board) {
         state.board.orientation('white');

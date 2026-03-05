@@ -684,10 +684,27 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         gameId.Should().NotBeNullOrWhiteSpace();
 
         this.ConfigureBotPendingTurnPosition(gameId!);
+        lock (syncLock)
+        {
+            syncQueue.Clear();
+            syncAfterGameOver.Clear();
+        }
 
         await connection.InvokeAsync("RequestSync");
-        var syncBeforeResign = await WaitNextSync(syncQueue, syncSignal, timeoutMs: 15000);
-        syncBeforeResign.TurnNumber.Should().Be(20);
+        SyncMessage? syncBeforeResign = null;
+        var syncDeadline = DateTime.UtcNow.AddSeconds(15);
+        while (DateTime.UtcNow < syncDeadline)
+        {
+            var nextSync = await WaitNextSync(syncQueue, syncSignal, timeoutMs: 3000);
+            if (nextSync.TurnNumber == 20)
+            {
+                syncBeforeResign = nextSync;
+                break;
+            }
+        }
+
+        syncBeforeResign.Should().NotBeNull();
+        syncBeforeResign!.TurnNumber.Should().Be(20);
 
         await connection.InvokeAsync("Resign");
 
