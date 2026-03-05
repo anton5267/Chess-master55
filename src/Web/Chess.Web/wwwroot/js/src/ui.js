@@ -23,6 +23,8 @@ function normalizeErrorMessage(error) {
     return normalized || fallback;
 }
 
+const connectionToneClasses = ['is-reconnecting', 'is-syncing', 'is-disconnected', 'is-offline'];
+
 export function createRoomElement(player) {
     const div = document.createElement('div');
     const span = document.createElement('span');
@@ -41,10 +43,37 @@ export function createRoomElement(player) {
     return div;
 }
 
-export function renderRooms(container, waitingPlayers) {
+function createNoRoomsElement() {
+    const div = document.createElement('div');
+    div.classList.add('game-lobby-room-empty');
+    div.textContent = t('noRoomsAvailable');
+    return div;
+}
+
+export function renderRooms(container, waitingPlayers, shouldDisableJoin = false) {
     container.innerHTML = '';
-    waitingPlayers.forEach((player) => {
-        container.appendChild(createRoomElement(player));
+
+    const rooms = Array.isArray(waitingPlayers) ? waitingPlayers : [];
+    const roomCount = document.querySelector('.game-lobby-room-count');
+    if (roomCount) {
+        roomCount.textContent = String(rooms.length);
+    }
+
+    if (rooms.length === 0) {
+        container.appendChild(createNoRoomsElement());
+        return;
+    }
+
+    rooms.forEach((player) => {
+        const roomElement = createRoomElement(player);
+        const joinButton = roomElement.querySelector('.game-lobby-room-join-btn');
+        if (joinButton) {
+            joinButton.disabled = !!shouldDisableJoin;
+            joinButton.classList.toggle('is-disabled', !!shouldDisableJoin);
+            joinButton.classList.toggle('is-loading', false);
+        }
+
+        container.appendChild(roomElement);
     });
 }
 
@@ -118,27 +147,95 @@ export function setPlayAgainVsBotVisibility(elements, isVisible) {
     elements.playAgainVsBotBtn.style.display = isVisible ? 'inline-flex' : 'none';
 }
 
+export function setConnectionStatus(elements, tone, message) {
+    if (!elements.connectionPill) {
+        return;
+    }
+
+    const normalizedTone = tone === 'reconnecting'
+        || tone === 'syncing'
+        || tone === 'disconnected'
+        || tone === 'offline'
+        ? tone
+        : null;
+    const text = (message || '').trim();
+
+    elements.connectionPill.classList.remove(...connectionToneClasses);
+    if (!normalizedTone || text === '') {
+        elements.connectionPill.hidden = true;
+        elements.connectionPill.textContent = '';
+        return;
+    }
+
+    elements.connectionPill.hidden = false;
+    elements.connectionPill.classList.add(`is-${normalizedTone}`);
+    elements.connectionPill.textContent = text;
+}
+
+function resolveBotDifficultyLabel(elements, state) {
+    if (!elements.botDifficultySelect) {
+        return state.botDifficulty === 'easy' ? 'Easy' : 'Normal';
+    }
+
+    const selectedOption = Array.from(elements.botDifficultySelect.options)
+        .find((option) => option.value === state.botDifficulty);
+    if (selectedOption) {
+        return selectedOption.textContent || selectedOption.innerText || selectedOption.value;
+    }
+
+    return state.botDifficulty === 'easy' ? 'Easy' : 'Normal';
+}
+
+export function updateBotDifficultyBadge(elements, state) {
+    if (!elements.botDifficultyMeta || !elements.botDifficultyMetaValue) {
+        return;
+    }
+
+    const shouldShow = !!state.isBotGame && (!!state.isGameStarted || !!state.hasGameEnded);
+    elements.botDifficultyMeta.hidden = !shouldShow;
+    if (!shouldShow) {
+        return;
+    }
+
+    elements.botDifficultyMetaValue.textContent = resolveBotDifficultyLabel(elements, state);
+}
+
 export function updateReplayControls(elements, state) {
     const hasTimeline = Array.isArray(state.fenTimeline) && state.fenTimeline.length > 0;
     const maxIndex = hasTimeline ? state.fenTimeline.length - 1 : 0;
     const currentIndex = Math.max(0, Math.min(state.replayIndex || 0, maxIndex));
     const hasPastMoves = maxIndex > 0;
     const isReplayMode = !!state.isReplayMode;
+    const activeIndex = isReplayMode ? currentIndex : maxIndex;
+    const replayAllowed = !!state.isBotGame;
+
+    if (!replayAllowed && state.isReplayMode) {
+        state.isReplayMode = false;
+        state.replayIndex = maxIndex;
+    }
 
     if (elements.replayStartBtn) {
-        elements.replayStartBtn.disabled = !hasPastMoves;
+        elements.replayStartBtn.hidden = !replayAllowed;
+        elements.replayStartBtn.disabled = !replayAllowed || !hasPastMoves;
     }
 
     if (elements.replayPrevBtn) {
-        elements.replayPrevBtn.disabled = !hasPastMoves || !isReplayMode || currentIndex <= 0;
+        elements.replayPrevBtn.hidden = !replayAllowed;
+        elements.replayPrevBtn.disabled = !replayAllowed || !hasPastMoves || activeIndex <= 0;
     }
 
     if (elements.replayNextBtn) {
-        elements.replayNextBtn.disabled = !hasPastMoves || !isReplayMode || currentIndex >= maxIndex;
+        elements.replayNextBtn.hidden = !replayAllowed;
+        elements.replayNextBtn.disabled = !replayAllowed || !hasPastMoves || activeIndex >= maxIndex;
     }
 
     if (elements.replayLiveBtn) {
-        elements.replayLiveBtn.disabled = !isReplayMode;
+        elements.replayLiveBtn.hidden = !replayAllowed;
+        elements.replayLiveBtn.disabled = !replayAllowed || !isReplayMode;
+    }
+
+    if (elements.replayHotkeys) {
+        elements.replayHotkeys.hidden = !replayAllowed;
     }
 
     if (elements.exportPgnBtn) {
@@ -167,6 +264,11 @@ export function updateReplayControls(elements, state) {
     }
 
     if (!elements.replayIndicator) {
+        return;
+    }
+
+    elements.replayIndicator.hidden = !replayAllowed;
+    if (!replayAllowed) {
         return;
     }
 
@@ -218,6 +320,7 @@ export function resetGameUi(elements, state) {
     elements.statusCheck.style.display = 'none';
     elements.statusCheck.textContent = '';
     clearGameResultBanner(elements);
+    setConnectionStatus(elements, null, '');
 
     elements.whitePointsValue.innerText = '0';
     elements.blackPointsValue.innerText = '0';
@@ -260,6 +363,8 @@ export function resetGameUi(elements, state) {
     state.legalMoves = [];
     state.legalMovesRequestId += 1;
     state.syncRequestInFlight = false;
+    state.syncRetryAttempt = 0;
+    state.lobbyNameValid = false;
     state.lobbyActionInFlight = false;
     state.gameActionInFlight = false;
     state.isReplayMode = false;
@@ -273,9 +378,17 @@ export function resetGameUi(elements, state) {
         clearTimeout(state.pendingSyncTimeoutId);
         state.pendingSyncTimeoutId = null;
     }
+    if (state.pendingSyncRetryTimeoutId) {
+        clearTimeout(state.pendingSyncRetryTimeoutId);
+        state.pendingSyncRetryTimeoutId = null;
+    }
     if (state.pendingBotRecoveryTimeoutId) {
         clearTimeout(state.pendingBotRecoveryTimeoutId);
         state.pendingBotRecoveryTimeoutId = null;
+    }
+    if (state.pendingHighlightTimeoutId) {
+        clearTimeout(state.pendingHighlightTimeoutId);
+        state.pendingHighlightTimeoutId = null;
     }
 
     if (state.board) {
@@ -284,6 +397,7 @@ export function resetGameUi(elements, state) {
     }
 
     setPlayAgainVsBotVisibility(elements, false);
+    updateBotDifficultyBadge(elements, state);
     updateReplayControls(elements, state);
 }
 

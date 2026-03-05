@@ -24,6 +24,8 @@
     "dev:http": "concurrently -k -n assets,web \"npm run watch:assets\" \"npm run dev:web:http\"",
     "dev:remote": "concurrently -k -n assets,web,tunnel \"npm run watch:assets\" \"npm run dev:web\" \"npm run tunnel:up\"",
     "dev:remote:http": "concurrently -k -n assets,web,tunnel \"npm run watch:assets\" \"npm run dev:web:http\" \"npm run tunnel:up:http\"",
-    "check:full": "npm run build:assets && dotnet test ../../Chess.sln --nologo"
+    "stop:web:win": "powershell -NoProfile -Command \"Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'Chess.Web.exe' -or ($_.Name -eq 'dotnet.exe' -and $_.CommandLine -like '*Chess.Web*') } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }\"",
+    "check:full": "npm run build:assets && dotnet test ../../Chess.sln --nologo",
+    "check:full:safe": "npm run stop:web:win && npm run check:full"
   }
 }

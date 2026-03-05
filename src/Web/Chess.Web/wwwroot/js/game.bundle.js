@@ -66,7 +66,13 @@
       if (!state.isGameStarted) {
         return;
       }
-      connection.invoke("RequestSync").catch((err) => console.error(err));
+      if (connection.state !== signalR.HubConnectionState.Connected || state.syncRequestInFlight) {
+        return;
+      }
+      state.syncRequestInFlight = true;
+      connection.invoke("RequestSync").catch((err) => console.error(err)).finally(() => {
+        state.syncRequestInFlight = false;
+      });
     }, 900);
   }
   function createOnDropHandler(state, connection) {
@@ -89,7 +95,12 @@
           state.board.position(liveFen, false);
           state.displayFen = liveFen;
         }
-        connection.invoke("RequestSync").catch((err) => console.error(err));
+        if (connection.state === signalR.HubConnectionState.Connected && !state.syncRequestInFlight) {
+          state.syncRequestInFlight = true;
+          connection.invoke("RequestSync").catch((err) => console.error(err)).finally(() => {
+            state.syncRequestInFlight = false;
+          });
+        }
         return "snapback";
       }
       scheduleSyncWatchdog(connection, state);
@@ -212,6 +223,7 @@
     const normalized = rawMessage.replace(/^HubException:\s*/i, "").trim();
     return normalized || fallback;
   }
+  var connectionToneClasses = ["is-reconnecting", "is-syncing", "is-disconnected", "is-offline"];
   function createRoomElement(player) {
     const div = document.createElement("div");
     const span = document.createElement("span");
@@ -225,10 +237,32 @@
     div.dataset.roomId = player.id;
     return div;
   }
-  function renderRooms(container, waitingPlayers) {
+  function createNoRoomsElement() {
+    const div = document.createElement("div");
+    div.classList.add("game-lobby-room-empty");
+    div.textContent = t("noRoomsAvailable");
+    return div;
+  }
+  function renderRooms(container, waitingPlayers, shouldDisableJoin = false) {
     container.innerHTML = "";
-    waitingPlayers.forEach((player) => {
-      container.appendChild(createRoomElement(player));
+    const rooms = Array.isArray(waitingPlayers) ? waitingPlayers : [];
+    const roomCount = document.querySelector(".game-lobby-room-count");
+    if (roomCount) {
+      roomCount.textContent = String(rooms.length);
+    }
+    if (rooms.length === 0) {
+      container.appendChild(createNoRoomsElement());
+      return;
+    }
+    rooms.forEach((player) => {
+      const roomElement = createRoomElement(player);
+      const joinButton = roomElement.querySelector(".game-lobby-room-join-btn");
+      if (joinButton) {
+        joinButton.disabled = !!shouldDisableJoin;
+        joinButton.classList.toggle("is-disabled", !!shouldDisableJoin);
+        joinButton.classList.toggle("is-loading", false);
+      }
+      container.appendChild(roomElement);
     });
   }
   function updateStatus(elements, state, movingPlayerId, movingPlayerName) {
@@ -288,23 +322,73 @@
     }
     elements.playAgainVsBotBtn.style.display = isVisible ? "inline-flex" : "none";
   }
+  function setConnectionStatus(elements, tone, message) {
+    if (!elements.connectionPill) {
+      return;
+    }
+    const normalizedTone = tone === "reconnecting" || tone === "syncing" || tone === "disconnected" || tone === "offline" ? tone : null;
+    const text = (message || "").trim();
+    elements.connectionPill.classList.remove(...connectionToneClasses);
+    if (!normalizedTone || text === "") {
+      elements.connectionPill.hidden = true;
+      elements.connectionPill.textContent = "";
+      return;
+    }
+    elements.connectionPill.hidden = false;
+    elements.connectionPill.classList.add(`is-${normalizedTone}`);
+    elements.connectionPill.textContent = text;
+  }
+  function resolveBotDifficultyLabel(elements, state) {
+    if (!elements.botDifficultySelect) {
+      return state.botDifficulty === "easy" ? "Easy" : "Normal";
+    }
+    const selectedOption = Array.from(elements.botDifficultySelect.options).find((option) => option.value === state.botDifficulty);
+    if (selectedOption) {
+      return selectedOption.textContent || selectedOption.innerText || selectedOption.value;
+    }
+    return state.botDifficulty === "easy" ? "Easy" : "Normal";
+  }
+  function updateBotDifficultyBadge(elements, state) {
+    if (!elements.botDifficultyMeta || !elements.botDifficultyMetaValue) {
+      return;
+    }
+    const shouldShow = !!state.isBotGame && (!!state.isGameStarted || !!state.hasGameEnded);
+    elements.botDifficultyMeta.hidden = !shouldShow;
+    if (!shouldShow) {
+      return;
+    }
+    elements.botDifficultyMetaValue.textContent = resolveBotDifficultyLabel(elements, state);
+  }
   function updateReplayControls(elements, state) {
     const hasTimeline = Array.isArray(state.fenTimeline) && state.fenTimeline.length > 0;
     const maxIndex = hasTimeline ? state.fenTimeline.length - 1 : 0;
     const currentIndex = Math.max(0, Math.min(state.replayIndex || 0, maxIndex));
     const hasPastMoves = maxIndex > 0;
     const isReplayMode = !!state.isReplayMode;
+    const activeIndex = isReplayMode ? currentIndex : maxIndex;
+    const replayAllowed = !!state.isBotGame;
+    if (!replayAllowed && state.isReplayMode) {
+      state.isReplayMode = false;
+      state.replayIndex = maxIndex;
+    }
     if (elements.replayStartBtn) {
-      elements.replayStartBtn.disabled = !hasPastMoves;
+      elements.replayStartBtn.hidden = !replayAllowed;
+      elements.replayStartBtn.disabled = !replayAllowed || !hasPastMoves;
     }
     if (elements.replayPrevBtn) {
-      elements.replayPrevBtn.disabled = !hasPastMoves || !isReplayMode || currentIndex <= 0;
+      elements.replayPrevBtn.hidden = !replayAllowed;
+      elements.replayPrevBtn.disabled = !replayAllowed || !hasPastMoves || activeIndex <= 0;
     }
     if (elements.replayNextBtn) {
-      elements.replayNextBtn.disabled = !hasPastMoves || !isReplayMode || currentIndex >= maxIndex;
+      elements.replayNextBtn.hidden = !replayAllowed;
+      elements.replayNextBtn.disabled = !replayAllowed || !hasPastMoves || activeIndex >= maxIndex;
     }
     if (elements.replayLiveBtn) {
-      elements.replayLiveBtn.disabled = !isReplayMode;
+      elements.replayLiveBtn.hidden = !replayAllowed;
+      elements.replayLiveBtn.disabled = !replayAllowed || !isReplayMode;
+    }
+    if (elements.replayHotkeys) {
+      elements.replayHotkeys.hidden = !replayAllowed;
     }
     if (elements.exportPgnBtn) {
       elements.exportPgnBtn.disabled = !state.whiteMoves?.length && !state.blackMoves?.length;
@@ -325,6 +409,10 @@
       elements.playAgainVsBotBtn.disabled = !canReplayBotGame;
     }
     if (!elements.replayIndicator) {
+      return;
+    }
+    elements.replayIndicator.hidden = !replayAllowed;
+    if (!replayAllowed) {
       return;
     }
     if (!hasPastMoves) {
@@ -366,6 +454,7 @@
     elements.statusCheck.style.display = "none";
     elements.statusCheck.textContent = "";
     clearGameResultBanner(elements);
+    setConnectionStatus(elements, null, "");
     elements.whitePointsValue.innerText = "0";
     elements.blackPointsValue.innerText = "0";
     elements.blackPawnsTaken.innerText = "0";
@@ -402,6 +491,8 @@
     state.legalMoves = [];
     state.legalMovesRequestId += 1;
     state.syncRequestInFlight = false;
+    state.syncRetryAttempt = 0;
+    state.lobbyNameValid = false;
     state.lobbyActionInFlight = false;
     state.gameActionInFlight = false;
     state.isReplayMode = false;
@@ -414,15 +505,24 @@
       clearTimeout(state.pendingSyncTimeoutId);
       state.pendingSyncTimeoutId = null;
     }
+    if (state.pendingSyncRetryTimeoutId) {
+      clearTimeout(state.pendingSyncRetryTimeoutId);
+      state.pendingSyncRetryTimeoutId = null;
+    }
     if (state.pendingBotRecoveryTimeoutId) {
       clearTimeout(state.pendingBotRecoveryTimeoutId);
       state.pendingBotRecoveryTimeoutId = null;
+    }
+    if (state.pendingHighlightTimeoutId) {
+      clearTimeout(state.pendingHighlightTimeoutId);
+      state.pendingHighlightTimeoutId = null;
     }
     if (state.board) {
       state.board.orientation("white");
       state.board.position("start", false);
     }
     setPlayAgainVsBotVisibility(elements, false);
+    updateBotDifficultyBadge(elements, state);
     updateReplayControls(elements, state);
   }
   function getTakenValue(takenFigures, key) {
@@ -489,26 +589,66 @@
   }
 
   // wwwroot/js/src/chat.js
+  var maxChatMessageLength = 300;
+  var nearLimitThreshold = 240;
+  function normalizeChatMessage(message) {
+    if (typeof message !== "string") {
+      return "";
+    }
+    return message.trim();
+  }
+  function validateChatMessage(elements, message, inputElement) {
+    if (message.length === 0) {
+      reportClientError(elements, new Error(t("hubErrorMessageEmpty")), inputElement);
+      inputElement.focus();
+      return false;
+    }
+    if (message.length > maxChatMessageLength) {
+      reportClientError(elements, new Error(t("hubErrorMessageTooLong")), inputElement);
+      inputElement.focus();
+      return false;
+    }
+    return true;
+  }
+  function syncChatCounter(counterElement, rawLength) {
+    if (!counterElement) {
+      return;
+    }
+    const safeLength = Number.isFinite(rawLength) ? rawLength : 0;
+    counterElement.textContent = `${safeLength}/${maxChatMessageLength}`;
+    counterElement.classList.toggle("is-near-limit", safeLength >= nearLimitThreshold && safeLength <= maxChatMessageLength);
+    counterElement.classList.toggle("is-over-limit", safeLength > maxChatMessageLength);
+  }
+  function syncSendButtonState(inputElement, sendButton, counterElement) {
+    if (!inputElement || !sendButton) {
+      return;
+    }
+    const rawValue = inputElement.value || "";
+    const rawLength = rawValue.length;
+    const message = normalizeChatMessage(rawValue);
+    sendButton.disabled = message.length === 0 || message.length > maxChatMessageLength;
+    syncChatCounter(counterElement, rawLength);
+  }
   function bindChatHandlers(connection, elements) {
     elements.lobbyChatSendBtn.addEventListener("click", function onLobbyChatSend() {
-      const message = (elements.lobbyChatInput.value || "").trim();
-      if (message !== "") {
-        connection.invoke("LobbySendMessage", message).then(() => {
-          elements.lobbyChatInput.value = "";
-        }).catch((err) => reportClientError(elements, err, elements.lobbyChatInput));
-      } else {
-        elements.lobbyChatInput.focus();
+      const message = normalizeChatMessage(elements.lobbyChatInput.value || "");
+      if (!validateChatMessage(elements, message, elements.lobbyChatInput)) {
+        return;
       }
+      connection.invoke("LobbySendMessage", message).then(() => {
+        elements.lobbyChatInput.value = "";
+        syncSendButtonState(elements.lobbyChatInput, elements.lobbyChatSendBtn, elements.lobbyChatCounter);
+      }).catch((err) => reportClientError(elements, err, elements.lobbyChatInput));
     });
     elements.gameChatSendBtn.addEventListener("click", function onGameChatSend() {
-      const message = (elements.gameChatInput.value || "").trim();
-      if (message !== "") {
-        connection.invoke("GameSendMessage", message).then(() => {
-          elements.gameChatInput.value = "";
-        }).catch((err) => reportClientError(elements, err, elements.gameChatInput));
-      } else {
-        elements.gameChatInput.focus();
+      const message = normalizeChatMessage(elements.gameChatInput.value || "");
+      if (!validateChatMessage(elements, message, elements.gameChatInput)) {
+        return;
       }
+      connection.invoke("GameSendMessage", message).then(() => {
+        elements.gameChatInput.value = "";
+        syncSendButtonState(elements.gameChatInput, elements.gameChatSendBtn, elements.gameChatCounter);
+      }).catch((err) => reportClientError(elements, err, elements.gameChatInput));
     });
     elements.lobbyChatInput.addEventListener("keydown", function onLobbyChatKeyDown(e) {
       if (e.key === "Enter") {
@@ -522,6 +662,14 @@
         elements.gameChatSendBtn.click();
       }
     });
+    elements.lobbyChatInput.addEventListener("input", function onLobbyChatInput() {
+      syncSendButtonState(elements.lobbyChatInput, elements.lobbyChatSendBtn, elements.lobbyChatCounter);
+    });
+    elements.gameChatInput.addEventListener("input", function onGameChatInput() {
+      syncSendButtonState(elements.gameChatInput, elements.gameChatSendBtn, elements.gameChatCounter);
+    });
+    syncSendButtonState(elements.lobbyChatInput, elements.lobbyChatSendBtn, elements.lobbyChatCounter);
+    syncSendButtonState(elements.gameChatInput, elements.gameChatSendBtn, elements.gameChatCounter);
   }
   function bindGameOptionHandlers(connection, elements, state) {
     function runGameAction(action) {
@@ -538,6 +686,13 @@
     function getReplayMaxIndex() {
       return Math.max((state.fenTimeline?.length || 1) - 1, 0);
     }
+    function getReplayActiveIndex() {
+      const maxIndex = getReplayMaxIndex();
+      if (!state.isReplayMode) {
+        return maxIndex;
+      }
+      return Math.min(Math.max(state.replayIndex || 0, 0), maxIndex);
+    }
     function applyReplayPosition(index) {
       if (!state.board || !Array.isArray(state.fenTimeline) || state.fenTimeline.length === 0) {
         return;
@@ -552,6 +707,9 @@
       updateReplayControls(elements, state);
     }
     function enterReplayMode(index) {
+      if (!state.isBotGame) {
+        return;
+      }
       if (!state.board || !Array.isArray(state.fenTimeline) || state.fenTimeline.length <= 1) {
         return;
       }
@@ -559,6 +717,9 @@
       applyReplayPosition(index);
     }
     function exitReplayMode() {
+      if (!state.isBotGame) {
+        return;
+      }
       state.isReplayMode = false;
       state.replayIndex = getReplayMaxIndex();
       const liveFen = state.liveFen || state.currentFen || "start";
@@ -572,7 +733,9 @@
         elements.board.style.pointerEvents = "none";
       }
       updateReplayControls(elements, state);
-      connection.invoke("RequestSync").catch((err) => console.error(err));
+      if (connection.state === signalR.HubConnectionState.Connected) {
+        connection.invoke("RequestSync").catch((err) => console.error(err));
+      }
     }
     function getPgnResultToken() {
       const white = state.playerOneName;
@@ -734,16 +897,12 @@ ${movesSection}${movesSection ? " " : ""}${result}
     }
     if (elements.replayPrevBtn) {
       elements.replayPrevBtn.addEventListener("click", function onReplayPrevClick() {
-        enterReplayMode((state.replayIndex || 0) - 1);
+        enterReplayMode(getReplayActiveIndex() - 1);
       });
     }
     if (elements.replayNextBtn) {
       elements.replayNextBtn.addEventListener("click", function onReplayNextClick() {
-        if (!state.isReplayMode) {
-          enterReplayMode((state.replayIndex || 0) + 1);
-          return;
-        }
-        applyReplayPosition((state.replayIndex || 0) + 1);
+        enterReplayMode(getReplayActiveIndex() + 1);
       });
     }
     if (elements.replayLiveBtn) {
@@ -823,6 +982,20 @@ ${movesSection}${movesSection ? " " : ""}${result}
     clearTimeout(state.pendingSyncTimeoutId);
     state.pendingSyncTimeoutId = null;
   }
+  function clearSyncRetryTimer(state) {
+    if (!state.pendingSyncRetryTimeoutId) {
+      return;
+    }
+    clearTimeout(state.pendingSyncRetryTimeoutId);
+    state.pendingSyncRetryTimeoutId = null;
+  }
+  function clearHighlightTimer(state) {
+    if (!state.pendingHighlightTimeoutId) {
+      return;
+    }
+    clearTimeout(state.pendingHighlightTimeoutId);
+    state.pendingHighlightTimeoutId = null;
+  }
   function clearBotRecoveryWatchdog(state) {
     if (!state.pendingBotRecoveryTimeoutId) {
       return;
@@ -842,17 +1015,77 @@ ${movesSection}${movesSection ? " " : ""}${result}
     }
     return false;
   }
+  function shouldAttemptSyncRecovery(state) {
+    return state.isGameStarted && !state.hasGameEnded && !state.isReplayMode && state.connectionState !== "offline" && state.connectionState !== "disconnected";
+  }
+  function scheduleSyncRetry(connection, state) {
+    if (!shouldAttemptSyncRecovery(state)) {
+      clearSyncRetryTimer(state);
+      state.syncRetryAttempt = 0;
+      return;
+    }
+    if (state.pendingSyncRetryTimeoutId) {
+      return;
+    }
+    const delays = [450, 900, 1500];
+    const attempt = Math.min(state.syncRetryAttempt, delays.length - 1);
+    const delayMs = delays[attempt];
+    state.pendingSyncRetryTimeoutId = setTimeout(() => {
+      state.pendingSyncRetryTimeoutId = null;
+      requestSyncSafely(connection, state);
+    }, delayMs);
+  }
   function requestSyncSafely(connection, state) {
+    if (connection.state !== signalR.HubConnectionState.Connected) {
+      return Promise.resolve(false);
+    }
     if (state.syncRequestInFlight) {
       return Promise.resolve(false);
     }
     state.syncRequestInFlight = true;
-    return connection.invoke("RequestSync").then(() => true).catch((err) => {
+    return connection.invoke("RequestSync").then(() => {
+      state.syncRetryAttempt = 0;
+      clearSyncRetryTimer(state);
+      return true;
+    }).catch((err) => {
       console.error(err);
+      if (shouldAttemptSyncRecovery(state)) {
+        state.syncRetryAttempt = Math.min((state.syncRetryAttempt || 0) + 1, 3);
+        scheduleSyncRetry(connection, state);
+      }
       return false;
     }).finally(() => {
       state.syncRequestInFlight = false;
     });
+  }
+  function applyOfflineState(elements, state) {
+    state.connectionState = "offline";
+    state.isYourTurn = false;
+    clearSyncWatchdog(state);
+    clearSyncRetryTimer(state);
+    clearBotRecoveryWatchdog(state);
+    elements.board.style.pointerEvents = "none";
+    setConnectionStatus(elements, "offline", t("connectionOffline"));
+    if (!state.hasGameEnded) {
+      elements.statusText.style.color = "#b36b00";
+      elements.statusText.innerText = t("connectionOffline");
+    }
+    updateReplayControls(elements, state);
+  }
+  function tryRecoverFromOffline(connection, elements, state) {
+    if (state.connectionState !== "offline" || !navigator.onLine) {
+      return;
+    }
+    if (connection.state === signalR.HubConnectionState.Connected) {
+      state.connectionState = "connected";
+      setConnectionStatus(elements, "syncing", t("connectionSyncing"));
+      if (state.isGameStarted) {
+        requestSyncSafely(connection, state);
+      }
+      return;
+    }
+    state.connectionState = "reconnecting";
+    setConnectionStatus(elements, "reconnecting", t("connectionReconnecting"));
   }
   function scheduleSyncWatchdog2(connection, state) {
     clearSyncWatchdog(state);
@@ -869,7 +1102,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
       if (!state.isGameStarted || state.hasGameEnded) {
         return;
       }
-      if (state.connectionState === "reconnecting" || state.connectionState === "disconnected") {
+      if (state.connectionState === "reconnecting" || state.connectionState === "disconnected" || state.connectionState === "offline") {
         return;
       }
       if (state.isYourTurn || !isBotToMove(state)) {
@@ -879,7 +1112,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
         if (!state.isGameStarted || state.hasGameEnded) {
           return;
         }
-        if (state.connectionState === "reconnecting" || state.connectionState === "disconnected") {
+        if (state.connectionState === "reconnecting" || state.connectionState === "disconnected" || state.connectionState === "offline") {
           return;
         }
         if (state.isYourTurn || !isBotToMove(state)) {
@@ -944,6 +1177,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
     clearHintSquares();
     removeHighlight("white");
     removeHighlight("black");
+    clearHighlightTimer(state);
     if (state.hasGameEnded) {
       clearBotRecoveryWatchdog(state);
       state.isYourTurn = false;
@@ -969,12 +1203,20 @@ ${movesSection}${movesSection ? " " : ""}${result}
     } else {
       clearBotRecoveryWatchdog(state);
     }
-    if (state.isGameStarted && state.connectionState !== "reconnecting" && state.connectionState !== "disconnected" && state.isYourTurn) {
+    if (state.isGameStarted && state.connectionState !== "reconnecting" && state.connectionState !== "disconnected" && state.connectionState !== "offline" && state.isYourTurn) {
       elements.board.style.pointerEvents = "auto";
     } else {
       elements.board.style.pointerEvents = "none";
     }
     updateReplayControls(elements, state);
+  }
+  function scheduleHighlightCleanup(state) {
+    clearHighlightTimer(state);
+    state.pendingHighlightTimeoutId = setTimeout(() => {
+      state.pendingHighlightTimeoutId = null;
+      removeHighlight("white");
+      removeHighlight("black");
+    }, 1200);
   }
   function resolveGameResultTone(state, player, gameOver) {
     const isPlayerKnown = !!(player && player.name);
@@ -996,36 +1238,96 @@ ${movesSection}${movesSection ? " " : ""}${result}
     }
   }
   function registerConnectionHandlers(connection, elements, state) {
+    window.addEventListener("offline", () => {
+      applyOfflineState(elements, state);
+    });
+    window.addEventListener("online", () => {
+      tryRecoverFromOffline(connection, elements, state);
+    });
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible" && state.isGameStarted) {
+        if (state.connectionState === "offline") {
+          tryRecoverFromOffline(connection, elements, state);
+        }
         requestSyncSafely(connection, state);
       }
     });
     connection.onreconnecting(function onReconnecting() {
+      if (!navigator.onLine) {
+        applyOfflineState(elements, state);
+        return;
+      }
       state.connectionState = "reconnecting";
       state.isYourTurn = false;
       clearSyncWatchdog(state);
+      clearSyncRetryTimer(state);
       clearBotRecoveryWatchdog(state);
+      clearHighlightTimer(state);
       elements.board.style.pointerEvents = "none";
+      setConnectionStatus(elements, "reconnecting", t("connectionReconnecting"));
+      if (!state.hasGameEnded && !state.isReplayMode) {
+        elements.statusText.style.color = "#b36b00";
+        elements.statusText.innerText = t("connectionReconnecting");
+      }
     });
     connection.onreconnected(function onReconnected() {
+      if (!navigator.onLine) {
+        applyOfflineState(elements, state);
+        return;
+      }
       state.connectionState = "connected";
+      setConnectionStatus(elements, "syncing", t("connectionSyncing"));
       if (state.isGameStarted) {
         requestSyncSafely(connection, state);
       }
     });
     connection.onclose(function onClosed() {
+      if (!navigator.onLine) {
+        applyOfflineState(elements, state);
+        return;
+      }
       state.connectionState = "disconnected";
       state.isYourTurn = false;
       clearSyncWatchdog(state);
+      clearSyncRetryTimer(state);
       clearBotRecoveryWatchdog(state);
+      clearHighlightTimer(state);
       elements.board.style.pointerEvents = "none";
+      setConnectionStatus(elements, "disconnected", t("connectionDisconnected"));
+      if (!state.hasGameEnded) {
+        elements.statusText.style.color = "#b42318";
+        elements.statusText.innerText = t("connectionDisconnected");
+      }
     });
     connection.on("AddRoom", function onAddRoom(player) {
+      if (!player || !player.id) {
+        return;
+      }
+      const roomId = String(player.id);
+      const existingRoom = elements.rooms.querySelector(`.game-lobby-room-item[data-room-id="${roomId}"]`);
+      if (existingRoom) {
+        return;
+      }
+      const emptyState = elements.rooms.querySelector(".game-lobby-room-empty");
+      if (emptyState) {
+        emptyState.remove();
+      }
       elements.rooms.appendChild(createRoomElement(player));
+      const appendedJoinButton = elements.rooms.querySelector(`.game-lobby-room-item[data-room-id="${roomId}"] .game-lobby-room-join-btn`);
+      if (appendedJoinButton) {
+        const disableJoin = !!state.lobbyActionInFlight || !state.lobbyNameValid;
+        appendedJoinButton.disabled = disableJoin;
+        appendedJoinButton.classList.toggle("is-disabled", disableJoin);
+        appendedJoinButton.classList.toggle("is-loading", !!state.lobbyActionInFlight);
+      }
+      if (elements.lobbyRoomCount) {
+        const totalRooms = elements.rooms.querySelectorAll(".game-lobby-room-item").length;
+        elements.lobbyRoomCount.textContent = String(totalRooms);
+      }
     });
     connection.on("ListRooms", function onListRooms(waitingPlayers) {
-      renderRooms(elements.rooms, waitingPlayers);
+      const disableJoin = !!state.lobbyActionInFlight || !state.lobbyNameValid;
+      renderRooms(elements.rooms, waitingPlayers, disableJoin);
     });
     connection.on("Start", function onStart(startPayload) {
       const normalizedPayload = normalizeStartPayload(startPayload);
@@ -1069,7 +1371,12 @@ ${movesSection}${movesSection ? " " : ""}${result}
       state.hasGameEnded = false;
       state.gameOverCode = null;
       state.gameOverWinnerName = null;
+      state.syncRetryAttempt = 0;
+      clearSyncRetryTimer(state);
+      clearHighlightTimer(state);
       clearGameResultBanner(elements);
+      updateBotDifficultyBadge(elements, state);
+      setConnectionStatus(elements, null, "");
       setPlayAgainVsBotVisibility(elements, false);
       updateReplayControls(elements, state);
       state.mobilePanel = "board";
@@ -1078,7 +1385,10 @@ ${movesSection}${movesSection ? " " : ""}${result}
       }
       if (Array.isArray(elements.mobileTabButtons)) {
         elements.mobileTabButtons.forEach((button) => {
-          button.classList.toggle("is-active", button.dataset.mobilePanel === "board");
+          const isBoardTab = button.dataset.mobilePanel === "board";
+          button.classList.toggle("is-active", isBoardTab);
+          button.setAttribute("aria-selected", isBoardTab ? "true" : "false");
+          button.tabIndex = isBoardTab ? 0 : -1;
         });
       }
       elements.whiteName.textContent = state.playerOneName;
@@ -1086,6 +1396,9 @@ ${movesSection}${movesSection ? " " : ""}${result}
       elements.whiteRating.textContent = game.player1.rating;
       elements.blackRating.textContent = game.player2.rating;
       applyGameStats(elements, game);
+      if (elements.gameChatInput) {
+        setTimeout(() => elements.gameChatInput.focus(), 0);
+      }
       syncBoardState(state);
       safeResizeBoard(state);
       syncTurnDependentState(
@@ -1182,6 +1495,9 @@ ${movesSection}${movesSection ? " " : ""}${result}
       if (!state.hasGameEnded && !state.isReplayMode) {
         syncTurnDependentState(connection, elements, state, movingPlayerId, movingPlayerName);
       }
+      if (state.connectionState === "connected" || state.connectionState === "in-game") {
+        setConnectionStatus(elements, null, "");
+      }
       updateReplayControls(elements, state);
     });
     connection.on("GameOver", function onGameOver(player, gameOver) {
@@ -1193,7 +1509,9 @@ ${movesSection}${movesSection ? " " : ""}${result}
       state.legalMoves = [];
       state.legalMovesRequestId += 1;
       clearSyncWatchdog(state);
+      clearSyncRetryTimer(state);
       clearBotRecoveryWatchdog(state);
+      clearHighlightTimer(state);
       clearHintSquares();
       removeHighlight("white");
       removeHighlight("black");
@@ -1436,15 +1754,17 @@ ${movesSection}${movesSection ? " " : ""}${result}
       if (!sourceSquare.length || !targetSquare.length) {
         return;
       }
+      clearHighlightTimer(state);
+      removeHighlight("white");
+      removeHighlight("black");
       if (player.name === state.playerOneName) {
-        removeHighlight("black");
-        sourceSquare[0].className += " highlight-white";
-        targetSquare[0].className += " highlight-white";
+        sourceSquare[0].classList.add("highlight-white");
+        targetSquare[0].classList.add("highlight-white");
       } else {
-        removeHighlight("white");
-        sourceSquare[0].className += " highlight-black";
-        targetSquare[0].className += " highlight-black";
+        sourceSquare[0].classList.add("highlight-black");
+        targetSquare[0].classList.add("highlight-black");
       }
+      scheduleHighlightCleanup(state);
     });
     connection.on("UpdateGameChat", function onUpdateGameChat(message, player) {
       const isBlack = player.name !== state.playerOneName;
@@ -1467,7 +1787,8 @@ ${movesSection}${movesSection ? " " : ""}${result}
     pieceTheme: "chess.pieceTheme",
     checkHints: "chess.checkHints",
     legalMoveHints: "chess.legalMoveHints",
-    botDifficulty: "chess.botDifficulty"
+    botDifficulty: "chess.botDifficulty",
+    lobbyName: "chess.lobbyName"
   };
   var boardThemes = {
     classic: "board-theme-classic",
@@ -1489,6 +1810,9 @@ ${movesSection}${movesSection ? " " : ""}${result}
       board: document.querySelector("#board"),
       mobileTabs: document.querySelector(".game-mobile-tabs"),
       mobileTabButtons: Array.from(document.querySelectorAll(".game-mobile-tab-btn")),
+      botDifficultyMeta: document.querySelector(".game-live-bot-difficulty"),
+      botDifficultyMetaValue: document.querySelector(".game-live-bot-difficulty-value"),
+      connectionPill: document.querySelector(".game-connection-pill"),
       gameResultBanner: document.querySelector(".game-result-banner"),
       statusText: document.querySelector(".status-bar-text"),
       statusCheck: document.querySelector(".status-bar-check-notification"),
@@ -1513,14 +1837,17 @@ ${movesSection}${movesSection ? " " : ""}${result}
       gameChatWindow: document.querySelector(".game-chat-window"),
       lobbyChatWindow: document.querySelector(".game-lobby-chat-window"),
       rooms: document.querySelector(".game-lobby-room-container"),
+      lobbyRoomCount: document.querySelector(".game-lobby-room-count"),
       lobbyInputName: document.querySelector(".game-lobby-input-name"),
       lobbyInputCreateBtn: document.querySelector(".game-lobby-input-create-btn"),
       botDifficultySelect: document.querySelector("#bot-difficulty-select"),
       lobbyInputVsBotBtn: document.querySelector(".game-lobby-input-vs-bot-btn"),
       lobbyChatInput: document.querySelector(".game-lobby-chat-input"),
       lobbyChatSendBtn: document.querySelector(".game-lobby-chat-send-btn"),
+      lobbyChatCounter: document.querySelector(".game-lobby-chat-counter"),
       gameChatInput: document.querySelector(".game-chat-input"),
       gameChatSendBtn: document.querySelector(".game-chat-send-btn"),
+      gameChatCounter: document.querySelector(".game-chat-counter"),
       resignBtn: document.querySelector(".resign-btn"),
       offerDrawBtn: document.querySelector(".offer-draw-btn"),
       threefoldDrawBtn: document.querySelector(".threefold-draw-btn"),
@@ -1535,7 +1862,8 @@ ${movesSection}${movesSection ? " " : ""}${result}
       replayNextBtn: document.querySelector(".game-replay-next-btn"),
       replayLiveBtn: document.querySelector(".game-replay-live-btn"),
       exportPgnBtn: document.querySelector(".game-export-pgn-btn"),
-      replayIndicator: document.querySelector(".game-replay-indicator")
+      replayIndicator: document.querySelector(".game-replay-indicator"),
+      replayHotkeys: document.querySelector(".game-replay-hotkeys")
     };
   }
   function createState() {
@@ -1572,13 +1900,17 @@ ${movesSection}${movesSection ? " " : ""}${result}
       legalMovesRequestId: 0,
       syncRequestInFlight: false,
       pendingSyncTimeoutId: null,
+      pendingSyncRetryTimeoutId: null,
+      syncRetryAttempt: 0,
       pendingBotRecoveryTimeoutId: null,
+      pendingHighlightTimeoutId: null,
       boardInitialized: false,
       selectedBoardTheme: getStoredValue(storageKeys.boardTheme, "classic", boardThemes),
       selectedPieceTheme: getStoredValue(storageKeys.pieceTheme, "wikipedia", pieceThemes),
       hintsEnabled: getStoredBoolean(storageKeys.checkHints, true),
       legalHintsEnabled: getStoredBoolean(storageKeys.legalMoveHints, true),
       botDifficulty: getStoredValue(storageKeys.botDifficulty, "normal", botDifficulties),
+      lobbyNameValid: false,
       lobbyActionInFlight: false,
       gameActionInFlight: false
     };
@@ -1616,25 +1948,66 @@ ${movesSection}${movesSection ? " " : ""}${result}
     } catch (error) {
     }
   }
+  function getStoredText(storageKey, fallbackValue = "") {
+    try {
+      const storedValue = localStorage.getItem(storageKey);
+      if (typeof storedValue === "string") {
+        return storedValue;
+      }
+    } catch (error) {
+    }
+    return fallbackValue;
+  }
 
   // wwwroot/js/src/lobby.js
-  function setLobbyButtonsDisabled(elements, isDisabled) {
-    elements.lobbyInputCreateBtn.disabled = isDisabled;
-    elements.lobbyInputCreateBtn.classList.toggle("is-disabled", isDisabled);
-    elements.lobbyInputCreateBtn.classList.toggle("is-loading", isDisabled);
+  var playerNamePattern = /^[A-Za-z0-9_]{3,20}$/;
+  function setLobbyButtonsDisabled(elements, shouldDisable, isBusy) {
+    elements.lobbyInputCreateBtn.disabled = shouldDisable;
+    elements.lobbyInputCreateBtn.classList.toggle("is-disabled", shouldDisable);
+    elements.lobbyInputCreateBtn.classList.toggle("is-loading", !!isBusy);
     if (elements.lobbyInputVsBotBtn) {
-      elements.lobbyInputVsBotBtn.disabled = isDisabled;
-      elements.lobbyInputVsBotBtn.classList.toggle("is-disabled", isDisabled);
-      elements.lobbyInputVsBotBtn.classList.toggle("is-loading", isDisabled);
+      elements.lobbyInputVsBotBtn.disabled = shouldDisable;
+      elements.lobbyInputVsBotBtn.classList.toggle("is-disabled", shouldDisable);
+      elements.lobbyInputVsBotBtn.classList.toggle("is-loading", !!isBusy);
     }
-    $(".game-lobby-room-join-btn").prop("disabled", isDisabled).toggleClass("is-disabled", isDisabled).toggleClass("is-loading", isDisabled);
+    $(".game-lobby-room-join-btn").prop("disabled", shouldDisable).toggleClass("is-disabled", shouldDisable).toggleClass("is-loading", !!isBusy);
+  }
+  function isLobbyNameValid(elements) {
+    const name = (elements.lobbyInputName.value || "").trim();
+    return playerNamePattern.test(name);
+  }
+  function syncLobbyNameValidity(elements, state) {
+    const isValid = isLobbyNameValid(elements);
+    state.lobbyNameValid = isValid;
+    const shouldDisableActions = state.lobbyActionInFlight || !isValid;
+    setLobbyButtonsDisabled(elements, shouldDisableActions, state.lobbyActionInFlight);
+    if (typeof elements.lobbyInputName.setCustomValidity === "function") {
+      if (isValid || elements.lobbyInputName.value.trim().length === 0) {
+        elements.lobbyInputName.setCustomValidity("");
+      } else {
+        elements.lobbyInputName.setCustomValidity(t("hubErrorNameInvalid"));
+      }
+    }
+    const name = (elements.lobbyInputName.value || "").trim();
+    if (name.length === 0) {
+      storeValue(storageKeys.lobbyName, "");
+    } else if (playerNamePattern.test(name)) {
+      storeValue(storageKeys.lobbyName, name);
+    }
   }
   function tryGetLobbyName(elements) {
     const name = (elements.lobbyInputName.value || "").trim();
     if (name === "") {
+      reportClientError(elements, new Error(t("hubErrorNameInvalid")), elements.lobbyInputName);
       elements.lobbyInputName.focus();
       return null;
     }
+    if (!playerNamePattern.test(name)) {
+      reportClientError(elements, new Error(t("hubErrorNameInvalid")), elements.lobbyInputName);
+      elements.lobbyInputName.focus();
+      return null;
+    }
+    storeValue(storageKeys.lobbyName, name);
     return name;
   }
   function runLobbyAction(elements, state, action) {
@@ -1643,11 +2016,11 @@ ${movesSection}${movesSection ? " " : ""}${result}
     }
     state.lobbyActionInFlight = true;
     elements.lobbyContainer.classList.add("is-loading");
-    setLobbyButtonsDisabled(elements, true);
+    syncLobbyNameValidity(elements, state);
     action().catch((err) => reportClientError(elements, err, elements.lobbyInputName)).finally(() => {
       state.lobbyActionInFlight = false;
       elements.lobbyContainer.classList.remove("is-loading");
-      setLobbyButtonsDisabled(elements, false);
+      syncLobbyNameValidity(elements, state);
     });
   }
   function normalizeDifficulty(value) {
@@ -1661,6 +2034,22 @@ ${movesSection}${movesSection ? " " : ""}${result}
     return normalized;
   }
   function bindLobbyHandlers(connection, elements, state) {
+    const storedLobbyName = getStoredText(storageKeys.lobbyName, "").trim();
+    if (playerNamePattern.test(storedLobbyName) && !elements.lobbyInputName.value.trim()) {
+      elements.lobbyInputName.value = storedLobbyName;
+    }
+    elements.lobbyInputName.addEventListener("input", function onLobbyNameInput() {
+      syncLobbyNameValidity(elements, state);
+    });
+    elements.lobbyInputName.addEventListener("keydown", function onLobbyNameKeyDown(event) {
+      if (event.key !== "Enter") {
+        return;
+      }
+      event.preventDefault();
+      if (!elements.lobbyInputCreateBtn.disabled) {
+        elements.lobbyInputCreateBtn.click();
+      }
+    });
     window.addEventListener("beforeunload", function onBeforeUnload(e) {
       if (state.isGameStarted) {
         e.preventDefault();
@@ -1702,6 +2091,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
         }));
       });
     }
+    syncLobbyNameValidity(elements, state);
   }
 
   // wwwroot/js/src/game.js
@@ -1726,7 +2116,10 @@ ${movesSection}${movesSection ? " " : ""}${result}
       state.mobilePanel = normalizedPanel;
       elements.playground.dataset.mobilePanel = normalizedPanel;
       elements.mobileTabButtons.forEach((button) => {
-        button.classList.toggle("is-active", button.dataset.mobilePanel === normalizedPanel);
+        const isActive = button.dataset.mobilePanel === normalizedPanel;
+        button.classList.toggle("is-active", isActive);
+        button.setAttribute("aria-selected", isActive ? "true" : "false");
+        button.tabIndex = isActive ? 0 : -1;
       });
     };
     const applyResponsiveState = () => {
@@ -1738,16 +2131,107 @@ ${movesSection}${movesSection ? " " : ""}${result}
       }
       elements.mobileTabs.classList.remove("is-visible");
       elements.playground.removeAttribute("data-mobile-panel");
-      elements.mobileTabButtons.forEach((button) => button.classList.remove("is-active"));
+      elements.mobileTabButtons.forEach((button) => {
+        button.classList.remove("is-active");
+        button.setAttribute("aria-selected", "false");
+        button.tabIndex = -1;
+      });
       safeResizeBoard(state);
     };
     elements.mobileTabButtons.forEach((button) => {
       button.addEventListener("click", () => {
         applyPanel(button.dataset.mobilePanel);
       });
+      button.addEventListener("keydown", (event) => {
+        if (!mobileQuery.matches) {
+          return;
+        }
+        const buttonIndex = elements.mobileTabButtons.indexOf(button);
+        if (buttonIndex < 0) {
+          return;
+        }
+        const maxIndex = elements.mobileTabButtons.length - 1;
+        let nextIndex = buttonIndex;
+        switch (event.key) {
+          case "ArrowRight":
+            nextIndex = buttonIndex >= maxIndex ? 0 : buttonIndex + 1;
+            break;
+          case "ArrowLeft":
+            nextIndex = buttonIndex <= 0 ? maxIndex : buttonIndex - 1;
+            break;
+          case "Home":
+            nextIndex = 0;
+            break;
+          case "End":
+            nextIndex = maxIndex;
+            break;
+          default:
+            return;
+        }
+        event.preventDefault();
+        const nextButton = elements.mobileTabButtons[nextIndex];
+        nextButton.focus();
+        applyPanel(nextButton.dataset.mobilePanel);
+      });
     });
     window.addEventListener("resize", applyResponsiveState);
     applyResponsiveState();
+  }
+  function bindReplayShortcuts(elements, state) {
+    document.addEventListener("keydown", (event) => {
+      if (event.altKey || event.ctrlKey || event.metaKey) {
+        return;
+      }
+      if (!state.isGameStarted && !state.hasGameEnded) {
+        return;
+      }
+      const target = event.target;
+      const tag = target && target.tagName ? target.tagName.toLowerCase() : "";
+      if (tag === "input" || tag === "textarea" || tag === "select" || target && target.isContentEditable) {
+        return;
+      }
+      switch (event.key) {
+        case "ArrowLeft":
+          if (!state.isBotGame) {
+            return;
+          }
+          event.preventDefault();
+          if (state.isReplayMode) {
+            elements.replayPrevBtn?.click();
+          } else {
+            elements.replayStartBtn?.click();
+          }
+          break;
+        case "ArrowRight":
+          if (!state.isBotGame) {
+            return;
+          }
+          event.preventDefault();
+          elements.replayNextBtn?.click();
+          break;
+        case "Home":
+          if (!state.isBotGame) {
+            return;
+          }
+          event.preventDefault();
+          elements.replayStartBtn?.click();
+          break;
+        case "End":
+          if (!state.isBotGame) {
+            return;
+          }
+          event.preventDefault();
+          elements.replayLiveBtn?.click();
+          break;
+        case "p":
+        case "P":
+          event.preventDefault();
+          elements.exportPgnBtn?.click();
+          break;
+        default:
+          break;
+      }
+    });
   }
   $(function bootstrapGameLobby() {
     const connection = createConnection();
@@ -1788,6 +2272,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
         }
         state.botDifficulty = selectedDifficulty;
         storeValue(storageKeys.botDifficulty, state.botDifficulty);
+        updateBotDifficultyBadge(elements, state);
       });
     }
     if (elements.checkHintsToggle) {
@@ -1809,8 +2294,10 @@ ${movesSection}${movesSection ? " " : ""}${result}
     syncTakenPiecesTheme(state);
     ensureBoardInitialized(state, pieceThemes, onDrop, onDragStart);
     safeResizeBoard(state);
+    updateBotDifficultyBadge(elements, state);
     updateReplayControls(elements, state);
     bindMobileTabs(elements, state);
+    bindReplayShortcuts(elements, state);
     bindLobbyHandlers(connection, elements, state);
     bindChatHandlers(connection, elements);
     bindGameOptionHandlers(connection, elements, state);

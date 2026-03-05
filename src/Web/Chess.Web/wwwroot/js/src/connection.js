@@ -11,6 +11,8 @@ import {
     renderRooms,
     resetGameUi,
     setGameResultBanner,
+    setConnectionStatus,
+    updateBotDifficultyBadge,
     setPlayAgainVsBotVisibility,
     sleep,
     updateChat,
@@ -99,6 +101,24 @@ function clearSyncWatchdog(state) {
     state.pendingSyncTimeoutId = null;
 }
 
+function clearSyncRetryTimer(state) {
+    if (!state.pendingSyncRetryTimeoutId) {
+        return;
+    }
+
+    clearTimeout(state.pendingSyncRetryTimeoutId);
+    state.pendingSyncRetryTimeoutId = null;
+}
+
+function clearHighlightTimer(state) {
+    if (!state.pendingHighlightTimeoutId) {
+        return;
+    }
+
+    clearTimeout(state.pendingHighlightTimeoutId);
+    state.pendingHighlightTimeoutId = null;
+}
+
 function clearBotRecoveryWatchdog(state) {
     if (!state.pendingBotRecoveryTimeoutId) {
         return;
@@ -124,21 +144,98 @@ function isBotToMove(state) {
     return false;
 }
 
+function shouldAttemptSyncRecovery(state) {
+    return state.isGameStarted
+        && !state.hasGameEnded
+        && !state.isReplayMode
+        && state.connectionState !== 'offline'
+        && state.connectionState !== 'disconnected';
+}
+
+function scheduleSyncRetry(connection, state) {
+    if (!shouldAttemptSyncRecovery(state)) {
+        clearSyncRetryTimer(state);
+        state.syncRetryAttempt = 0;
+        return;
+    }
+
+    if (state.pendingSyncRetryTimeoutId) {
+        return;
+    }
+
+    const delays = [450, 900, 1500];
+    const attempt = Math.min(state.syncRetryAttempt, delays.length - 1);
+    const delayMs = delays[attempt];
+
+    state.pendingSyncRetryTimeoutId = setTimeout(() => {
+        state.pendingSyncRetryTimeoutId = null;
+        requestSyncSafely(connection, state);
+    }, delayMs);
+}
+
 function requestSyncSafely(connection, state) {
+    if (connection.state !== signalR.HubConnectionState.Connected) {
+        return Promise.resolve(false);
+    }
+
     if (state.syncRequestInFlight) {
         return Promise.resolve(false);
     }
 
     state.syncRequestInFlight = true;
     return connection.invoke('RequestSync')
-        .then(() => true)
+        .then(() => {
+            state.syncRetryAttempt = 0;
+            clearSyncRetryTimer(state);
+            return true;
+        })
         .catch((err) => {
             console.error(err);
+            if (shouldAttemptSyncRecovery(state)) {
+                state.syncRetryAttempt = Math.min((state.syncRetryAttempt || 0) + 1, 3);
+                scheduleSyncRetry(connection, state);
+            }
             return false;
         })
         .finally(() => {
             state.syncRequestInFlight = false;
         });
+}
+
+function applyOfflineState(elements, state) {
+    state.connectionState = 'offline';
+    state.isYourTurn = false;
+    clearSyncWatchdog(state);
+    clearSyncRetryTimer(state);
+    clearBotRecoveryWatchdog(state);
+    elements.board.style.pointerEvents = 'none';
+    setConnectionStatus(elements, 'offline', t('connectionOffline'));
+
+    if (!state.hasGameEnded) {
+        elements.statusText.style.color = '#b36b00';
+        elements.statusText.innerText = t('connectionOffline');
+    }
+
+    updateReplayControls(elements, state);
+}
+
+function tryRecoverFromOffline(connection, elements, state) {
+    if (state.connectionState !== 'offline' || !navigator.onLine) {
+        return;
+    }
+
+    if (connection.state === signalR.HubConnectionState.Connected) {
+        state.connectionState = 'connected';
+        setConnectionStatus(elements, 'syncing', t('connectionSyncing'));
+        if (state.isGameStarted) {
+            requestSyncSafely(connection, state);
+        }
+
+        return;
+    }
+
+    state.connectionState = 'reconnecting';
+    setConnectionStatus(elements, 'reconnecting', t('connectionReconnecting'));
 }
 
 function scheduleSyncWatchdog(connection, state) {
@@ -161,7 +258,9 @@ function scheduleBotRecoveryWatchdog(connection, state) {
             return;
         }
 
-        if (state.connectionState === 'reconnecting' || state.connectionState === 'disconnected') {
+        if (state.connectionState === 'reconnecting'
+            || state.connectionState === 'disconnected'
+            || state.connectionState === 'offline') {
             return;
         }
 
@@ -175,7 +274,9 @@ function scheduleBotRecoveryWatchdog(connection, state) {
                     return;
                 }
 
-                if (state.connectionState === 'reconnecting' || state.connectionState === 'disconnected') {
+                if (state.connectionState === 'reconnecting'
+                    || state.connectionState === 'disconnected'
+                    || state.connectionState === 'offline') {
                     return;
                 }
 
@@ -258,6 +359,7 @@ function syncTurnDependentState(connection, elements, state, movingPlayerId, mov
     clearHintSquares();
     removeHighlight('white');
     removeHighlight('black');
+    clearHighlightTimer(state);
 
     if (state.hasGameEnded) {
         clearBotRecoveryWatchdog(state);
@@ -287,16 +389,26 @@ function syncTurnDependentState(connection, elements, state, movingPlayerId, mov
         clearBotRecoveryWatchdog(state);
     }
 
-    if (state.isGameStarted &&
-        state.connectionState !== 'reconnecting' &&
-        state.connectionState !== 'disconnected' &&
-        state.isYourTurn) {
+    if (state.isGameStarted
+        && state.connectionState !== 'reconnecting'
+        && state.connectionState !== 'disconnected'
+        && state.connectionState !== 'offline'
+        && state.isYourTurn) {
         elements.board.style.pointerEvents = 'auto';
     } else {
         elements.board.style.pointerEvents = 'none';
     }
 
     updateReplayControls(elements, state);
+}
+
+function scheduleHighlightCleanup(state) {
+    clearHighlightTimer(state);
+    state.pendingHighlightTimeoutId = setTimeout(() => {
+        state.pendingHighlightTimeoutId = null;
+        removeHighlight('white');
+        removeHighlight('black');
+    }, 1200);
 }
 
 function resolveGameResultTone(state, player, gameOver) {
@@ -321,41 +433,113 @@ function resolveGameResultTone(state, player, gameOver) {
 }
 
 export function registerConnectionHandlers(connection, elements, state) {
+    window.addEventListener('offline', () => {
+        applyOfflineState(elements, state);
+    });
+
+    window.addEventListener('online', () => {
+        tryRecoverFromOffline(connection, elements, state);
+    });
+
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && state.isGameStarted) {
+            if (state.connectionState === 'offline') {
+                tryRecoverFromOffline(connection, elements, state);
+            }
+
             requestSyncSafely(connection, state);
         }
     });
 
     connection.onreconnecting(function onReconnecting() {
+        if (!navigator.onLine) {
+            applyOfflineState(elements, state);
+            return;
+        }
+
         state.connectionState = 'reconnecting';
         state.isYourTurn = false;
         clearSyncWatchdog(state);
+        clearSyncRetryTimer(state);
         clearBotRecoveryWatchdog(state);
+        clearHighlightTimer(state);
         elements.board.style.pointerEvents = 'none';
+        setConnectionStatus(elements, 'reconnecting', t('connectionReconnecting'));
+
+        if (!state.hasGameEnded && !state.isReplayMode) {
+            elements.statusText.style.color = '#b36b00';
+            elements.statusText.innerText = t('connectionReconnecting');
+        }
     });
 
     connection.onreconnected(function onReconnected() {
+        if (!navigator.onLine) {
+            applyOfflineState(elements, state);
+            return;
+        }
+
         state.connectionState = 'connected';
+        setConnectionStatus(elements, 'syncing', t('connectionSyncing'));
         if (state.isGameStarted) {
             requestSyncSafely(connection, state);
         }
     });
 
     connection.onclose(function onClosed() {
+        if (!navigator.onLine) {
+            applyOfflineState(elements, state);
+            return;
+        }
+
         state.connectionState = 'disconnected';
         state.isYourTurn = false;
         clearSyncWatchdog(state);
+        clearSyncRetryTimer(state);
         clearBotRecoveryWatchdog(state);
+        clearHighlightTimer(state);
         elements.board.style.pointerEvents = 'none';
+        setConnectionStatus(elements, 'disconnected', t('connectionDisconnected'));
+        if (!state.hasGameEnded) {
+            elements.statusText.style.color = '#b42318';
+            elements.statusText.innerText = t('connectionDisconnected');
+        }
     });
 
     connection.on('AddRoom', function onAddRoom(player) {
+        if (!player || !player.id) {
+            return;
+        }
+
+        const roomId = String(player.id);
+        const existingRoom = elements.rooms.querySelector(`.game-lobby-room-item[data-room-id="${roomId}"]`);
+        if (existingRoom) {
+            return;
+        }
+
+        const emptyState = elements.rooms.querySelector('.game-lobby-room-empty');
+        if (emptyState) {
+            emptyState.remove();
+        }
+
         elements.rooms.appendChild(createRoomElement(player));
+
+        const appendedJoinButton = elements.rooms.querySelector(`.game-lobby-room-item[data-room-id="${roomId}"] .game-lobby-room-join-btn`);
+        if (appendedJoinButton) {
+            const disableJoin = !!state.lobbyActionInFlight || !state.lobbyNameValid;
+            appendedJoinButton.disabled = disableJoin;
+            appendedJoinButton.classList.toggle('is-disabled', disableJoin);
+            appendedJoinButton.classList.toggle('is-loading', !!state.lobbyActionInFlight);
+        }
+
+        if (elements.lobbyRoomCount) {
+            const totalRooms = elements.rooms.querySelectorAll('.game-lobby-room-item').length;
+            elements.lobbyRoomCount.textContent = String(totalRooms);
+        }
     });
 
     connection.on('ListRooms', function onListRooms(waitingPlayers) {
-        renderRooms(elements.rooms, waitingPlayers);
+        const disableJoin = !!state.lobbyActionInFlight || !state.lobbyNameValid;
+        renderRooms(elements.rooms, waitingPlayers, disableJoin);
     });
 
     connection.on('Start', function onStart(startPayload) {
@@ -407,7 +591,12 @@ export function registerConnectionHandlers(connection, elements, state) {
         state.hasGameEnded = false;
         state.gameOverCode = null;
         state.gameOverWinnerName = null;
+        state.syncRetryAttempt = 0;
+        clearSyncRetryTimer(state);
+        clearHighlightTimer(state);
         clearGameResultBanner(elements);
+        updateBotDifficultyBadge(elements, state);
+        setConnectionStatus(elements, null, '');
         setPlayAgainVsBotVisibility(elements, false);
         updateReplayControls(elements, state);
         state.mobilePanel = 'board';
@@ -417,7 +606,10 @@ export function registerConnectionHandlers(connection, elements, state) {
 
         if (Array.isArray(elements.mobileTabButtons)) {
             elements.mobileTabButtons.forEach((button) => {
-                button.classList.toggle('is-active', button.dataset.mobilePanel === 'board');
+                const isBoardTab = button.dataset.mobilePanel === 'board';
+                button.classList.toggle('is-active', isBoardTab);
+                button.setAttribute('aria-selected', isBoardTab ? 'true' : 'false');
+                button.tabIndex = isBoardTab ? 0 : -1;
             });
         }
 
@@ -426,6 +618,9 @@ export function registerConnectionHandlers(connection, elements, state) {
         elements.whiteRating.textContent = game.player1.rating;
         elements.blackRating.textContent = game.player2.rating;
         applyGameStats(elements, game);
+        if (elements.gameChatInput) {
+            setTimeout(() => elements.gameChatInput.focus(), 0);
+        }
 
         syncBoardState(state);
         safeResizeBoard(state);
@@ -539,6 +734,10 @@ export function registerConnectionHandlers(connection, elements, state) {
             syncTurnDependentState(connection, elements, state, movingPlayerId, movingPlayerName);
         }
 
+        if (state.connectionState === 'connected' || state.connectionState === 'in-game') {
+            setConnectionStatus(elements, null, '');
+        }
+
         updateReplayControls(elements, state);
     });
 
@@ -551,7 +750,9 @@ export function registerConnectionHandlers(connection, elements, state) {
         state.legalMoves = [];
         state.legalMovesRequestId += 1;
         clearSyncWatchdog(state);
+        clearSyncRetryTimer(state);
         clearBotRecoveryWatchdog(state);
+        clearHighlightTimer(state);
         clearHintSquares();
         removeHighlight('white');
         removeHighlight('black');
@@ -832,15 +1033,19 @@ export function registerConnectionHandlers(connection, elements, state) {
             return;
         }
 
+        clearHighlightTimer(state);
+        removeHighlight('white');
+        removeHighlight('black');
+
         if (player.name === state.playerOneName) {
-            removeHighlight('black');
-            sourceSquare[0].className += ' highlight-white';
-            targetSquare[0].className += ' highlight-white';
+            sourceSquare[0].classList.add('highlight-white');
+            targetSquare[0].classList.add('highlight-white');
         } else {
-            removeHighlight('white');
-            sourceSquare[0].className += ' highlight-black';
-            targetSquare[0].className += ' highlight-black';
+            sourceSquare[0].classList.add('highlight-black');
+            targetSquare[0].classList.add('highlight-black');
         }
+
+        scheduleHighlightCleanup(state);
     });
 
     connection.on('UpdateGameChat', function onUpdateGameChat(message, player) {

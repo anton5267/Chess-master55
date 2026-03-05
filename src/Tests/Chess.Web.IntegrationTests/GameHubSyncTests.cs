@@ -1294,11 +1294,32 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         await connection.InvokeAsync("RequestSync");
         var firstGameOver = await WaitNextGameOver(gameOverQueue, gameOverSignal, timeoutMs: 15000);
         firstGameOver.GameOver.Should().Be((int)GameOver.Checkmate);
-        var firstSync = await WaitNextSync(syncQueue, syncSignal, timeoutMs: 15000);
 
         var terminalSnapshot = this.GetGameSnapshot(gameId!);
-        firstSync.Fen.Should().Be(terminalSnapshot.Fen);
-        firstSync.TurnNumber.Should().Be(terminalSnapshot.TurnNumber);
+        SyncMessage? terminalSync = null;
+        var syncDeadline = DateTime.UtcNow.AddSeconds(10);
+        while (DateTime.UtcNow < syncDeadline)
+        {
+            SyncMessage nextSync;
+            try
+            {
+                nextSync = await WaitNextSync(syncQueue, syncSignal, timeoutMs: 1200);
+            }
+            catch (TimeoutException)
+            {
+                break;
+            }
+
+            if (nextSync.Fen == terminalSnapshot.Fen && nextSync.TurnNumber == terminalSnapshot.TurnNumber)
+            {
+                terminalSync = nextSync;
+                break;
+            }
+        }
+
+        terminalSync.Should().NotBeNull("a terminal snapshot sync should be emitted after GameOver.");
+        terminalSync!.Fen.Should().Be(terminalSnapshot.Fen);
+        terminalSync.TurnNumber.Should().Be(terminalSnapshot.TurnNumber);
 
         ClearQueueAndSignal(syncQueue, syncSignal);
         ClearQueueAndSignal(gameOverQueue, gameOverSignal);

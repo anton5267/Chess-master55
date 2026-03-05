@@ -1,31 +1,83 @@
 import { reportClientError, sleep, updateReplayControls } from './ui.js';
 import { t } from './i18n.js';
 
+const maxChatMessageLength = 300;
+const nearLimitThreshold = 240;
+
+function normalizeChatMessage(message) {
+    if (typeof message !== 'string') {
+        return '';
+    }
+
+    return message.trim();
+}
+
+function validateChatMessage(elements, message, inputElement) {
+    if (message.length === 0) {
+        reportClientError(elements, new Error(t('hubErrorMessageEmpty')), inputElement);
+        inputElement.focus();
+        return false;
+    }
+
+    if (message.length > maxChatMessageLength) {
+        reportClientError(elements, new Error(t('hubErrorMessageTooLong')), inputElement);
+        inputElement.focus();
+        return false;
+    }
+
+    return true;
+}
+
+function syncChatCounter(counterElement, rawLength) {
+    if (!counterElement) {
+        return;
+    }
+
+    const safeLength = Number.isFinite(rawLength) ? rawLength : 0;
+    counterElement.textContent = `${safeLength}/${maxChatMessageLength}`;
+    counterElement.classList.toggle('is-near-limit', safeLength >= nearLimitThreshold && safeLength <= maxChatMessageLength);
+    counterElement.classList.toggle('is-over-limit', safeLength > maxChatMessageLength);
+}
+
+function syncSendButtonState(inputElement, sendButton, counterElement) {
+    if (!inputElement || !sendButton) {
+        return;
+    }
+
+    const rawValue = inputElement.value || '';
+    const rawLength = rawValue.length;
+    const message = normalizeChatMessage(rawValue);
+    sendButton.disabled = message.length === 0 || message.length > maxChatMessageLength;
+    syncChatCounter(counterElement, rawLength);
+}
+
 export function bindChatHandlers(connection, elements) {
     elements.lobbyChatSendBtn.addEventListener('click', function onLobbyChatSend() {
-        const message = (elements.lobbyChatInput.value || '').trim();
-        if (message !== '') {
-            connection.invoke('LobbySendMessage', message)
-                .then(() => {
-                    elements.lobbyChatInput.value = '';
-                })
-                .catch((err) => reportClientError(elements, err, elements.lobbyChatInput));
-        } else {
-            elements.lobbyChatInput.focus();
+        const message = normalizeChatMessage(elements.lobbyChatInput.value || '');
+        if (!validateChatMessage(elements, message, elements.lobbyChatInput)) {
+            return;
         }
+
+        connection.invoke('LobbySendMessage', message)
+            .then(() => {
+                elements.lobbyChatInput.value = '';
+                syncSendButtonState(elements.lobbyChatInput, elements.lobbyChatSendBtn, elements.lobbyChatCounter);
+            })
+            .catch((err) => reportClientError(elements, err, elements.lobbyChatInput));
     });
 
     elements.gameChatSendBtn.addEventListener('click', function onGameChatSend() {
-        const message = (elements.gameChatInput.value || '').trim();
-        if (message !== '') {
-            connection.invoke('GameSendMessage', message)
-                .then(() => {
-                    elements.gameChatInput.value = '';
-                })
-                .catch((err) => reportClientError(elements, err, elements.gameChatInput));
-        } else {
-            elements.gameChatInput.focus();
+        const message = normalizeChatMessage(elements.gameChatInput.value || '');
+        if (!validateChatMessage(elements, message, elements.gameChatInput)) {
+            return;
         }
+
+        connection.invoke('GameSendMessage', message)
+            .then(() => {
+                elements.gameChatInput.value = '';
+                syncSendButtonState(elements.gameChatInput, elements.gameChatSendBtn, elements.gameChatCounter);
+            })
+            .catch((err) => reportClientError(elements, err, elements.gameChatInput));
     });
 
     elements.lobbyChatInput.addEventListener('keydown', function onLobbyChatKeyDown(e) {
@@ -41,6 +93,17 @@ export function bindChatHandlers(connection, elements) {
             elements.gameChatSendBtn.click();
         }
     });
+
+    elements.lobbyChatInput.addEventListener('input', function onLobbyChatInput() {
+        syncSendButtonState(elements.lobbyChatInput, elements.lobbyChatSendBtn, elements.lobbyChatCounter);
+    });
+
+    elements.gameChatInput.addEventListener('input', function onGameChatInput() {
+        syncSendButtonState(elements.gameChatInput, elements.gameChatSendBtn, elements.gameChatCounter);
+    });
+
+    syncSendButtonState(elements.lobbyChatInput, elements.lobbyChatSendBtn, elements.lobbyChatCounter);
+    syncSendButtonState(elements.gameChatInput, elements.gameChatSendBtn, elements.gameChatCounter);
 }
 
 export function bindGameOptionHandlers(connection, elements, state) {
@@ -65,6 +128,15 @@ export function bindGameOptionHandlers(connection, elements, state) {
         return Math.max((state.fenTimeline?.length || 1) - 1, 0);
     }
 
+    function getReplayActiveIndex() {
+        const maxIndex = getReplayMaxIndex();
+        if (!state.isReplayMode) {
+            return maxIndex;
+        }
+
+        return Math.min(Math.max(state.replayIndex || 0, 0), maxIndex);
+    }
+
     function applyReplayPosition(index) {
         if (!state.board || !Array.isArray(state.fenTimeline) || state.fenTimeline.length === 0) {
             return;
@@ -81,6 +153,10 @@ export function bindGameOptionHandlers(connection, elements, state) {
     }
 
     function enterReplayMode(index) {
+        if (!state.isBotGame) {
+            return;
+        }
+
         if (!state.board || !Array.isArray(state.fenTimeline) || state.fenTimeline.length <= 1) {
             return;
         }
@@ -90,6 +166,10 @@ export function bindGameOptionHandlers(connection, elements, state) {
     }
 
     function exitReplayMode() {
+        if (!state.isBotGame) {
+            return;
+        }
+
         state.isReplayMode = false;
         state.replayIndex = getReplayMaxIndex();
         const liveFen = state.liveFen || state.currentFen || 'start';
@@ -106,7 +186,9 @@ export function bindGameOptionHandlers(connection, elements, state) {
         }
 
         updateReplayControls(elements, state);
-        connection.invoke('RequestSync').catch((err) => console.error(err));
+        if (connection.state === signalR.HubConnectionState.Connected) {
+            connection.invoke('RequestSync').catch((err) => console.error(err));
+        }
     }
 
     function getPgnResultToken() {
@@ -297,18 +379,13 @@ export function bindGameOptionHandlers(connection, elements, state) {
 
     if (elements.replayPrevBtn) {
         elements.replayPrevBtn.addEventListener('click', function onReplayPrevClick() {
-            enterReplayMode((state.replayIndex || 0) - 1);
+            enterReplayMode(getReplayActiveIndex() - 1);
         });
     }
 
     if (elements.replayNextBtn) {
         elements.replayNextBtn.addEventListener('click', function onReplayNextClick() {
-            if (!state.isReplayMode) {
-                enterReplayMode((state.replayIndex || 0) + 1);
-                return;
-            }
-
-            applyReplayPosition((state.replayIndex || 0) + 1);
+            enterReplayMode(getReplayActiveIndex() + 1);
         });
     }
 

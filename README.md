@@ -75,6 +75,13 @@ cd src/Web/Chess.Web
 npm run check:full
 ```
 
+Windows-safe variant (auto stops running `Chess.Web` before tests to avoid locked DLL files):
+
+```bash
+cd src/Web/Chess.Web
+npm run check:full:safe
+```
+
 ## Local Development
 
 ```bash

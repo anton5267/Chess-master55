@@ -2,10 +2,10 @@
     this.ViewData["Title"] = Localizer["Home_Title"];
 }
 
-<section class="home-hero">
+<section class="home-hero" aria-labelledby="home-hero-title">
     <div class="home-hero-content">
         <p class="home-hero-kicker">@Localizer["Home_Title"]</p>
-        <h1 class="home-hero-title">Chess</h1>
+        <h1 id="home-hero-title" class="home-hero-title">Chess</h1>
         <p class="home-hero-subtitle">@Localizer["Home_HistoryParagraph1"]</p>
         <div class="home-hero-actions">
             <a class="btn btn-primary home-hero-btn" asp-controller="Game" asp-action="Index">@Localizer["Home_CardPlayTitle"]</a>
@@ -28,34 +28,28 @@
                 <span>@Localizer["Home_CardAboutDescription"]</span>
             </li>
         </ul>
+        <div class="home-hero-mini-grid">
+            <div class="home-hero-mini-card">
+                <span class="home-hero-mini-label">@Localizer["Nav_Play"]</span>
+                <strong class="home-hero-mini-value">SignalR</strong>
+            </div>
+            <div class="home-hero-mini-card">
+                <span class="home-hero-mini-label">@Localizer["Nav_Stats"]</span>
+                <strong class="home-hero-mini-value">ELO</strong>
+            </div>
+            <div class="home-hero-mini-card">
+                <span class="home-hero-mini-label">@Localizer["Nav_About"]</span>
+                <strong class="home-hero-mini-value">MVC</strong>
+            </div>
+        </div>
     </aside>
 </section>
 
-<section class="home-summary-strip" aria-label="@Localizer["Home_Title"]">
-    <article class="home-summary-card">
-        <div class="home-summary-icon" aria-hidden="true"><i class="fas fa-play"></i></div>
-        <h2 class="home-summary-title">@Localizer["Home_CardPlayTitle"]</h2>
-        <p class="home-summary-text">@Localizer["Home_CardPlayDescription"]</p>
-        <a class="home-summary-link" asp-controller="Game" asp-action="Index">@Localizer["Nav_Play"]</a>
-    </article>
-    <article class="home-summary-card">
-        <div class="home-summary-icon" aria-hidden="true"><i class="fas fa-chart-bar"></i></div>
-        <h2 class="home-summary-title">@Localizer["Home_CardStatsTitle"]</h2>
-        <p class="home-summary-text">@Localizer["Home_CardStatsDescription"]</p>
-        <a class="home-summary-link" asp-controller="Stats" asp-action="Index">@Localizer["Nav_Stats"]</a>
-    </article>
-    <article class="home-summary-card">
-        <div class="home-summary-icon" aria-hidden="true"><i class="fas fa-circle-info"></i></div>
-        <h2 class="home-summary-title">@Localizer["Home_CardAboutTitle"]</h2>
-        <p class="home-summary-text">@Localizer["Home_CardAboutDescription"]</p>
-        <a class="home-summary-link" asp-controller="About" asp-action="Index">@Localizer["Nav_About"]</a>
-    </article>
-</section>
-
-<section class="home-feature-grid">
+<section class="home-feature-grid" aria-labelledby="home-features-heading">
+    <h2 id="home-features-heading" class="visually-hidden">@Localizer["Home_CardAboutTitle"]</h2>
     <article class="home-feature-card">
         <div class="home-feature-image-wrap">
-            <img class="home-feature-image" src="~/img/chess.jpg" alt="@Localizer["Home_PlayImageAlt"]">
+            <img class="home-feature-image" src="~/img/chess.jpg" alt="@Localizer["Home_PlayImageAlt"]" loading="lazy" decoding="async">
         </div>
         <div class="home-feature-body">
             <h3 class="home-feature-title">
@@ -67,7 +61,7 @@
 
     <article class="home-feature-card">
         <div class="home-feature-image-wrap">
-            <img class="home-feature-image" src="~/img/image2.jpg" alt="@Localizer["Home_StatsImageAlt"]">
+            <img class="home-feature-image" src="~/img/image2.jpg" alt="@Localizer["Home_StatsImageAlt"]" loading="lazy" decoding="async">
         </div>
         <div class="home-feature-body">
             <h3 class="home-feature-title">
@@ -79,7 +73,7 @@
 
     <article class="home-feature-card">
         <div class="home-feature-image-wrap">
-            <img class="home-feature-image" src="~/img/image3.jpg" alt="@Localizer["Home_AboutImageAlt"]">
+            <img class="home-feature-image" src="~/img/image3.jpg" alt="@Localizer["Home_AboutImageAlt"]" loading="lazy" decoding="async">
         </div>
         <div class="home-feature-body">
             <h3 class="home-feature-title">
@@ -90,8 +84,8 @@
     </article>
 </section>
 
-<section class="home-history-card">
-    <h2 class="home-history-title">@Localizer["Home_Title"]</h2>
+<section class="home-history-card" aria-labelledby="home-history-title">
+    <h2 id="home-history-title" class="home-history-title">@Localizer["Home_Title"]</h2>
     <p class="home-history-text">@Localizer["Home_HistoryParagraph1"]</p>
     <p class="home-history-text">@Localizer["Home_HistoryParagraph2"]</p>
 </section>

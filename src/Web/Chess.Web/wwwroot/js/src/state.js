@@ -4,6 +4,7 @@ export const storageKeys = {
     checkHints: "chess.checkHints",
     legalMoveHints: "chess.legalMoveHints",
     botDifficulty: "chess.botDifficulty",
+    lobbyName: "chess.lobbyName",
 };
 
 export const boardThemes = {
@@ -29,6 +30,9 @@ export function getElements() {
         board: document.querySelector('#board'),
         mobileTabs: document.querySelector('.game-mobile-tabs'),
         mobileTabButtons: Array.from(document.querySelectorAll('.game-mobile-tab-btn')),
+        botDifficultyMeta: document.querySelector('.game-live-bot-difficulty'),
+        botDifficultyMetaValue: document.querySelector('.game-live-bot-difficulty-value'),
+        connectionPill: document.querySelector('.game-connection-pill'),
         gameResultBanner: document.querySelector('.game-result-banner'),
         statusText: document.querySelector('.status-bar-text'),
         statusCheck: document.querySelector('.status-bar-check-notification'),
@@ -53,14 +57,17 @@ export function getElements() {
         gameChatWindow: document.querySelector('.game-chat-window'),
         lobbyChatWindow: document.querySelector('.game-lobby-chat-window'),
         rooms: document.querySelector('.game-lobby-room-container'),
+        lobbyRoomCount: document.querySelector('.game-lobby-room-count'),
         lobbyInputName: document.querySelector('.game-lobby-input-name'),
         lobbyInputCreateBtn: document.querySelector('.game-lobby-input-create-btn'),
         botDifficultySelect: document.querySelector('#bot-difficulty-select'),
         lobbyInputVsBotBtn: document.querySelector('.game-lobby-input-vs-bot-btn'),
         lobbyChatInput: document.querySelector('.game-lobby-chat-input'),
         lobbyChatSendBtn: document.querySelector('.game-lobby-chat-send-btn'),
+        lobbyChatCounter: document.querySelector('.game-lobby-chat-counter'),
         gameChatInput: document.querySelector('.game-chat-input'),
         gameChatSendBtn: document.querySelector('.game-chat-send-btn'),
+        gameChatCounter: document.querySelector('.game-chat-counter'),
         resignBtn: document.querySelector('.resign-btn'),
         offerDrawBtn: document.querySelector('.offer-draw-btn'),
         threefoldDrawBtn: document.querySelector('.threefold-draw-btn'),
@@ -76,6 +83,7 @@ export function getElements() {
         replayLiveBtn: document.querySelector('.game-replay-live-btn'),
         exportPgnBtn: document.querySelector('.game-export-pgn-btn'),
         replayIndicator: document.querySelector('.game-replay-indicator'),
+        replayHotkeys: document.querySelector('.game-replay-hotkeys'),
     };
 }
 
@@ -113,13 +121,17 @@ export function createState() {
         legalMovesRequestId: 0,
         syncRequestInFlight: false,
         pendingSyncTimeoutId: null,
+        pendingSyncRetryTimeoutId: null,
+        syncRetryAttempt: 0,
         pendingBotRecoveryTimeoutId: null,
+        pendingHighlightTimeoutId: null,
         boardInitialized: false,
         selectedBoardTheme: getStoredValue(storageKeys.boardTheme, "classic", boardThemes),
         selectedPieceTheme: getStoredValue(storageKeys.pieceTheme, "wikipedia", pieceThemes),
         hintsEnabled: getStoredBoolean(storageKeys.checkHints, true),
         legalHintsEnabled: getStoredBoolean(storageKeys.legalMoveHints, true),
         botDifficulty: getStoredValue(storageKeys.botDifficulty, "normal", botDifficulties),
+        lobbyNameValid: false,
         lobbyActionInFlight: false,
         gameActionInFlight: false,
     };
@@ -165,4 +177,17 @@ export function storeBoolean(storageKey, value) {
     } catch (error) {
         // Ignore storage errors and keep in-memory value only.
     }
+}
+
+export function getStoredText(storageKey, fallbackValue = "") {
+    try {
+        const storedValue = localStorage.getItem(storageKey);
+        if (typeof storedValue === "string") {
+            return storedValue;
+        }
+    } catch (error) {
+        // Ignore storage errors and keep defaults.
+    }
+
+    return fallbackValue;
 }

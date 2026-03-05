@@ -6,7 +6,11 @@
     var jsTranslations = new Dictionary<string, string>
     {
         ["roomSuffix"] = Localizer["Js_RoomSuffix"],
+        ["noRoomsAvailable"] = Localizer["Js_NoRoomsAvailable"],
         ["join"] = Localizer["Js_Join"],
+        ["hubErrorNameInvalid"] = Localizer["Hub_Error_NameInvalid"],
+        ["hubErrorMessageEmpty"] = Localizer["Hub_Error_MessageEmpty"],
+        ["hubErrorMessageTooLong"] = Localizer["Hub_Error_MessageTooLong"],
         ["yourTurn"] = Localizer["Js_YourTurn"],
         ["playerTurnFormat"] = Localizer["Js_PlayerTurnFormat"],
         ["waitingForOpponent"] = Localizer["Js_WaitingForOpponent"],
@@ -39,6 +43,10 @@
         ["replayModeFormat"] = Localizer["Js_ReplayModeFormat"],
         ["pgnDownloaded"] = Localizer["Js_PgnDownloaded"],
         ["pgnDownloadFailed"] = Localizer["Js_PgnDownloadFailed"],
+        ["connectionReconnecting"] = Localizer["Js_ConnectionReconnecting"],
+        ["connectionSyncing"] = Localizer["Js_ConnectionSyncing"],
+        ["connectionDisconnected"] = Localizer["Js_ConnectionDisconnected"],
+        ["connectionOffline"] = Localizer["Js_ConnectionOffline"],
     };
 }
 
@@ -115,10 +123,17 @@
                     <span>@Localizer["Game_Hint_LegalMoves"]</span>
                 </label>
             </div>
+            <div class="game-live-meta" aria-live="polite">
+                <span class="game-live-meta-item game-live-bot-difficulty" hidden>
+                    <span class="game-live-meta-label">@Localizer["Game_BotDifficultyLabel"]:</span>
+                    <span class="game-live-meta-value game-live-bot-difficulty-value">@Localizer["Game_BotDifficulty_Normal"]</span>
+                </span>
+            </div>
+            <div class="game-connection-pill" role="status" aria-live="polite" hidden></div>
             <div class="game-mobile-tabs" role="tablist" aria-label="@Localizer["Game_MobileTabsAriaLabel"]">
-                <button type="button" class="game-mobile-tab-btn is-active" data-mobile-panel="board">@Localizer["Game_MobileTab_Board"]</button>
-                <button type="button" class="game-mobile-tab-btn" data-mobile-panel="history">@Localizer["Game_MobileTab_History"]</button>
-                <button type="button" class="game-mobile-tab-btn" data-mobile-panel="chat">@Localizer["Game_MobileTab_Chat"]</button>
+                <button type="button" role="tab" class="game-mobile-tab-btn is-active" data-mobile-panel="board" aria-selected="true" tabindex="0">@Localizer["Game_MobileTab_Board"]</button>
+                <button type="button" role="tab" class="game-mobile-tab-btn" data-mobile-panel="history" aria-selected="false" tabindex="-1">@Localizer["Game_MobileTab_History"]</button>
+                <button type="button" role="tab" class="game-mobile-tab-btn" data-mobile-panel="chat" aria-selected="false" tabindex="-1">@Localizer["Game_MobileTab_Chat"]</button>
             </div>
             <div class="game-result-banner game-result-hidden" role="status" aria-live="polite"></div>
             <h6 class="status-bar-container"><i class="fas fa-arrow-alt-circle-right"></i> <span class="status-bar-text"></span> <span class="status-bar-check-notification"></span></h6>
@@ -130,11 +145,10 @@
                 <button type="button" class="game-play-again-btn game-btn btn"><i class="fas fa-rotate-right"></i> @Localizer["Game_PlayAgainVsBot"]</button>
             </div>
             <div class="game-replay-toolbar">
-                <button type="button" class="game-replay-start-btn game-btn btn"><i class="fas fa-backward-fast"></i> @Localizer["Game_ReplayStart"]</button>
-                <button type="button" class="game-replay-prev-btn game-btn btn"><i class="fas fa-chevron-left"></i> @Localizer["Game_ReplayPrev"]</button>
-                <button type="button" class="game-replay-next-btn game-btn btn"><i class="fas fa-chevron-right"></i> @Localizer["Game_ReplayNext"]</button>
-                <button type="button" class="game-replay-live-btn game-btn btn"><i class="fas fa-bolt"></i> @Localizer["Game_ReplayLive"]</button>
-                <button type="button" class="game-export-pgn-btn game-btn btn"><i class="fas fa-file-export"></i> @Localizer["Game_ExportPgn"]</button>
+                <button type="button" class="game-replay-start-btn game-btn btn" aria-keyshortcuts="Home"><i class="fas fa-backward-fast"></i> @Localizer["Game_ReplayStart"]</button>
+                <button type="button" class="game-replay-prev-btn game-btn btn" aria-keyshortcuts="ArrowLeft"><i class="fas fa-chevron-left"></i> @Localizer["Game_ReplayPrev"]</button>
+                <button type="button" class="game-replay-next-btn game-btn btn" aria-keyshortcuts="ArrowRight"><i class="fas fa-chevron-right"></i> @Localizer["Game_ReplayNext"]</button>
+                <button type="button" class="game-replay-live-btn game-btn btn" aria-keyshortcuts="End"><i class="fas fa-bolt"></i> @Localizer["Game_ReplayLive"]</button>
                 <span class="game-replay-indicator">@Localizer["Game_ReplayIndicatorLive"]</span>
             </div>
             <div class="game-chat-container chat-container">
@@ -142,8 +156,11 @@
                     <ul class="game-chat-window chat-window"></ul>
                 </div>
                 <div class="game-chat-input-wrapper chat-input-wrapper">
-                    <input type="text" class="game-chat-input chat-input" placeholder="@Localizer["Game_TypeMessage"]" autofocus />
+                    <input type="text" class="game-chat-input chat-input" placeholder="@Localizer["Game_TypeMessage"]" maxlength="300" />
                     <button type="submit" class="game-chat-send-btn chat-send-btn game-btn">></button>
+                </div>
+                <div class="chat-input-counter-row">
+                    <span class="chat-input-counter game-chat-counter" aria-live="polite">0/300</span>
                 </div>
             </div>
         </section>
@@ -183,7 +200,7 @@
 
     <article class="game-lobby game-lobby-shell">
         <section class="game-lobby-input-container form">
-            <input type="text" class="game-lobby-input-name" placeholder="@Localizer["Game_EnterName"]" autofocus />
+            <input type="text" class="game-lobby-input-name" placeholder="@Localizer["Game_EnterName"]" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]+" autofocus />
             <button type="submit" class="game-lobby-input-create-btn game-btn">@Localizer["Game_CreateRoom"]</button>
             <label class="game-lobby-input-bot-difficulty-label" for="bot-difficulty-select">@Localizer["Game_BotDifficultyLabel"]</label>
             <select class="game-lobby-input-bot-difficulty" id="bot-difficulty-select">
@@ -194,7 +211,10 @@
         </section>
 
         <section class="game-lobby-title-container">
-            <div class="game-lobby-title-room">@Localizer["Game_RoomsTitle"]</div>
+            <div class="game-lobby-title-room">
+                <span>@Localizer["Game_RoomsTitle"]</span>
+                <span class="game-lobby-room-count" aria-live="polite">0</span>
+            </div>
             <div class="game-lobby-title-chat">@Localizer["Game_ChatTitle"]</div>
         </section>
 
@@ -205,8 +225,11 @@
                     <ul class="game-lobby-chat-window chat-window"></ul>
                 </div>
                 <div class="game-lobby-chat-input-wrapper chat-input-wrapper">
-                    <input type="text" class="game-lobby-chat-input chat-input" placeholder="@Localizer["Game_TypeMessage"]" autofocus />
+                    <input type="text" class="game-lobby-chat-input chat-input" placeholder="@Localizer["Game_TypeMessage"]" maxlength="300" />
                     <button type="submit" class="game-lobby-chat-send-btn chat-send-btn game-btn">></button>
+                </div>
+                <div class="chat-input-counter-row">
+                    <span class="chat-input-counter game-lobby-chat-counter" aria-live="polite">0/300</span>
                 </div>
             </div>
         </section>

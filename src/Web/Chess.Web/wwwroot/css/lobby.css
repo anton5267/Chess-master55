@@ -81,6 +81,28 @@
     font-weight: 700;
 }
 
+.game-lobby-title-room {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.game-lobby-room-count {
+    min-width: 1.9rem;
+    min-height: 1.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 0 0.35rem;
+}
+
 .game-lobby-room-chat-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -120,6 +142,16 @@
     box-shadow: 0 6px 15px rgba(26, 58, 107, 0.08);
 }
 
+.game-lobby-room-empty {
+    border: 1px dashed #cad5e7;
+    border-radius: 12px;
+    background: #f8fbff;
+    color: #5a6f8e;
+    font-weight: 600;
+    text-align: center;
+    padding: 0.7rem 0.75rem;
+}
+
 .game-lobby-room-name {
     font-weight: 700;
     text-indent: 2px;
@@ -137,7 +169,7 @@
 
 .game-lobby-chat-container {
     height: 100%;
-    min-height: 62vh;
+    min-height: 56vh;
     border: 1px solid var(--line-soft);
     border-radius: var(--radius-md);
     background: #ffffff;
@@ -146,16 +178,21 @@
 }
 
 .game-lobby-chat-window-wrapper {
-    height: calc(100% - 46px);
+    height: auto;
+    flex: 1 1 auto;
+    min-height: 0;
     background-color: #ffffff;
 }
 
 .game-lobby-chat-window {
     height: 100%;
+    min-height: 0;
 }
 
 .game-lobby-chat-input-wrapper {
-    height: 46px;
+    height: auto;
+    flex: 0 0 auto;
+    min-height: 46px;
 }
 
 .game-lobby-chat-input {
@@ -183,7 +220,7 @@
 
     .game-lobby-room-container,
     .game-lobby-chat-container {
-        min-height: 42vh;
+        min-height: 40vh;
     }
 }
 
@@ -214,5 +251,19 @@
 
     .game-lobby-chat-send-btn {
         width: 64px;
+    }
+
+    .game-lobby-room-chat-container {
+        min-height: auto;
+    }
+
+    .game-lobby-room-container,
+    .game-lobby-chat-container {
+        min-height: 34vh;
+    }
+
+    .game-lobby-title-room,
+    .game-lobby-title-chat {
+        font-size: 0.86rem;
     }
 }

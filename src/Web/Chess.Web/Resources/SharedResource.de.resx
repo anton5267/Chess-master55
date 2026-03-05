@@ -27,6 +27,9 @@
   <data name="Nav_About" xml:space="preserve">
     <value>Um</value>
   </data>
+  <data name="Nav_SkipToContent" xml:space="preserve">
+    <value>Zum Hauptinhalt springen</value>
+  </data>
   <data name="Nav_Register" xml:space="preserve">
     <value>Registrieren</value>
   </data>
@@ -182,6 +185,9 @@
   </data>
   <data name="Js_RoomSuffix" xml:space="preserve">
     <value>Das Zimmer von {name}</value>
+  </data>
+  <data name="Js_NoRoomsAvailable" xml:space="preserve">
+    <value>Derzeit sind keine Räume verfügbar.</value>
   </data>
   <data name="Js_Join" xml:space="preserve">
     <value>VERBINDEN</value>
@@ -1349,6 +1355,18 @@
   </data>
   <data name="Js_PgnDownloadFailed" xml:space="preserve">
     <value>PGN-Export fehlgeschlagen.</value>
+  </data>
+  <data name="Js_ConnectionReconnecting" xml:space="preserve">
+    <value>Verbindung verloren. Erneute Verbindung...</value>
+  </data>
+  <data name="Js_ConnectionSyncing" xml:space="preserve">
+    <value>Verbindung wiederhergestellt. Spiel wird synchronisiert...</value>
+  </data>
+  <data name="Js_ConnectionDisconnected" xml:space="preserve">
+    <value>Verbindung zum Spielserver getrennt.</value>
+  </data>
+  <data name="Js_ConnectionOffline" xml:space="preserve">
+    <value>Keine Internetverbindung. Warte auf Netzwerk...</value>
   </data>
 </root>
 

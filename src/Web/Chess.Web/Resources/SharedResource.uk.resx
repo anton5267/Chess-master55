@@ -42,6 +42,9 @@
   <data name="Nav_About" xml:space="preserve">
     <value>про</value>
   </data>
+  <data name="Nav_SkipToContent" xml:space="preserve">
+    <value>Перейти до основного вмісту</value>
+  </data>
   <data name="Nav_Register" xml:space="preserve">
     <value>зареєструватися</value>
   </data>
@@ -394,13 +397,13 @@
     <value>штук</value>
   </data>
   <data name="Game_DeclareThreefold" xml:space="preserve">
-    <value>Оголосити розіграш 3F</value>
+    <value>Оголосити нічию (3 повтори)</value>
   </data>
   <data name="Game_OfferDraw" xml:space="preserve">
-    <value>Пропозиція Розіграш</value>
+    <value>Запропонувати нічию</value>
   </data>
   <data name="Game_Resign" xml:space="preserve">
-    <value>Подати у відставку</value>
+    <value>Здатися</value>
   </data>
   <data name="Game_TypeMessage" xml:space="preserve">
     <value>Введіть повідомлення</value>
@@ -434,6 +437,9 @@
   </data>
   <data name="Js_RoomSuffix" xml:space="preserve">
     <value>КІМНАТА {name}</value>
+  </data>
+  <data name="Js_NoRoomsAvailable" xml:space="preserve">
+    <value>Зараз немає доступних кімнат.</value>
   </data>
   <data name="Js_Join" xml:space="preserve">
     <value>ПРИЄДНУЙТЕСЯ</value>
@@ -1349,6 +1355,18 @@
   </data>
   <data name="Js_PgnDownloadFailed" xml:space="preserve">
     <value>Не вдалося експортувати PGN.</value>
+  </data>
+  <data name="Js_ConnectionReconnecting" xml:space="preserve">
+    <value>З'єднання втрачено. Повторне підключення...</value>
+  </data>
+  <data name="Js_ConnectionSyncing" xml:space="preserve">
+    <value>З'єднання відновлено. Синхронізую гру...</value>
+  </data>
+  <data name="Js_ConnectionDisconnected" xml:space="preserve">
+    <value>З'єднання з ігровим сервером розірвано.</value>
+  </data>
+  <data name="Js_ConnectionOffline" xml:space="preserve">
+    <value>Немає інтернет-з'єднання. Очікую мережу...</value>
   </data>
 </root>
 

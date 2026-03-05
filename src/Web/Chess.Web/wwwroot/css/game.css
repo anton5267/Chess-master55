@@ -82,6 +82,74 @@
     border-radius: 10px;
 }
 
+.game-live-meta {
+    display: flex;
+    justify-content: center;
+    margin: 0 0 0.4rem;
+}
+
+.game-live-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    background: #ffffff;
+    color: #2c3b52;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.game-live-meta-label {
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #5a6780;
+    font-size: 0.72rem;
+}
+
+.game-live-meta-value {
+    color: #1f5bc0;
+}
+
+.game-connection-pill {
+    margin: 0 auto 0.45rem;
+    min-height: 1.9rem;
+    max-width: 98%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    border: 1px solid transparent;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.game-connection-pill.is-reconnecting {
+    color: #8a4b00;
+    background: #fff5e7;
+    border-color: #f2cb93;
+}
+
+.game-connection-pill.is-syncing {
+    color: #1f5bc0;
+    background: #eaf2ff;
+    border-color: #c3d8ff;
+}
+
+.game-connection-pill.is-disconnected {
+    color: #9e2f2f;
+    background: #fff0f0;
+    border-color: #f3c0c0;
+}
+
+.game-connection-pill.is-offline {
+    color: #8a4b00;
+    background: #fff7ea;
+    border-color: #f0cf98;
+}
+
 .board-hint-option {
     display: inline-flex;
     align-items: center;
@@ -356,6 +424,38 @@
     font-weight: 700;
 }
 
+.game-replay-hotkeys {
+    margin-top: 0.32rem;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    color: #60728c;
+}
+
+.game-replay-hotkey {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.1rem;
+    min-height: 1.45rem;
+    padding: 0.05rem 0.3rem;
+    border-radius: 8px;
+    border: 1px solid #d0d9e7;
+    background: #f9fbff;
+}
+
+.game-replay-hotkey kbd {
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #3e4e66;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    box-shadow: none;
+}
+
 .game-lobby-shell {
     border-top: 1px solid var(--line-soft);
     padding-top: 0.9rem;
@@ -396,23 +496,28 @@
 
 .game-chat-container {
     margin-top: 0.75rem;
-    height: 30vh;
+    height: clamp(280px, 30vh, 420px);
 }
 
 .game-chat-window-wrapper {
     border: 1px solid var(--line-strong);
     border-bottom: none;
     border-radius: 10px 10px 0 0;
-    height: 85%;
+    height: auto;
+    flex: 1 1 auto;
+    min-height: 0;
     background: #fcfdff;
 }
 
 .game-chat-input-wrapper {
-    height: 15%;
+    height: auto;
+    flex: 0 0 auto;
+    min-height: 44px;
 }
 
 .game-chat-window {
-    height: 20vh;
+    height: 100%;
+    min-height: 0;
 }
 
 .game-chat-input {
@@ -470,6 +575,10 @@
         justify-content: flex-start;
     }
 
+    .game-live-meta {
+        justify-content: flex-start;
+    }
+
     .player-stats {
         align-items: flex-start;
     }
@@ -490,6 +599,11 @@
         gap: 0.45rem;
     }
 
+    .game-live-meta-item {
+        width: 100%;
+        justify-content: space-between;
+    }
+
     .option-btn {
         width: 100%;
     }
@@ -504,6 +618,26 @@
 
     .game-replay-toolbar {
         grid-template-columns: repeat(2, minmax(90px, 1fr));
+    }
+
+    .game-replay-hotkeys {
+        justify-content: flex-start;
+    }
+
+    .board-settings-container {
+        justify-content: flex-start;
+        gap: 0.4rem;
+    }
+
+    .board-settings-select {
+        min-width: 0;
+        flex: 1 1 calc(50% - 0.2rem);
+    }
+
+    .game-live-meta,
+    .game-connection-pill {
+        justify-content: flex-start;
+        margin-left: 0;
     }
 }
 
@@ -561,12 +695,38 @@
     .main-playground[data-mobile-panel='chat'] .game-result-banner,
     .main-playground[data-mobile-panel='chat'] .status-bar-container,
     .main-playground[data-mobile-panel='chat'] .game-btn-container,
-    .main-playground[data-mobile-panel='chat'] .game-replay-toolbar {
+    .main-playground[data-mobile-panel='chat'] .game-replay-toolbar,
+    .main-playground[data-mobile-panel='chat'] .game-replay-hotkeys {
         display: none;
     }
 
     .main-playground[data-mobile-panel='chat'] .game-chat-container {
         margin-top: 0;
-        height: 62vh;
+        height: clamp(340px, 62vh, 640px);
+    }
+}
+
+@media (max-width: 480px) {
+    .main-playground-board-container {
+        padding: 0.75rem;
+    }
+
+    .status-bar-container {
+        font-size: 0.9rem;
+    }
+
+    .game-replay-toolbar .game-btn {
+        min-height: 38px;
+        font-size: 0.76rem;
+        padding: 0.3rem 0.35rem;
+    }
+
+    .game-replay-indicator {
+        min-height: 28px;
+        font-size: 0.74rem;
+    }
+
+    .game-chat-container {
+        height: clamp(250px, 32vh, 360px);
     }
 }

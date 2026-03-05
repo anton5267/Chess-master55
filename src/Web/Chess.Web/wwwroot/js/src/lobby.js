@@ -1,30 +1,69 @@
 import { reportClientError, showWaitingForOpponent } from './ui.js';
-import { storageKeys, storeValue } from './state.js';
+import { getStoredText, storageKeys, storeValue } from './state.js';
+import { t } from './i18n.js';
 
-function setLobbyButtonsDisabled(elements, isDisabled) {
-    elements.lobbyInputCreateBtn.disabled = isDisabled;
-    elements.lobbyInputCreateBtn.classList.toggle('is-disabled', isDisabled);
-    elements.lobbyInputCreateBtn.classList.toggle('is-loading', isDisabled);
+const playerNamePattern = /^[A-Za-z0-9_]{3,20}$/;
+
+function setLobbyButtonsDisabled(elements, shouldDisable, isBusy) {
+    elements.lobbyInputCreateBtn.disabled = shouldDisable;
+    elements.lobbyInputCreateBtn.classList.toggle('is-disabled', shouldDisable);
+    elements.lobbyInputCreateBtn.classList.toggle('is-loading', !!isBusy);
 
     if (elements.lobbyInputVsBotBtn) {
-        elements.lobbyInputVsBotBtn.disabled = isDisabled;
-        elements.lobbyInputVsBotBtn.classList.toggle('is-disabled', isDisabled);
-        elements.lobbyInputVsBotBtn.classList.toggle('is-loading', isDisabled);
+        elements.lobbyInputVsBotBtn.disabled = shouldDisable;
+        elements.lobbyInputVsBotBtn.classList.toggle('is-disabled', shouldDisable);
+        elements.lobbyInputVsBotBtn.classList.toggle('is-loading', !!isBusy);
     }
 
     $('.game-lobby-room-join-btn')
-        .prop('disabled', isDisabled)
-        .toggleClass('is-disabled', isDisabled)
-        .toggleClass('is-loading', isDisabled);
+        .prop('disabled', shouldDisable)
+        .toggleClass('is-disabled', shouldDisable)
+        .toggleClass('is-loading', !!isBusy);
+}
+
+function isLobbyNameValid(elements) {
+    const name = (elements.lobbyInputName.value || '').trim();
+    return playerNamePattern.test(name);
+}
+
+function syncLobbyNameValidity(elements, state) {
+    const isValid = isLobbyNameValid(elements);
+    state.lobbyNameValid = isValid;
+
+    const shouldDisableActions = state.lobbyActionInFlight || !isValid;
+    setLobbyButtonsDisabled(elements, shouldDisableActions, state.lobbyActionInFlight);
+
+    if (typeof elements.lobbyInputName.setCustomValidity === 'function') {
+        if (isValid || elements.lobbyInputName.value.trim().length === 0) {
+            elements.lobbyInputName.setCustomValidity('');
+        } else {
+            elements.lobbyInputName.setCustomValidity(t('hubErrorNameInvalid'));
+        }
+    }
+
+    const name = (elements.lobbyInputName.value || '').trim();
+    if (name.length === 0) {
+        storeValue(storageKeys.lobbyName, '');
+    } else if (playerNamePattern.test(name)) {
+        storeValue(storageKeys.lobbyName, name);
+    }
 }
 
 function tryGetLobbyName(elements) {
     const name = (elements.lobbyInputName.value || '').trim();
     if (name === '') {
+        reportClientError(elements, new Error(t('hubErrorNameInvalid')), elements.lobbyInputName);
         elements.lobbyInputName.focus();
         return null;
     }
 
+    if (!playerNamePattern.test(name)) {
+        reportClientError(elements, new Error(t('hubErrorNameInvalid')), elements.lobbyInputName);
+        elements.lobbyInputName.focus();
+        return null;
+    }
+
+    storeValue(storageKeys.lobbyName, name);
     return name;
 }
 
@@ -35,14 +74,14 @@ function runLobbyAction(elements, state, action) {
 
     state.lobbyActionInFlight = true;
     elements.lobbyContainer.classList.add('is-loading');
-    setLobbyButtonsDisabled(elements, true);
+    syncLobbyNameValidity(elements, state);
 
     action()
         .catch((err) => reportClientError(elements, err, elements.lobbyInputName))
         .finally(() => {
             state.lobbyActionInFlight = false;
             elements.lobbyContainer.classList.remove('is-loading');
-            setLobbyButtonsDisabled(elements, false);
+            syncLobbyNameValidity(elements, state);
         });
 }
 
@@ -62,6 +101,25 @@ function getSelectedBotDifficulty(elements, state) {
 }
 
 export function bindLobbyHandlers(connection, elements, state) {
+    const storedLobbyName = getStoredText(storageKeys.lobbyName, '').trim();
+    if (playerNamePattern.test(storedLobbyName) && !elements.lobbyInputName.value.trim()) {
+        elements.lobbyInputName.value = storedLobbyName;
+    }
+
+    elements.lobbyInputName.addEventListener('input', function onLobbyNameInput() {
+        syncLobbyNameValidity(elements, state);
+    });
+    elements.lobbyInputName.addEventListener('keydown', function onLobbyNameKeyDown(event) {
+        if (event.key !== 'Enter') {
+            return;
+        }
+
+        event.preventDefault();
+        if (!elements.lobbyInputCreateBtn.disabled) {
+            elements.lobbyInputCreateBtn.click();
+        }
+    });
+
     window.addEventListener('beforeunload', function onBeforeUnload(e) {
         if (state.isGameStarted) {
             e.preventDefault();
@@ -115,4 +173,6 @@ export function bindLobbyHandlers(connection, elements, state) {
                 }));
         });
     }
+
+    syncLobbyNameValidity(elements, state);
 }

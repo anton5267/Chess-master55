@@ -1,10 +1,18 @@
 @model Chess.Web.ViewModels.StatsViewModel
+@using System
 @using System.Text.Json
 
 @{
     this.ViewData["Title"] = Localizer["Stats_Title"];
 
     var noDataUser = Localizer["Stats_NoDataUser"].Value;
+    var games = Model.UserStats.Games;
+    var wins = Model.UserStats.Wins;
+    var draws = Model.UserStats.Draws;
+    var losses = Model.UserStats.Losses;
+    var winRate = games > 0 ? Math.Round((double)wins / games * 100, 0) : 0;
+    var drawRate = games > 0 ? Math.Round((double)draws / games * 100, 0) : 0;
+    var lossRate = games > 0 ? Math.Round((double)losses / games * 100, 0) : 0;
     var chartPayload = new
     {
         labels = new[]
@@ -30,8 +38,8 @@
 }
 
 <section class="stats-dashboard">
-    <header class="stats-page-header">
-        <h1 class="stats-page-title">@Localizer["Stats_Title"]</h1>
+    <header class="stats-page-header" aria-labelledby="stats-page-title">
+        <h1 id="stats-page-title" class="stats-page-title">@Localizer["Stats_Title"]</h1>
         <p class="stats-page-subtitle">@Localizer["Stats_AllUsers"]</p>
     </header>
 
@@ -43,20 +51,64 @@
     <section class="stats-personal-grid" aria-label="@Localizer["Stats_EloRating"]">
         <article class="stats-personal-card">
             <span class="stats-personal-title">@Localizer["Stats_Games"]</span>
-            <span class="stats-personal-value">@Model.UserStats.Games</span>
+            <span class="stats-personal-value">@games</span>
         </article>
         <article class="stats-personal-card">
             <span class="stats-personal-title">@Localizer["Stats_Wins"]</span>
-            <span class="stats-personal-value">@Model.UserStats.Wins</span>
+            <span class="stats-personal-value">@wins</span>
         </article>
         <article class="stats-personal-card">
             <span class="stats-personal-title">@Localizer["Stats_Draws"]</span>
-            <span class="stats-personal-value">@Model.UserStats.Draws</span>
+            <span class="stats-personal-value">@draws</span>
         </article>
         <article class="stats-personal-card">
             <span class="stats-personal-title">@Localizer["Stats_Losses"]</span>
-            <span class="stats-personal-value">@Model.UserStats.Losses</span>
+            <span class="stats-personal-value">@losses</span>
         </article>
+    </section>
+
+    <section class="stats-rate-strip" aria-label="@Localizer["Stats_Ending"]">
+        <article class="stats-rate-card stats-rate-win">
+            <span class="stats-rate-title">@Localizer["Stats_Wins"]</span>
+            <strong class="stats-rate-value">@winRate%</strong>
+        </article>
+        <article class="stats-rate-card stats-rate-draw">
+            <span class="stats-rate-title">@Localizer["Stats_Draws"]</span>
+            <strong class="stats-rate-value">@drawRate%</strong>
+        </article>
+        <article class="stats-rate-card stats-rate-loss">
+            <span class="stats-rate-title">@Localizer["Stats_Losses"]</span>
+            <strong class="stats-rate-value">@lossRate%</strong>
+        </article>
+    </section>
+
+    <section class="stats-balance-card" aria-label="@Localizer["Stats_Ending"]">
+        <header class="stats-balance-header">
+            <span class="stats-balance-title">@Localizer["Stats_Ending"]</span>
+            <span class="stats-balance-total">@games @Localizer["Stats_Games"]</span>
+        </header>
+        <div class="stats-balance-track" role="img" aria-label="@Localizer["Stats_Ending"]">
+            <span class="stats-balance-segment stats-balance-segment-win" style="width:@winRate%"></span>
+            <span class="stats-balance-segment stats-balance-segment-draw" style="width:@drawRate%"></span>
+            <span class="stats-balance-segment stats-balance-segment-loss" style="width:@lossRate%"></span>
+        </div>
+        <div class="stats-balance-legend">
+            <span class="stats-balance-legend-item">
+                <span class="stats-balance-dot stats-balance-dot-win" aria-hidden="true"></span>
+                <span>@Localizer["Stats_Wins"]</span>
+                <strong>@wins (@winRate%)</strong>
+            </span>
+            <span class="stats-balance-legend-item">
+                <span class="stats-balance-dot stats-balance-dot-draw" aria-hidden="true"></span>
+                <span>@Localizer["Stats_Draws"]</span>
+                <strong>@draws (@drawRate%)</strong>
+            </span>
+            <span class="stats-balance-legend-item">
+                <span class="stats-balance-dot stats-balance-dot-loss" aria-hidden="true"></span>
+                <span>@Localizer["Stats_Losses"]</span>
+                <strong>@losses (@lossRate%)</strong>
+            </span>
+        </div>
     </section>
 
     <section class="stats-kpi-grid" aria-label="@Localizer["Stats_AllUsers"]">
@@ -82,10 +134,12 @@
         </article>
     </section>
 
-    <section class="stats-chart-card">
-        <p class="stats-chart-title">@Localizer["Stats_ChartTitle", Model.UserStats.Games]</p>
-        <canvas id="stats-pie-chart" role="img" aria-label="@Localizer["Stats_ChartTitle", Model.UserStats.Games]"></canvas>
-        <p id="stats-chart-empty" class="stats-chart-empty" hidden>@Localizer["Stats_NoGamesYet"]</p>
+    <section class="stats-chart-card" aria-labelledby="stats-chart-title">
+        <figure class="stats-chart-figure">
+            <figcaption id="stats-chart-title" class="stats-chart-title">@Localizer["Stats_ChartTitle", Model.UserStats.Games]</figcaption>
+            <canvas id="stats-pie-chart" role="img" aria-label="@Localizer["Stats_ChartTitle", Model.UserStats.Games]"></canvas>
+            <p id="stats-chart-empty" class="stats-chart-empty" hidden>@Localizer["Stats_NoGamesYet"]</p>
+        </figure>
     </section>
 </section>
 

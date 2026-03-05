@@ -42,6 +42,9 @@
   <data name="Nav_About" xml:space="preserve">
     <value>About</value>
   </data>
+  <data name="Nav_SkipToContent" xml:space="preserve">
+    <value>Skip to main content</value>
+  </data>
   <data name="Nav_Register" xml:space="preserve">
     <value>Register</value>
   </data>
@@ -458,6 +461,9 @@
   </data>
   <data name="Js_RoomSuffix" xml:space="preserve">
     <value>{name}'S ROOM</value>
+  </data>
+  <data name="Js_NoRoomsAvailable" xml:space="preserve">
+    <value>No rooms available right now.</value>
   </data>
   <data name="Js_Join" xml:space="preserve">
     <value>JOIN</value>
@@ -1349,6 +1355,18 @@
   </data>
   <data name="Js_PgnDownloadFailed" xml:space="preserve">
     <value>PGN export failed.</value>
+  </data>
+  <data name="Js_ConnectionReconnecting" xml:space="preserve">
+    <value>Connection lost. Reconnecting...</value>
+  </data>
+  <data name="Js_ConnectionSyncing" xml:space="preserve">
+    <value>Connection restored. Syncing game...</value>
+  </data>
+  <data name="Js_ConnectionDisconnected" xml:space="preserve">
+    <value>Disconnected from game server.</value>
+  </data>
+  <data name="Js_ConnectionOffline" xml:space="preserve">
+    <value>No internet connection. Waiting for network...</value>
   </data>
 </root>
 

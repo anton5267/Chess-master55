@@ -41,7 +41,13 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         html.Should().Contain("site-navbar");
         html.Should().Contain("site-footer");
+        html.Should().Contain("skip-to-content-link");
         html.Should().Contain("home-hero");
+        html.Should().Contain("home-hero-mini-grid");
+        html.Should().Contain("aria-labelledby=\"home-hero-title\"");
+        html.Should().Contain("home-summary-heading");
+        html.Should().Contain("home-features-heading");
+        html.Should().Contain("loading=\"lazy\"");
     }
 
     [Fact]
@@ -216,7 +222,11 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         decodedHtml.Should().NotContain("Chess.Web -");
         decodedHtml.Should().NotContain("Chess.Console -");
         html.Should().Contain("about-hero");
+        html.Should().Contain("about-pillars");
         html.Should().Contain("about-features-grid");
+        html.Should().Contain("about-hero-title");
+        html.Should().Contain("about-media-grid");
+        html.Should().Contain("about-cta-title");
     }
 
     [Fact]
@@ -239,6 +249,10 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         decodedHtml.Should().Contain("stats-pie-chart");
         html.Should().Contain("stats-dashboard");
         html.Should().Contain("stats-page-header");
+        html.Should().Contain("stats-rate-strip");
+        html.Should().Contain("stats-balance-card");
+        html.Should().Contain("stats-chart-figure");
+        html.Should().Contain("stats-chart-title");
     }
 
     [Fact]
@@ -258,13 +272,23 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         decodedHtml.Should().Contain("legal-moves-toggle");
         decodedHtml.Should().Contain("game-lobby-input-vs-bot-btn");
         decodedHtml.Should().Contain("bot-difficulty-select");
+        decodedHtml.Should().Contain("game-lobby-room-count");
         decodedHtml.Should().Contain("game-play-again-btn");
         decodedHtml.Should().Contain("game-result-banner");
+        decodedHtml.Should().Contain("game-live-bot-difficulty");
+        decodedHtml.Should().Contain("game-connection-pill");
+        decodedHtml.Should().Contain("connectionOffline");
+        decodedHtml.Should().Contain("game-chat-counter");
+        decodedHtml.Should().Contain("game-lobby-chat-counter");
         decodedHtml.Should().Contain("game-mobile-tabs");
+        decodedHtml.Should().Contain("noRoomsAvailable");
         decodedHtml.Should().Contain("game-replay-toolbar");
         decodedHtml.Should().Contain("game-replay-start-btn");
         decodedHtml.Should().Contain("game-replay-live-btn");
         decodedHtml.Should().Contain("game-export-pgn-btn");
+        decodedHtml.Should().Contain("game-replay-hotkeys");
+        decodedHtml.Should().Contain("aria-keyshortcuts=\"Home\"");
+        decodedHtml.Should().Contain("aria-keyshortcuts=\"ArrowRight\"");
         html.Should().Contain("game-shell");
         html.Should().Contain("game-control-row");
     }
@@ -282,6 +306,7 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         script.Should().Contain("isReplayMode");
         script.Should().Contain("fenTimeline");
         script.Should().Contain("mobilePanel");
+        script.Should().Contain("connectionOffline");
         script.Should().NotContain("alert(");
     }
 
@@ -312,6 +337,7 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         html.Should().Contain("manage-shell");
         html.Should().Contain("manage-user-chip");
         html.Should().Contain("manage-shell-content");
+        html.Should().Contain("aria-label=\"");
     }
 
     [Fact]
@@ -322,6 +348,7 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         html.Should().Contain("/js/password-toggle.js");
+        html.Should().Contain("/js/form-submit-guard.js");
         html.Should().Contain("data-show-password-text");
         html.Should().Contain("data-hide-password-text");
         html.Should().Contain("auth-shell");

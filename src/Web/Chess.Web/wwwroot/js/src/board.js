@@ -103,7 +103,16 @@ function scheduleSyncWatchdog(connection, state) {
             return;
         }
 
-        connection.invoke('RequestSync').catch((err) => console.error(err));
+        if (connection.state !== signalR.HubConnectionState.Connected || state.syncRequestInFlight) {
+            return;
+        }
+
+        state.syncRequestInFlight = true;
+        connection.invoke('RequestSync')
+            .catch((err) => console.error(err))
+            .finally(() => {
+                state.syncRequestInFlight = false;
+            });
     }, 900);
 }
 
@@ -136,7 +145,15 @@ export function createOnDropHandler(state, connection) {
                 state.displayFen = liveFen;
             }
 
-            connection.invoke('RequestSync').catch((err) => console.error(err));
+            if (connection.state === signalR.HubConnectionState.Connected && !state.syncRequestInFlight) {
+                state.syncRequestInFlight = true;
+                connection.invoke('RequestSync')
+                    .catch((err) => console.error(err))
+                    .finally(() => {
+                        state.syncRequestInFlight = false;
+                    });
+            }
+
             return 'snapback';
         }
 

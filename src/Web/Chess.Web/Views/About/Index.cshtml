@@ -3,10 +3,10 @@
 }
 
 <section class="about-page">
-    <header class="about-hero">
+    <header class="about-hero" aria-labelledby="about-hero-title">
         <div class="about-hero-content">
             <p class="about-hero-kicker">@Localizer["About_HeroTagline"]</p>
-            <h1 class="about-hero-title">@Localizer["About_ProjectTitle"]</h1>
+            <h1 id="about-hero-title" class="about-hero-title">@Localizer["About_ProjectTitle"]</h1>
             <p class="about-hero-text">@Localizer["About_Description"]</p>
             <p class="about-hero-support">@Localizer["About_HeroSupport"]</p>
 
@@ -45,16 +45,16 @@
         </aside>
     </header>
 
-    <section class="about-media-grid">
+    <section class="about-media-grid" aria-label="@Localizer["About_Title"]">
         <article class="about-media-card">
-            <img class="about-media-image" src="~/img/ezgif.com-gif-maker.gif" alt="@Localizer["About_ImageGameAlt"]" />
+            <img class="about-media-image" src="~/img/ezgif.com-gif-maker.gif" alt="@Localizer["About_ImageGameAlt"]" decoding="async" />
             <div class="about-media-overlay">
                 <h2 class="about-media-title">@Localizer["About_MediaGameTitle"]</h2>
                 <p class="about-media-caption">@Localizer["About_MediaGameText"]</p>
             </div>
         </article>
         <article class="about-media-card">
-            <img class="about-media-image" src="~/img/console_chess.jpg" alt="@Localizer["About_ImageConsoleAlt"]" />
+            <img class="about-media-image" src="~/img/console_chess.jpg" alt="@Localizer["About_ImageConsoleAlt"]" loading="lazy" decoding="async" />
             <div class="about-media-overlay">
                 <h2 class="about-media-title">@Localizer["About_MediaConsoleTitle"]</h2>
                 <p class="about-media-caption">@Localizer["About_MediaConsoleText"]</p>
@@ -62,8 +62,27 @@
         </article>
     </section>
 
-    <section class="about-features-card about-card">
-        <h2 class="about-features-title">@Localizer["About_FeaturesTitle"]</h2>
+    <section class="about-pillars" aria-label="@Localizer["About_FeaturesTitle"]">
+        <article class="about-pillar">
+            <span class="about-pillar-label">@Localizer["About_CategoryGameplay"]</span>
+            <strong class="about-pillar-value">11+</strong>
+        </article>
+        <article class="about-pillar">
+            <span class="about-pillar-label">@Localizer["About_CategoryMultiplayer"]</span>
+            <strong class="about-pillar-value">6+</strong>
+        </article>
+        <article class="about-pillar">
+            <span class="about-pillar-label">@Localizer["About_CategoryData"]</span>
+            <strong class="about-pillar-value">5+</strong>
+        </article>
+        <article class="about-pillar">
+            <span class="about-pillar-label">@Localizer["About_CategoryUx"]</span>
+            <strong class="about-pillar-value">4+</strong>
+        </article>
+    </section>
+
+    <section class="about-features-card about-card" aria-labelledby="about-features-title">
+        <h2 id="about-features-title" class="about-features-title">@Localizer["About_FeaturesTitle"]</h2>
         <p class="about-features-intro">@Localizer["About_FeaturesIntro"]</p>
 
         <div class="about-features-grid">
@@ -119,9 +138,9 @@
         </div>
     </section>
 
-    <section class="about-cta about-card">
+    <section class="about-cta about-card" aria-labelledby="about-cta-title">
         <div>
-            <h2 class="about-cta-title">@Localizer["About_CtaTitle"]</h2>
+            <h2 id="about-cta-title" class="about-cta-title">@Localizer["About_CtaTitle"]</h2>
             <p class="about-cta-text">@Localizer["About_CtaText"]</p>
         </div>
         <a class="about-btn about-btn-primary" asp-controller="Game" asp-action="Index">@Localizer["About_CtaButton"]</a>

@@ -8,27 +8,42 @@
     @if (this.SignInManager.IsSignedIn(this.User))
     {
         <li class="nav-item">
-            <a class="nav-link nav-utility-link" asp-area="Identity" asp-page="/Account/Manage/Index" title="@Localizer["Nav_Manage"]">@Localizer["Nav_Hello", this.User.Identity.Name]</a>
+            <a class="nav-link nav-utility-link nav-user-pill" asp-area="Identity" asp-page="/Account/Manage/Index" title="@Localizer["Nav_Manage"]">
+                <i class="fas fa-user-circle" aria-hidden="true"></i>
+                <span class="nav-user-pill-text">@Localizer["Nav_Hello", this.User.Identity.Name]</span>
+            </a>
         </li>
         if (this.User.IsInRole(CommonConstants.AdministratorRoleName))
         {
             <li class="nav-item">
-                <a class="nav-link nav-utility-link" asp-area="Administration" asp-controller="Dashboard" asp-action="Index" title="@Localizer["Nav_Admin"]">@Localizer["Nav_Admin"]</a>
+                <a class="nav-link nav-utility-link" asp-area="Administration" asp-controller="Dashboard" asp-action="Index" title="@Localizer["Nav_Admin"]">
+                    <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                    <span>@Localizer["Nav_Admin"]</span>
+                </a>
             </li>
         }
         <li class="nav-item">
-            <form class="form-inline nav-logout-form" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@(this.Url.Action("Index", "Home", new { area = string.Empty }))">
-                <button type="submit" class="nav-link nav-link-button nav-utility-link btn btn-link">@Localizer["Nav_Logout"]</button>
+            <form class="form-inline nav-logout-form" data-no-submit-guard="true" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@(this.Url.Action("Index", "Home", new { area = string.Empty }))">
+                <button type="submit" class="nav-link nav-link-button nav-utility-link btn btn-link">
+                    <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                    <span>@Localizer["Nav_Logout"]</span>
+                </button>
             </form>
         </li>
     }
     else
     {
         <li class="nav-item">
-            <a class="nav-link nav-utility-link" asp-area="Identity" asp-page="/Account/Register">@Localizer["Nav_Register"]</a>
+            <a class="nav-link nav-utility-link" asp-area="Identity" asp-page="/Account/Register">
+                <i class="fas fa-user-plus" aria-hidden="true"></i>
+                <span>@Localizer["Nav_Register"]</span>
+            </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link nav-utility-link" asp-area="Identity" asp-page="/Account/Login">@Localizer["Nav_Login"]</a>
+            <a class="nav-link nav-utility-link" asp-area="Identity" asp-page="/Account/Login">
+                <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
+                <span>@Localizer["Nav_Login"]</span>
+            </a>
         </li>
     }
 </ul>
