@@ -48,6 +48,20 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
+    [Fact]
+    public async Task Home_ShouldContainBaselineSecurityHeaders()
+    {
+        var response = await this.client.GetAsync("/");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Headers.TryGetValues("X-Content-Type-Options", out var nosniffValues).Should().BeTrue();
+        nosniffValues.Should().ContainSingle(x => x == "nosniff");
+        response.Headers.TryGetValues("X-Frame-Options", out var frameOptionsValues).Should().BeTrue();
+        frameOptionsValues.Should().ContainSingle(x => x == "SAMEORIGIN");
+        response.Headers.TryGetValues("Referrer-Policy", out var referrerValues).Should().BeTrue();
+        referrerValues.Should().ContainSingle(x => x == "strict-origin-when-cross-origin");
+    }
+
     [Theory]
     [InlineData("en", "Home", "Play")]
     [InlineData("uk", "додому", "грати")]
