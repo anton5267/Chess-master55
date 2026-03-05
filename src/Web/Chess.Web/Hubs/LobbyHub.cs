@@ -4,6 +4,7 @@ namespace Chess.Web.Hubs
     using System.Linq;
     using System.Threading.Tasks;
 
+    using Chess.Common.Enums;
     using Chess.Data.Common.Repositories;
     using Chess.Data.Models;
     using Chess.Services.Data.Models;
@@ -19,6 +20,32 @@ namespace Chess.Web.Hubs
             this.EnsureAuthenticatedUserContext();
             var normalizedName = this.ValidateAndNormalizePlayerName(name);
             this.TryGetValidatedUserContext(out var userId, out _, out _);
+
+            if (this.gameSessionStore.TryGetGameByConnection(this.Context.ConnectionId, out var existingGameSession, out var existingPlayerSession) &&
+                existingGameSession.IsBotGame &&
+                existingGameSession.Game.GameOver == GameOver.None &&
+                existingPlayerSession is { IsBot: false })
+            {
+                await this.Groups.AddToGroupAsync(this.Context.ConnectionId, groupName: existingGameSession.GameId);
+
+                var startPayload = this.CreateStartPayload(
+                    existingGameSession,
+                    selfPlayerId: this.Context.ConnectionId,
+                    selfPlayerName: existingPlayerSession.Name);
+
+                await this.Clients.Caller.SendAsync("Start", startPayload);
+                await this.SyncPositionToCaller(existingGameSession.Game);
+                await this.SyncTerminalStateToCallerIfNeeded(existingGameSession.Game);
+                await this.TryExecuteBotTurnIfNeededAsync(existingGameSession, trigger: "start_idempotent");
+
+                this.logger.LogInformation(
+                    "BotGameStartReused GameId={GameId} ConnectionId={ConnectionId} UserId={UserId}",
+                    existingGameSession.GameId,
+                    this.Context.ConnectionId,
+                    userId);
+
+                return existingPlayerSession.Player;
+            }
 
             var player = Factory.GetPlayer(normalizedName, this.Context.ConnectionId, userId);
             var rating = await this.GetUserRatingAsync(player.UserId);

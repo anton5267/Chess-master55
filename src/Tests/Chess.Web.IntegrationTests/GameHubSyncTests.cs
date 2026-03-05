@@ -530,6 +530,40 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
+    public async Task StartVsBot_WhenInvokedTwiceOnSameConnection_ShouldReuseActiveBotGame()
+    {
+        await this.SeedUserAsync("bot-user-idempotent-1", "bot-idempotent-1@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-idempotent-1", "bot-idempotent-1@example.com");
+
+        var startQueue = new Queue<JsonElement>();
+        using var startSignal = new SemaphoreSlim(0, int.MaxValue);
+        connection.On<JsonElement>("Start", payload =>
+        {
+            lock (startQueue)
+            {
+                startQueue.Enqueue(payload);
+            }
+
+            startSignal.Release();
+        });
+
+        await connection.StartAsync();
+
+        var firstPlayer = await connection.InvokeAsync<JsonElement>("StartVsBot", "human_bot_idempotent");
+        var firstStart = await WaitNextStart(startQueue, startSignal, timeoutMs: 15000);
+        var firstGameId = firstStart.GetProperty("game").GetProperty("id").GetString();
+        firstGameId.Should().NotBeNullOrWhiteSpace();
+
+        var secondPlayer = await connection.InvokeAsync<JsonElement>("StartVsBot", "human_bot_idempotent");
+        var secondStart = await WaitNextStart(startQueue, startSignal, timeoutMs: 15000);
+        var secondGameId = secondStart.GetProperty("game").GetProperty("id").GetString();
+
+        firstPlayer.GetProperty("id").GetString().Should().Be(secondPlayer.GetProperty("id").GetString());
+        secondGameId.Should().Be(firstGameId);
+        secondStart.GetProperty("isBotGame").GetBoolean().Should().BeTrue();
+    }
+
+    [Fact]
     public async Task StartVsBot_WhenBotStarts_ShouldMakeFirstMove()
     {
         var botStartedAtLeastOnce = false;
@@ -1357,6 +1391,19 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         if (!await signal.WaitAsync(timeoutMs))
         {
             throw new TimeoutException("Timed out while waiting for GameOver.");
+        }
+
+        lock (queue)
+        {
+            return queue.Dequeue();
+        }
+    }
+
+    private static async Task<JsonElement> WaitNextStart(Queue<JsonElement> queue, SemaphoreSlim signal, int timeoutMs = 10000)
+    {
+        if (!await signal.WaitAsync(timeoutMs))
+        {
+            throw new TimeoutException("Timed out while waiting for Start payload.");
         }
 
         lock (queue)
