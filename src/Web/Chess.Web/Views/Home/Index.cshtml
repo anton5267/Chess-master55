@@ -4,6 +4,7 @@
 
 <section class="home-hero">
     <div class="home-hero-content">
+        <p class="home-hero-kicker">@Localizer["Home_Title"]</p>
         <h1 class="home-hero-title">Chess</h1>
         <p class="home-hero-subtitle">@Localizer["Home_HistoryParagraph1"]</p>
         <div class="home-hero-actions">
@@ -11,6 +12,23 @@
             <a class="btn btn-outline-primary home-hero-btn" asp-controller="Stats" asp-action="Index">@Localizer["Home_CardStatsTitle"]</a>
         </div>
     </div>
+    <aside class="home-hero-meta">
+        <h2 class="home-hero-meta-title">@Localizer["Home_CardAboutTitle"]</h2>
+        <ul class="home-hero-meta-list">
+            <li>
+                <i class="fas fa-bolt" aria-hidden="true"></i>
+                <span>@Localizer["Home_CardPlayDescription"]</span>
+            </li>
+            <li>
+                <i class="fas fa-chart-line" aria-hidden="true"></i>
+                <span>@Localizer["Home_CardStatsDescription"]</span>
+            </li>
+            <li>
+                <i class="fas fa-circle-info" aria-hidden="true"></i>
+                <span>@Localizer["Home_CardAboutDescription"]</span>
+            </li>
+        </ul>
+    </aside>
 </section>
 
 <section class="home-feature-grid">
@@ -52,6 +70,7 @@
 </section>
 
 <section class="home-history-card">
+    <h2 class="home-history-title">@Localizer["Home_Title"]</h2>
     <p class="home-history-text">@Localizer["Home_HistoryParagraph1"]</p>
     <p class="home-history-text">@Localizer["Home_HistoryParagraph2"]</p>
 </section>

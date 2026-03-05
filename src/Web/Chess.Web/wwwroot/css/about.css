@@ -1,7 +1,7 @@
 .about-page {
     --about-surface: #ffffff;
-    --about-border: #d7dfec;
-    --about-shadow: 0 16px 34px rgba(13, 27, 58, 0.08);
+    --about-border: var(--line-soft);
+    --about-shadow: var(--shadow-md);
     --about-primary: #2c6cf2;
     --about-primary-dark: #1f4fb6;
     --about-text-main: #16273f;
@@ -19,6 +19,12 @@
     border-radius: 18px;
     box-shadow: var(--about-shadow);
     padding: 1.4rem;
+    transition: transform var(--motion-normal), box-shadow var(--motion-normal);
+}
+
+.about-card:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
 }
 
 .about-hero {
@@ -188,6 +194,12 @@
     border: 1px solid var(--about-border);
     box-shadow: var(--about-shadow);
     min-height: 270px;
+    transition: transform var(--motion-normal), box-shadow var(--motion-normal);
+}
+
+.about-media-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .about-media-image {
@@ -196,6 +208,11 @@
     height: 100%;
     min-height: 270px;
     object-fit: cover;
+    transition: transform var(--motion-normal);
+}
+
+.about-media-card:hover .about-media-image {
+    transform: scale(1.03);
 }
 
 .about-media-overlay {
@@ -246,6 +263,12 @@
     border-radius: 14px;
     background: var(--about-soft);
     padding: 0.9rem 0.95rem;
+    transition: background-color var(--motion-fast), border-color var(--motion-fast);
+}
+
+.about-feature-group:hover {
+    background: #e8f0ff;
+    border-color: #ccd9ee;
 }
 
 .about-feature-group h3 {
