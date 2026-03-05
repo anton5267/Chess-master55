@@ -578,7 +578,18 @@
       if (state.isYourTurn || !isBotToMove(state)) {
         return;
       }
-      connection.invoke("RequestSync").catch((err) => console.error(err));
+      connection.invoke("RequestSync").catch((err) => console.error(err)).finally(() => {
+        if (!state.isGameStarted || state.hasGameEnded) {
+          return;
+        }
+        if (state.connectionState === "reconnecting" || state.connectionState === "disconnected") {
+          return;
+        }
+        if (state.isYourTurn || !isBotToMove(state)) {
+          return;
+        }
+        scheduleBotRecoveryWatchdog(connection, state);
+      });
     }, 1400);
   }
   function applySyncPosition(state, elements, fen, movingPlayerId, movingPlayerName) {
