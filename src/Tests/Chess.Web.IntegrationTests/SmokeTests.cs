@@ -36,8 +36,12 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
     public async Task Home_ShouldOpenSuccessfully()
     {
         var response = await this.client.GetAsync("/");
+        var html = await response.Content.ReadAsStringAsync();
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+        html.Should().Contain("site-navbar");
+        html.Should().Contain("site-footer");
+        html.Should().Contain("home-hero");
     }
 
     [Fact]
@@ -211,6 +215,8 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         decodedHtml.Should().NotContain("antonlistva47@gmail.com");
         decodedHtml.Should().NotContain("Chess.Web -");
         decodedHtml.Should().NotContain("Chess.Console -");
+        html.Should().Contain("about-hero");
+        html.Should().Contain("about-features-grid");
     }
 
     [Fact]
@@ -231,6 +237,8 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         decodedHtml.Should().NotContain("&amp;#x");
         decodedHtml.Should().Contain("stats-data");
         decodedHtml.Should().Contain("stats-pie-chart");
+        html.Should().Contain("stats-dashboard");
+        html.Should().Contain("stats-page-header");
     }
 
     [Fact]
@@ -252,6 +260,8 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         decodedHtml.Should().Contain("bot-difficulty-select");
         decodedHtml.Should().Contain("game-play-again-btn");
         decodedHtml.Should().Contain("game-result-banner");
+        html.Should().Contain("game-shell");
+        html.Should().Contain("game-control-row");
     }
 
     [Fact]
@@ -306,6 +316,7 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         html.Should().Contain("/js/password-toggle.js");
         html.Should().Contain("data-show-password-text");
         html.Should().Contain("data-hide-password-text");
+        html.Should().Contain("auth-shell");
     }
 
     [Fact]

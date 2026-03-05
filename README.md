@@ -112,6 +112,18 @@ What it starts:
 - `dotnet watch run --project Chess.Web.csproj` (upstream: `https://localhost:5001`)
 - `ngrok` tunnel with fixed domain
 
+Important environment default:
+
+- `ASPNETCORE_ENVIRONMENT=Development` must be set so `ChessDb` connection string from `appsettings.Development.json` is used.
+
+PowerShell example:
+
+```powershell
+$env:ASPNETCORE_ENVIRONMENT = "Development"
+cd src/Web/Chess.Web
+npm run dev:remote
+```
+
 If HTTPS certificate is not trusted locally, use HTTP upstream remote mode:
 
 ```bash
@@ -123,6 +135,13 @@ Verify tunnel status:
 
 ```bash
 curl http://127.0.0.1:4040/api/tunnels
+```
+
+Quick upstream checks before browser smoke:
+
+```bash
+curl -k https://localhost:5001/healthz
+curl https://nonhostilely-unhampered-noah.ngrok-free.dev/healthz
 ```
 
 ## Restart Runbook (when updates do not appear)
@@ -139,6 +158,7 @@ npm run build:assets
 3. Restart remote dev mode:
 
 ```bash
+$env:ASPNETCORE_ENVIRONMENT=Development
 npm run dev:remote
 ```
 
@@ -150,10 +170,13 @@ npm run dev:remote
 1. `ERR_NGROK_8012` / `502 Bad Gateway`:
    - upstream `https://localhost:5001` is not running;
    - restart `npm run dev:remote`.
-2. `NET::ERR_CERT_AUTHORITY_INVALID` on localhost upstream:
+2. `The ConnectionString property has not been initialized`:
+   - app started outside `Development` environment;
+   - set `ASPNETCORE_ENVIRONMENT=Development` and restart.
+3. `NET::ERR_CERT_AUTHORITY_INVALID` on localhost upstream:
    - run `dotnet dev-certs https --trust`;
    - or switch to HTTP remote mode (`npm run dev:remote:http`).
-3. Port is already in use:
+4. Port is already in use:
    - stop old `dotnet`/`ngrok` processes and rerun.
 
 ## Health Check
