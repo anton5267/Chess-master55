@@ -836,6 +836,63 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         gameOverEvent.Player.GetProperty("name").GetString().Should().Be(botName);
     }
 
+    [Fact]
+    public async Task BotGame_HumanMateMove_ShouldEmitGameOverWithoutBotStatusUpdate()
+    {
+        await this.SeedUserAsync("bot-user-terminal-5", "bot-terminal-5@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-terminal-5", "bot-terminal-5@example.com");
+
+        var startTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var gameOverTcs = new TaskCompletionSource<(JsonElement Player, int GameOver)>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var botStatusUpdates = 0;
+        var botPlayerId = string.Empty;
+        var botPlayerName = string.Empty;
+
+        connection.On<JsonElement>("Start", payload => startTcs.TrySetResult(payload));
+        connection.On<JsonElement, int>("GameOver", (player, gameOver) => gameOverTcs.TrySetResult((player, gameOver)));
+        connection.On<string, string>("UpdateStatus", (movingPlayerId, movingPlayerName) =>
+        {
+            if (!string.IsNullOrWhiteSpace(botPlayerId) &&
+                string.Equals(movingPlayerId, botPlayerId, StringComparison.Ordinal))
+            {
+                Interlocked.Increment(ref botStatusUpdates);
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(botPlayerName) &&
+                string.Equals(movingPlayerName, botPlayerName, StringComparison.Ordinal))
+            {
+                Interlocked.Increment(ref botStatusUpdates);
+            }
+        });
+
+        await connection.StartAsync();
+        var humanPlayer = await connection.InvokeAsync<JsonElement>("StartVsBot", "human_bot_terminal_5");
+        var humanName = humanPlayer.GetProperty("name").GetString() ?? string.Empty;
+
+        var startPayload = await WaitWithTimeout(startTcs.Task);
+        var gameId = startPayload.GetProperty("game").GetProperty("id").GetString();
+        gameId.Should().NotBeNullOrWhiteSpace();
+
+        botPlayerId = startPayload.GetProperty("botPlayerId").GetString();
+        botPlayerName = startPayload.GetProperty("botPlayerName").GetString();
+
+        var matingMove = this.ConfigureHumanMateInOnePosition(gameId!);
+
+        await connection.InvokeAsync("MoveSelected", matingMove.Source, matingMove.Target, string.Empty, null);
+
+        var gameOverEvent = await WaitWithTimeout(gameOverTcs.Task, timeoutMs: 15000);
+        gameOverEvent.GameOver.Should().BeOneOf((int)GameOver.Checkmate, (int)GameOver.Stalemate);
+        if (gameOverEvent.GameOver == (int)GameOver.Checkmate)
+        {
+            gameOverEvent.Player.ValueKind.Should().NotBe(JsonValueKind.Null);
+            gameOverEvent.Player.GetProperty("name").GetString().Should().Be(humanName);
+        }
+
+        await Task.Delay(500);
+        botStatusUpdates.Should().Be(0);
+    }
+
     private HubConnection CreateHubConnection(string userId, string userName)
     {
         var baseAddress = this.factory.Server.BaseAddress ?? new Uri("http://localhost");
@@ -1019,6 +1076,51 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
             }
 
             gameSession.Game.ChessBoard.CalculateAttackedSquares();
+        }
+        finally
+        {
+            gameSession.BotTurnLock.Release();
+        }
+    }
+
+    private (string Source, string Target) ConfigureHumanMateInOnePosition(string gameId)
+    {
+        using var scope = this.factory.Services.CreateScope();
+        var store = scope.ServiceProvider.GetRequiredService<IGameSessionStore>();
+        store.TryGetGameById(gameId, out var gameSession).Should().BeTrue();
+
+        gameSession.BotTurnLock.Wait();
+        try
+        {
+            var botSession = gameSession.Player1.IsBot ? gameSession.Player1 : gameSession.Player2;
+            var humanSession = gameSession.Player1.IsBot ? gameSession.Player2 : gameSession.Player1;
+            var botColor = botSession.Player.Color;
+            var humanColor = humanSession.Player.Color;
+
+            gameSession.Player1.Player.HasToMove = !gameSession.Player1.IsBot;
+            gameSession.Player2.Player.HasToMove = !gameSession.Player2.IsBot;
+            gameSession.Game.GameOver = GameOver.None;
+            gameSession.Game.Turn = 40;
+
+            foreach (var square in gameSession.Game.ChessBoard.Matrix.SelectMany(x => x))
+            {
+                square.Piece = null;
+            }
+
+            if (humanColor == Color.White)
+            {
+                gameSession.Game.ChessBoard.GetSquareByName("h8").Piece = Factory.GetKing(botColor);
+                gameSession.Game.ChessBoard.GetSquareByName("f6").Piece = Factory.GetKing(humanColor);
+                gameSession.Game.ChessBoard.GetSquareByName("f7").Piece = Factory.GetQueen(humanColor);
+                gameSession.Game.ChessBoard.CalculateAttackedSquares();
+                return ("f7", "g7");
+            }
+
+            gameSession.Game.ChessBoard.GetSquareByName("h1").Piece = Factory.GetKing(botColor);
+            gameSession.Game.ChessBoard.GetSquareByName("f3").Piece = Factory.GetKing(humanColor);
+            gameSession.Game.ChessBoard.GetSquareByName("f2").Piece = Factory.GetQueen(humanColor);
+            gameSession.Game.ChessBoard.CalculateAttackedSquares();
+            return ("f2", "g2");
         }
         finally
         {
