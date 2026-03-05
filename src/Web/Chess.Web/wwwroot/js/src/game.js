@@ -93,7 +93,7 @@ $(function bootstrapGameLobby() {
 
     bindLobbyHandlers(connection, elements, state);
     bindChatHandlers(connection, elements);
-    bindGameOptionHandlers(connection, elements);
+    bindGameOptionHandlers(connection, elements, state);
 
     state.connectionState = 'connecting';
     connection.start()

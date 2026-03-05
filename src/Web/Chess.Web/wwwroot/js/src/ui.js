@@ -92,6 +92,14 @@ export function removeHighlight(color) {
     }
 }
 
+export function setPlayAgainVsBotVisibility(elements, isVisible) {
+    if (!elements.playAgainVsBotBtn) {
+        return;
+    }
+
+    elements.playAgainVsBotBtn.style.display = isVisible ? 'inline-flex' : 'none';
+}
+
 export function resetGameUi(elements, state) {
     elements.statusCheck.style.display = 'none';
     elements.statusCheck.textContent = '';
@@ -144,6 +152,8 @@ export function resetGameUi(elements, state) {
         state.board.orientation('white');
         state.board.position('start', false);
     }
+
+    setPlayAgainVsBotVisibility(elements, false);
 }
 
 function getTakenValue(takenFigures, key) {
@@ -203,4 +213,5 @@ export function showWaitingForOpponent(elements, state, player) {
     elements.blackRating.textContent = t('notAvailable');
     elements.statusText.style.color = 'red';
     elements.statusText.innerText = t('waitingForOpponent');
+    setPlayAgainVsBotVisibility(elements, false);
 }

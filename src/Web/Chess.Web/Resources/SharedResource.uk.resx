@@ -414,6 +414,9 @@
   <data name="Game_PlayVsBot" xml:space="preserve">
     <value>ГРАТИ ПРОТИ БОТА</value>
   </data>
+  <data name="Game_PlayAgainVsBot" xml:space="preserve">
+    <value>ГРАТИ ЩЕ РАЗ ПРОТИ БОТА</value>
+  </data>
   <data name="Game_RoomsTitle" xml:space="preserve">
     <value>ІГРОВІ КІМНАТИ</value>
   </data>

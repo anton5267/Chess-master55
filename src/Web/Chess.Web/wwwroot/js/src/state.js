@@ -59,6 +59,7 @@ export function getElements() {
         checkHintsToggle: document.querySelector('#check-hints-toggle'),
         legalMovesToggle: document.querySelector('#legal-moves-toggle'),
         lobbyContainer: document.querySelector('.game-lobby'),
+        playAgainVsBotBtn: document.querySelector('.game-play-again-btn'),
     };
 }
 

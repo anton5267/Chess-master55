@@ -159,6 +159,9 @@
   <data name="Game_PlayVsBot" xml:space="preserve">
     <value>GRAJ Z BOTEM</value>
   </data>
+  <data name="Game_PlayAgainVsBot" xml:space="preserve">
+    <value>ZAGRAJ PONOWNIE Z BOTEM</value>
+  </data>
   <data name="Game_RoomsTitle" xml:space="preserve">
     <value>POKOJE GRY</value>
   </data>

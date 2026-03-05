@@ -162,6 +162,9 @@
   <data name="Game_PlayVsBot" xml:space="preserve">
     <value>GEGEN BOT SPIELEN</value>
   </data>
+  <data name="Game_PlayAgainVsBot" xml:space="preserve">
+    <value>NOCHMAL GEGEN BOT</value>
+  </data>
   <data name="Game_RoomsTitle" xml:space="preserve">
     <value>SPIELRÄUME</value>
   </data>

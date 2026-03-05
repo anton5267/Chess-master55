@@ -1,5 +1,6 @@
 namespace Chess.Web.IntegrationTests;
 
+using Chess.Common.Enums;
 using Chess.Common.Time;
 using Chess.Services.Data.Services;
 using Chess.Services.Data.Services.Contracts;
@@ -189,5 +190,55 @@ public class InMemoryGameSessionStoreTests
 
         store.TryGetGameByConnection("human-conn", out _, out _).Should().BeFalse();
         store.TryGetGameById(gameSession.GameId, out _).Should().BeFalse();
+    }
+
+    [Fact]
+    public void TryCreateBotGame_ShouldAllowRestart_AfterFinishedBotGame_WithSameConnection()
+    {
+        using var store = new InMemoryGameSessionStore(new SystemClock());
+        var services = new ServiceCollection()
+            .AddTransient<INotificationService, NotificationService>()
+            .AddTransient<ICheckService, CheckService>()
+            .AddTransient<IDrawService, DrawService>()
+            .AddTransient<IUtilityService, UtilityService>()
+            .BuildServiceProvider();
+
+        store.TryCreateBotGame(
+            "human-conn",
+            "human-user",
+            "human_player",
+            1280,
+            services,
+            out var firstHumanSession,
+            out var firstGameSession,
+            out var firstError).Should().BeTrue(firstError);
+
+        firstHumanSession.Should().NotBeNull();
+        firstGameSession.Should().NotBeNull();
+        var firstGameId = firstGameSession.GameId;
+        var firstBotConnectionId = firstGameSession.Player1.IsBot
+            ? firstGameSession.Player1.ConnectionId
+            : firstGameSession.Player2.ConnectionId;
+
+        firstGameSession.Game.GameOver = GameOver.Checkmate;
+
+        store.TryCreateBotGame(
+            "human-conn",
+            "human-user",
+            "human_player",
+            1280,
+            services,
+            out var secondHumanSession,
+            out var secondGameSession,
+            out var secondError).Should().BeTrue(secondError);
+
+        secondHumanSession.Should().NotBeNull();
+        secondGameSession.Should().NotBeNull();
+        secondGameSession.GameId.Should().NotBe(firstGameId);
+        secondHumanSession.ConnectionId.Should().Be("human-conn");
+        secondGameSession.IsBotGame.Should().BeTrue();
+
+        store.TryGetGameById(firstGameId, out _).Should().BeFalse();
+        store.TryGetPlayer(firstBotConnectionId, out _).Should().BeFalse();
     }
 }

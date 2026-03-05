@@ -25,10 +25,10 @@ public class GameTerminalStateTests
 
         var result = game.ResolveTerminalStateForCurrentMovingPlayer();
 
-        result.resolved.Should().BeTrue();
-        result.gameOver.Should().Be(GameOver.Checkmate);
-        result.winnerOrActor.Should().NotBeNull();
-        result.winnerOrActor!.Color.Should().Be(Color.White);
+        result.Resolved.Should().BeTrue();
+        result.GameOver.Should().Be(GameOver.Checkmate);
+        result.WinnerOrActor.Should().NotBeNull();
+        result.WinnerOrActor!.Color.Should().Be(Color.White);
         game.GameOver.Should().Be(GameOver.Checkmate);
     }
 
@@ -45,9 +45,9 @@ public class GameTerminalStateTests
 
         var result = game.ResolveTerminalStateForCurrentMovingPlayer();
 
-        result.resolved.Should().BeTrue();
-        result.gameOver.Should().Be(GameOver.Stalemate);
-        result.winnerOrActor.Should().BeNull();
+        result.Resolved.Should().BeTrue();
+        result.GameOver.Should().Be(GameOver.Stalemate);
+        result.WinnerOrActor.Should().BeNull();
         game.GameOver.Should().Be(GameOver.Stalemate);
     }
 

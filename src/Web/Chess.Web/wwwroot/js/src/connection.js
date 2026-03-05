@@ -3,7 +3,17 @@ import {
     safeResizeBoard,
     syncBoardState,
 } from './board.js';
-import { applyGameStats, createRoomElement, removeHighlight, renderRooms, resetGameUi, sleep, updateChat, updateStatus } from './ui.js';
+import {
+    applyGameStats,
+    createRoomElement,
+    removeHighlight,
+    renderRooms,
+    resetGameUi,
+    setPlayAgainVsBotVisibility,
+    sleep,
+    updateChat,
+    updateStatus,
+} from './ui.js';
 import { t } from './i18n.js';
 
 export function createConnection() {
@@ -236,6 +246,7 @@ export function registerConnectionHandlers(connection, elements, state) {
         state.hasGameEnded = false;
         state.gameOverCode = null;
         state.gameOverWinnerName = null;
+        setPlayAgainVsBotVisibility(elements, false);
 
         elements.whiteName.textContent = state.playerOneName;
         elements.blackName.textContent = state.playerTwoName;
@@ -344,16 +355,28 @@ export function registerConnectionHandlers(connection, elements, state) {
                 elements.statusText.innerText = t('draw');
                 break;
             case 4:
-                elements.statusText.innerText = t('threefoldDeclaredByFormat', { name: player.name.toUpperCase() });
+                if (player && player.name) {
+                    elements.statusText.innerText = t('threefoldDeclaredByFormat', { name: player.name.toUpperCase() });
+                } else {
+                    elements.statusText.innerText = t('draw');
+                }
                 break;
             case 5:
                 elements.statusText.innerText = t('fivefoldDraw');
                 break;
             case 6:
-                elements.statusText.innerText = t('resignedFormat', { name: player.name.toUpperCase() });
+                if (player && player.name) {
+                    elements.statusText.innerText = t('resignedFormat', { name: player.name.toUpperCase() });
+                } else {
+                    elements.statusText.innerText = t('draw');
+                }
                 break;
             case 7:
-                elements.statusText.innerText = t('leftYouWinFormat', { name: player.name.toUpperCase() });
+                if (player && player.name) {
+                    elements.statusText.innerText = t('leftYouWinFormat', { name: player.name.toUpperCase() });
+                } else {
+                    elements.statusText.innerText = t('draw');
+                }
                 break;
             case 8:
                 elements.statusText.innerText = t('fiftyMoveDraw');
@@ -363,6 +386,7 @@ export function registerConnectionHandlers(connection, elements, state) {
         }
 
         $('.option-btn').prop('disabled', true);
+        setPlayAgainVsBotVisibility(elements, state.isBotGame);
     });
 
     connection.on('ThreefoldAvailable', function onThreefoldAvailable(isAvailable) {

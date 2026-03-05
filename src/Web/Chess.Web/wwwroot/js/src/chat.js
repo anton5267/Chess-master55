@@ -41,7 +41,7 @@ export function bindChatHandlers(connection, elements) {
     });
 }
 
-export function bindGameOptionHandlers(connection, elements) {
+export function bindGameOptionHandlers(connection, elements, state) {
     elements.threefoldDrawBtn.addEventListener('click', function onThreefoldClick() {
         connection.invoke('ThreefoldDraw').catch((err) => alert(err));
     });
@@ -63,4 +63,30 @@ export function bindGameOptionHandlers(connection, elements) {
     elements.resignBtn.addEventListener('click', function onResignClick() {
         connection.invoke('Resign').catch((err) => alert(err));
     });
+
+    if (elements.playAgainVsBotBtn) {
+        elements.playAgainVsBotBtn.addEventListener('click', function onPlayAgainVsBotClick() {
+            if (!state.isBotGame || !state.hasGameEnded) {
+                return;
+            }
+
+            const nameFromState = (state.playerName || '').trim();
+            const fallbackName = (elements.lobbyInputName.value || '').trim();
+            const playerName = nameFromState || fallbackName;
+            if (playerName === '') {
+                elements.lobbyInputName.focus();
+                return;
+            }
+
+            elements.playAgainVsBotBtn.disabled = true;
+            connection.invoke('StartVsBot', playerName)
+                .then((player) => {
+                    state.playerId = player.id;
+                })
+                .catch((err) => alert(err))
+                .finally(() => {
+                    elements.playAgainVsBotBtn.disabled = false;
+                });
+        });
+    }
 }

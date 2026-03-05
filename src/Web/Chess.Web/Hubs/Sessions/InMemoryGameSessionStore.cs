@@ -176,13 +176,23 @@ namespace Chess.Web.Hubs.Sessions
 
                 if (this.players.TryGetValue(connectionId, out var existingSession))
                 {
-                    if (existingSession.State != PlayerSessionState.Idle)
+                    if (existingSession.State == PlayerSessionState.Idle)
                     {
-                        error = "Player session already exists for this connection.";
+                        this.players.TryRemove(connectionId, out _);
+                    }
+                    else if (existingSession.State == PlayerSessionState.Playing &&
+                             !string.IsNullOrWhiteSpace(existingSession.GameId) &&
+                             this.games.TryGetValue(existingSession.GameId, out var existingGameSession) &&
+                             existingGameSession.IsBotGame &&
+                             existingGameSession.Game.GameOver != GameOver.None)
+                    {
+                        this.CleanupFinishedBotGame(existingGameSession);
+                    }
+                    else
+                    {
+                        error = "Current game is still active.";
                         return false;
                     }
-
-                    this.players.TryRemove(connectionId, out _);
                 }
 
                 var humanPlayer = Factory.GetPlayer(name, connectionId, userId);
@@ -527,6 +537,28 @@ namespace Chess.Web.Hubs.Sessions
                 this.players.TryRemove(staleConnectionId, out _);
                 this.waitingConnections.Remove(staleConnectionId);
             }
+        }
+
+        private void CleanupFinishedBotGame(GameSession gameSession)
+        {
+            if (gameSession == null)
+            {
+                return;
+            }
+
+            if (gameSession.Player1 != null)
+            {
+                this.players.TryRemove(gameSession.Player1.ConnectionId, out _);
+                this.ResetPlayerToIdle(gameSession.Player1);
+            }
+
+            if (gameSession.Player2 != null)
+            {
+                this.players.TryRemove(gameSession.Player2.ConnectionId, out _);
+                this.ResetPlayerToIdle(gameSession.Player2);
+            }
+
+            this.games.TryRemove(gameSession.GameId, out _);
         }
 
         private void ResetPlayerToIdle(PlayerSession session)

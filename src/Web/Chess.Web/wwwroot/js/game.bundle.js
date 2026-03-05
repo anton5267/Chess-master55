@@ -251,6 +251,12 @@
       highlightedSquares[i].classList.remove(`highlight-${color}`);
     }
   }
+  function setPlayAgainVsBotVisibility(elements, isVisible) {
+    if (!elements.playAgainVsBotBtn) {
+      return;
+    }
+    elements.playAgainVsBotBtn.style.display = isVisible ? "inline-flex" : "none";
+  }
   function resetGameUi(elements, state) {
     elements.statusCheck.style.display = "none";
     elements.statusCheck.textContent = "";
@@ -295,6 +301,7 @@
       state.board.orientation("white");
       state.board.position("start", false);
     }
+    setPlayAgainVsBotVisibility(elements, false);
   }
   function getTakenValue(takenFigures, key) {
     if (!takenFigures || typeof takenFigures !== "object") {
@@ -343,6 +350,7 @@
     elements.blackRating.textContent = t("notAvailable");
     elements.statusText.style.color = "red";
     elements.statusText.innerText = t("waitingForOpponent");
+    setPlayAgainVsBotVisibility(elements, false);
   }
 
   // wwwroot/js/src/chat.js
@@ -378,7 +386,7 @@
       }
     });
   }
-  function bindGameOptionHandlers(connection, elements) {
+  function bindGameOptionHandlers(connection, elements, state) {
     elements.threefoldDrawBtn.addEventListener("click", function onThreefoldClick() {
       connection.invoke("ThreefoldDraw").catch((err) => alert(err));
     });
@@ -396,6 +404,26 @@
     elements.resignBtn.addEventListener("click", function onResignClick() {
       connection.invoke("Resign").catch((err) => alert(err));
     });
+    if (elements.playAgainVsBotBtn) {
+      elements.playAgainVsBotBtn.addEventListener("click", function onPlayAgainVsBotClick() {
+        if (!state.isBotGame || !state.hasGameEnded) {
+          return;
+        }
+        const nameFromState = (state.playerName || "").trim();
+        const fallbackName = (elements.lobbyInputName.value || "").trim();
+        const playerName = nameFromState || fallbackName;
+        if (playerName === "") {
+          elements.lobbyInputName.focus();
+          return;
+        }
+        elements.playAgainVsBotBtn.disabled = true;
+        connection.invoke("StartVsBot", playerName).then((player) => {
+          state.playerId = player.id;
+        }).catch((err) => alert(err)).finally(() => {
+          elements.playAgainVsBotBtn.disabled = false;
+        });
+      });
+    }
   }
 
   // wwwroot/js/src/connection.js
@@ -584,6 +612,7 @@
       state.hasGameEnded = false;
       state.gameOverCode = null;
       state.gameOverWinnerName = null;
+      setPlayAgainVsBotVisibility(elements, false);
       elements.whiteName.textContent = state.playerOneName;
       elements.blackName.textContent = state.playerTwoName;
       elements.whiteRating.textContent = game.player1.rating;
@@ -678,16 +707,28 @@
           elements.statusText.innerText = t("draw");
           break;
         case 4:
-          elements.statusText.innerText = t("threefoldDeclaredByFormat", { name: player.name.toUpperCase() });
+          if (player && player.name) {
+            elements.statusText.innerText = t("threefoldDeclaredByFormat", { name: player.name.toUpperCase() });
+          } else {
+            elements.statusText.innerText = t("draw");
+          }
           break;
         case 5:
           elements.statusText.innerText = t("fivefoldDraw");
           break;
         case 6:
-          elements.statusText.innerText = t("resignedFormat", { name: player.name.toUpperCase() });
+          if (player && player.name) {
+            elements.statusText.innerText = t("resignedFormat", { name: player.name.toUpperCase() });
+          } else {
+            elements.statusText.innerText = t("draw");
+          }
           break;
         case 7:
-          elements.statusText.innerText = t("leftYouWinFormat", { name: player.name.toUpperCase() });
+          if (player && player.name) {
+            elements.statusText.innerText = t("leftYouWinFormat", { name: player.name.toUpperCase() });
+          } else {
+            elements.statusText.innerText = t("draw");
+          }
           break;
         case 8:
           elements.statusText.innerText = t("fiftyMoveDraw");
@@ -696,6 +737,7 @@
           break;
       }
       $(".option-btn").prop("disabled", true);
+      setPlayAgainVsBotVisibility(elements, state.isBotGame);
     });
     connection.on("ThreefoldAvailable", function onThreefoldAvailable(isAvailable) {
       $(".threefold-draw-btn").prop("disabled", !isAvailable);
@@ -989,7 +1031,8 @@
       pieceThemeSelect: document.querySelector("#piece-theme-select"),
       checkHintsToggle: document.querySelector("#check-hints-toggle"),
       legalMovesToggle: document.querySelector("#legal-moves-toggle"),
-      lobbyContainer: document.querySelector(".game-lobby")
+      lobbyContainer: document.querySelector(".game-lobby"),
+      playAgainVsBotBtn: document.querySelector(".game-play-again-btn")
     };
   }
   function createState() {
@@ -1119,7 +1162,7 @@
     safeResizeBoard(state);
     bindLobbyHandlers(connection, elements, state);
     bindChatHandlers(connection, elements);
-    bindGameOptionHandlers(connection, elements);
+    bindGameOptionHandlers(connection, elements, state);
     state.connectionState = "connecting";
     connection.start().then(() => {
       state.connectionState = "connected";
