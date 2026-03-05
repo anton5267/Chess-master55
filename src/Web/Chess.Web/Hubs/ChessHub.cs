@@ -133,10 +133,10 @@ namespace Chess.Web.Hubs
                     await errorLogRepository.AddAsync(new ErrorLogEntity
                     {
                         GameId = game.Id,
-                        Source = source,
-                        Target = target,
-                        FenString = sourceFen,
-                        ExceptionMessage = ex.Message,
+                        Source = this.TrimForErrorLog(source, 16),
+                        Target = this.TrimForErrorLog(target, 16),
+                        FenString = this.TrimForErrorLog(sourceFen, 1024),
+                        ExceptionMessage = this.TrimForErrorLog(ex.Message, 1024),
                         CreatedOn = this.clock.UtcNow,
                     });
 
@@ -395,6 +395,18 @@ namespace Chess.Web.Hubs
             var file = square[0];
             var rank = square[1];
             return file >= 'a' && file <= 'h' && rank >= '1' && rank <= '8';
+        }
+
+        private string TrimForErrorLog(string value, int maxLength)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+
+            return value.Length <= maxLength
+                ? value
+                : value.Substring(0, maxLength);
         }
 
         private bool IsEventForGame(object sender, string gameId, out Player eventPlayer)
