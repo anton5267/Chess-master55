@@ -49,6 +49,22 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
+    public async Task HealthzLive_ShouldOpenSuccessfully()
+    {
+        var response = await this.client.GetAsync("/healthz/live");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task HealthzReady_ShouldOpenSuccessfully()
+    {
+        var response = await this.client.GetAsync("/healthz/ready");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
     public async Task Home_ShouldContainBaselineSecurityHeaders()
     {
         var response = await this.client.GetAsync("/");

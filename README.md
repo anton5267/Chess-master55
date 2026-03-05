@@ -151,3 +151,10 @@ GET /healthz
 ```
 
 Expected response code: `200 OK`.
+
+Additional probes:
+
+```bash
+GET /healthz/live
+GET /healthz/ready
+```

@@ -22,10 +22,12 @@
     using Chess.Web.Hubs.Bot;
     using Chess.Web.Hubs;
     using Chess.Web.Hubs.Sessions;
+    using Chess.Web.Infrastructure.HealthChecks;
     using Chess.Web.Infrastructure;
     using Chess.Web.Infrastructure.Identity;
     using Chess.Web.ViewModels;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Diagnostics.HealthChecks;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Localization;
@@ -34,6 +36,7 @@
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Diagnostics.HealthChecks;
     using Microsoft.Extensions.Hosting;
 
     public class Startup
@@ -56,7 +59,9 @@
             this.AddSignalR(services);
             this.AddRepositories(services);
             this.AddServices(services);
-            services.AddHealthChecks();
+            services.AddHealthChecks()
+                .AddCheck("self", () => HealthCheckResult.Healthy(), tags: new[] { "live" })
+                .AddCheck<DatabaseHealthCheck>("database", tags: new[] { "ready" });
             services.AddDatabaseDeveloperPageExceptionFilter();
             this.AddRazorPages(services);
         }
@@ -103,6 +108,14 @@
                         endpoints.MapRazorPages();
                         endpoints.MapHub<GameHub>("/hub").RequireAuthorization();
                         endpoints.MapHealthChecks("/healthz");
+                        endpoints.MapHealthChecks("/healthz/live", new HealthCheckOptions
+                        {
+                            Predicate = check => check.Tags.Contains("live"),
+                        });
+                        endpoints.MapHealthChecks("/healthz/ready", new HealthCheckOptions
+                        {
+                            Predicate = check => check.Tags.Contains("ready"),
+                        });
                     });
         }
 
