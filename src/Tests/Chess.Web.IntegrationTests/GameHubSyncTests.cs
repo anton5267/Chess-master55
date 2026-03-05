@@ -333,6 +333,41 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
+    public async Task CreateRoom_AfterFinishedPvpGame_ShouldSucceedWithoutReconnect()
+    {
+        await this.SeedUserAsync("white-user-replay-1", "white-replay-1@example.com");
+        await this.SeedUserAsync("black-user-replay-1", "black-replay-1@example.com");
+
+        await using var whiteConnection = this.CreateHubConnection("white-user-replay-1", "white-replay-1@example.com");
+        await using var blackConnection = this.CreateHubConnection("black-user-replay-1", "black-replay-1@example.com");
+
+        var whiteStartTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var blackStartTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        whiteConnection.On<JsonElement>("Start", payload => whiteStartTcs.TrySetResult(payload));
+        blackConnection.On<JsonElement>("Start", payload => blackStartTcs.TrySetResult(payload));
+
+        await whiteConnection.StartAsync();
+        await blackConnection.StartAsync();
+
+        var creator = await whiteConnection.InvokeAsync<JsonElement>("CreateRoom", "white_replay_room_1");
+        var roomId = creator.GetProperty("id").GetString();
+        roomId.Should().NotBeNullOrWhiteSpace();
+
+        await blackConnection.InvokeAsync<JsonElement>("JoinRoom", "black_replay_room_1", roomId);
+        await WaitWithTimeout(whiteStartTcs.Task);
+        await WaitWithTimeout(blackStartTcs.Task);
+
+        await whiteConnection.InvokeAsync("Resign");
+
+        var secondCreator = await whiteConnection.InvokeAsync<JsonElement>("CreateRoom", "white_replay_room_2");
+        var secondRoomId = secondCreator.GetProperty("id").GetString();
+        secondRoomId.Should().NotBeNullOrWhiteSpace();
+
+        var secondJoin = await blackConnection.InvokeAsync<JsonElement>("JoinRoom", "black_replay_room_2", secondRoomId);
+        secondJoin.GetProperty("id").GetString().Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
     public async Task StartVsBot_ShouldStartImmediately_AndReturnBotMetadata()
     {
         await this.SeedUserAsync("bot-user-1", "bot1@example.com");
