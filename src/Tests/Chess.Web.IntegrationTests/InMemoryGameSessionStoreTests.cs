@@ -319,4 +319,116 @@ public class InMemoryGameSessionStoreTests
         secondGameSession.GameId.Should().NotBe(firstGameId);
         store.TryGetGameById(firstGameId, out _).Should().BeFalse();
     }
+
+    [Fact]
+    public void TryCreateWaitingPlayer_ShouldCleanupFinishedGame_ForSameConnection()
+    {
+        using var store = new InMemoryGameSessionStore(new SystemClock());
+        var services = new ServiceCollection()
+            .AddTransient<INotificationService, NotificationService>()
+            .AddTransient<ICheckService, CheckService>()
+            .AddTransient<IDrawService, DrawService>()
+            .AddTransient<IUtilityService, UtilityService>()
+            .BuildServiceProvider();
+
+        store.TryCreateWaitingPlayer(
+            "white-conn",
+            "white-user",
+            "white_player",
+            1200,
+            out _,
+            out _).Should().BeTrue();
+
+        store.TryJoinRoom(
+            "black-conn",
+            "black-user",
+            "black_player",
+            "white-conn",
+            1200,
+            services,
+            out _,
+            out var firstGameSession,
+            out _).Should().BeTrue();
+
+        firstGameSession.Should().NotBeNull();
+        var finishedGameId = firstGameSession.GameId;
+        firstGameSession.Game.GameOver = GameOver.Checkmate;
+
+        var createdNextRoom = store.TryCreateWaitingPlayer(
+            "white-conn",
+            "white-user",
+            "white_player_new",
+            1210,
+            out var nextWaitingSession,
+            out var nextError);
+
+        createdNextRoom.Should().BeTrue(nextError);
+        nextWaitingSession.Should().NotBeNull();
+        nextWaitingSession.ConnectionId.Should().Be("white-conn");
+        nextWaitingSession.State.Should().Be(PlayerSessionState.Waiting);
+        store.TryGetGameById(finishedGameId, out _).Should().BeFalse();
+        store.TryGetPlayer("black-conn", out _).Should().BeFalse();
+        store.GetWaitingRoomsSnapshot().Should().ContainSingle(x => x.ConnectionId == "white-conn");
+    }
+
+    [Fact]
+    public void TryJoinRoom_ShouldCleanupFinishedGame_ForJoiningPlayer()
+    {
+        using var store = new InMemoryGameSessionStore(new SystemClock());
+        var services = new ServiceCollection()
+            .AddTransient<INotificationService, NotificationService>()
+            .AddTransient<ICheckService, CheckService>()
+            .AddTransient<IDrawService, DrawService>()
+            .AddTransient<IUtilityService, UtilityService>()
+            .BuildServiceProvider();
+
+        store.TryCreateWaitingPlayer(
+            "white-conn",
+            "white-user",
+            "white_player",
+            1200,
+            out _,
+            out _).Should().BeTrue();
+
+        store.TryJoinRoom(
+            "black-conn",
+            "black-user",
+            "black_player",
+            "white-conn",
+            1200,
+            services,
+            out _,
+            out var finishedGameSession,
+            out _).Should().BeTrue();
+
+        finishedGameSession.Should().NotBeNull();
+        var finishedGameId = finishedGameSession.GameId;
+        finishedGameSession.Game.GameOver = GameOver.Stalemate;
+
+        store.TryCreateWaitingPlayer(
+            "host-conn",
+            "host-user",
+            "host_player",
+            1250,
+            out _,
+            out _).Should().BeTrue();
+
+        var joinedNextRoom = store.TryJoinRoom(
+            "black-conn",
+            "black-user",
+            "black_player_new",
+            "host-conn",
+            1215,
+            services,
+            out var rejoinedPlayerSession,
+            out var rejoinedGameSession,
+            out var joinError);
+
+        joinedNextRoom.Should().BeTrue(joinError);
+        rejoinedPlayerSession.Should().NotBeNull();
+        rejoinedGameSession.Should().NotBeNull();
+        rejoinedGameSession.GameId.Should().NotBe(finishedGameId);
+        store.TryGetGameById(finishedGameId, out _).Should().BeFalse();
+        store.TryGetPlayer("white-conn", out _).Should().BeFalse();
+    }
 }

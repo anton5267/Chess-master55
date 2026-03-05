@@ -45,6 +45,7 @@ namespace Chess.Web.Hubs.Sessions
             try
             {
                 this.RemoveStaleWaitingSessionsByUserId(userId, connectionId);
+                this.CleanupFinishedGamesByUserId(userId);
 
                 if (this.players.TryGetValue(connectionId, out var existingSession))
                 {
@@ -90,6 +91,7 @@ namespace Chess.Web.Hubs.Sessions
             try
             {
                 this.RemoveStaleWaitingSessionsByUserId(userId, connectionId);
+                this.CleanupFinishedGamesByUserId(userId);
 
                 if (waitingPlayerConnectionId.Equals(connectionId, StringComparison.OrdinalIgnoreCase))
                 {
@@ -173,7 +175,7 @@ namespace Chess.Web.Hubs.Sessions
             try
             {
                 this.RemoveStaleWaitingSessionsByUserId(userId, connectionId);
-                this.CleanupFinishedBotGamesByUserId(userId);
+                this.CleanupFinishedGamesByUserId(userId);
 
                 if (this.TryGetActiveBotSessionByUserId(userId, out var activeBotSession))
                 {
@@ -198,10 +200,9 @@ namespace Chess.Web.Hubs.Sessions
                     else if (existingSession.State == PlayerSessionState.Playing &&
                              !string.IsNullOrWhiteSpace(existingSession.GameId) &&
                              this.games.TryGetValue(existingSession.GameId, out var existingGameSession) &&
-                             existingGameSession.IsBotGame &&
                              existingGameSession.Game.GameOver != GameOver.None)
                     {
-                        this.CleanupFinishedBotGame(existingGameSession);
+                        this.CleanupFinishedGame(existingGameSession);
                     }
                     else
                     {
@@ -554,16 +555,15 @@ namespace Chess.Web.Hubs.Sessions
             }
         }
 
-        private void CleanupFinishedBotGamesByUserId(string userId)
+        private void CleanupFinishedGamesByUserId(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
             {
                 return;
             }
 
-            var finishedBotGameIds = this.games
+            var finishedGameIds = this.games
                 .Where(x =>
-                    x.Value.IsBotGame &&
                     x.Value.Game.GameOver != GameOver.None &&
                     (
                         (!string.IsNullOrWhiteSpace(x.Value.Player1.UserId) &&
@@ -573,11 +573,11 @@ namespace Chess.Web.Hubs.Sessions
                 .Select(x => x.Key)
                 .ToList();
 
-            foreach (var gameId in finishedBotGameIds)
+            foreach (var gameId in finishedGameIds)
             {
                 if (this.games.TryGetValue(gameId, out var gameSession))
                 {
-                    this.CleanupFinishedBotGame(gameSession);
+                    this.CleanupFinishedGame(gameSession);
                 }
             }
         }
@@ -614,7 +614,7 @@ namespace Chess.Web.Hubs.Sessions
             return false;
         }
 
-        private void CleanupFinishedBotGame(GameSession gameSession)
+        private void CleanupFinishedGame(GameSession gameSession)
         {
             if (gameSession == null)
             {
@@ -624,12 +624,14 @@ namespace Chess.Web.Hubs.Sessions
             if (gameSession.Player1 != null)
             {
                 this.players.TryRemove(gameSession.Player1.ConnectionId, out _);
+                this.waitingConnections.Remove(gameSession.Player1.ConnectionId);
                 this.ResetPlayerToIdle(gameSession.Player1);
             }
 
             if (gameSession.Player2 != null)
             {
                 this.players.TryRemove(gameSession.Player2.ConnectionId, out _);
+                this.waitingConnections.Remove(gameSession.Player2.ConnectionId);
                 this.ResetPlayerToIdle(gameSession.Player2);
             }
 
