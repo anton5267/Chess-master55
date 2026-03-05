@@ -88,6 +88,7 @@ export function createState() {
         isInCheck: false,
         legalMoves: [],
         legalMovesRequestId: 0,
+        syncRequestInFlight: false,
         pendingSyncTimeoutId: null,
         pendingBotRecoveryTimeoutId: null,
         boardInitialized: false,

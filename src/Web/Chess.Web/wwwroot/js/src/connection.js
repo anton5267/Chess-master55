@@ -122,6 +122,23 @@ function isBotToMove(state) {
     return false;
 }
 
+function requestSyncSafely(connection, state) {
+    if (state.syncRequestInFlight) {
+        return Promise.resolve(false);
+    }
+
+    state.syncRequestInFlight = true;
+    return connection.invoke('RequestSync')
+        .then(() => true)
+        .catch((err) => {
+            console.error(err);
+            return false;
+        })
+        .finally(() => {
+            state.syncRequestInFlight = false;
+        });
+}
+
 function scheduleSyncWatchdog(connection, state) {
     clearSyncWatchdog(state);
 
@@ -130,7 +147,7 @@ function scheduleSyncWatchdog(connection, state) {
             return;
         }
 
-        connection.invoke('RequestSync').catch((err) => console.error(err));
+        requestSyncSafely(connection, state);
     }, 900);
 }
 
@@ -150,8 +167,7 @@ function scheduleBotRecoveryWatchdog(connection, state) {
             return;
         }
 
-        connection.invoke('RequestSync')
-            .catch((err) => console.error(err))
+        requestSyncSafely(connection, state)
             .finally(() => {
                 if (!state.isGameStarted || state.hasGameEnded) {
                     return;
@@ -277,7 +293,7 @@ function resolveGameResultTone(state, player, gameOver) {
 export function registerConnectionHandlers(connection, elements, state) {
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && state.isGameStarted) {
-            connection.invoke('RequestSync').catch((err) => console.error(err));
+            requestSyncSafely(connection, state);
         }
     });
 
@@ -292,7 +308,7 @@ export function registerConnectionHandlers(connection, elements, state) {
     connection.onreconnected(function onReconnected() {
         state.connectionState = 'connected';
         if (state.isGameStarted) {
-            connection.invoke('RequestSync').catch((err) => console.error(err));
+            requestSyncSafely(connection, state);
         }
     });
 
@@ -546,8 +562,7 @@ export function registerConnectionHandlers(connection, elements, state) {
                 return;
             }
 
-            connection.invoke('RequestSync')
-                .catch((err) => console.error(err))
+            requestSyncSafely(connection, state)
                 .finally(() => {
                     if (state.hasGameEnded) {
                         return;

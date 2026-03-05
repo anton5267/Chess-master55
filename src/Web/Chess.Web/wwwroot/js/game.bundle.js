@@ -323,6 +323,7 @@
     state.botPlayerName = null;
     state.legalMoves = [];
     state.legalMovesRequestId += 1;
+    state.syncRequestInFlight = false;
     if (state.pendingSyncTimeoutId) {
       clearTimeout(state.pendingSyncTimeoutId);
       state.pendingSyncTimeoutId = null;
@@ -557,13 +558,25 @@
     }
     return false;
   }
+  function requestSyncSafely(connection, state) {
+    if (state.syncRequestInFlight) {
+      return Promise.resolve(false);
+    }
+    state.syncRequestInFlight = true;
+    return connection.invoke("RequestSync").then(() => true).catch((err) => {
+      console.error(err);
+      return false;
+    }).finally(() => {
+      state.syncRequestInFlight = false;
+    });
+  }
   function scheduleSyncWatchdog2(connection, state) {
     clearSyncWatchdog(state);
     state.pendingSyncTimeoutId = setTimeout(() => {
       if (!state.isGameStarted || state.hasGameEnded) {
         return;
       }
-      connection.invoke("RequestSync").catch((err) => console.error(err));
+      requestSyncSafely(connection, state);
     }, 900);
   }
   function scheduleBotRecoveryWatchdog(connection, state) {
@@ -578,7 +591,7 @@
       if (state.isYourTurn || !isBotToMove(state)) {
         return;
       }
-      connection.invoke("RequestSync").catch((err) => console.error(err)).finally(() => {
+      requestSyncSafely(connection, state).finally(() => {
         if (!state.isGameStarted || state.hasGameEnded) {
           return;
         }
@@ -678,7 +691,7 @@
   function registerConnectionHandlers(connection, elements, state) {
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible" && state.isGameStarted) {
-        connection.invoke("RequestSync").catch((err) => console.error(err));
+        requestSyncSafely(connection, state);
       }
     });
     connection.onreconnecting(function onReconnecting() {
@@ -691,7 +704,7 @@
     connection.onreconnected(function onReconnected() {
       state.connectionState = "connected";
       if (state.isGameStarted) {
-        connection.invoke("RequestSync").catch((err) => console.error(err));
+        requestSyncSafely(connection, state);
       }
     });
     connection.onclose(function onClosed() {
@@ -914,7 +927,7 @@
         if (state.hasGameEnded) {
           return;
         }
-        connection.invoke("RequestSync").catch((err) => console.error(err)).finally(() => {
+        requestSyncSafely(connection, state).finally(() => {
           if (state.hasGameEnded) {
             return;
           }
@@ -1195,6 +1208,7 @@
       isInCheck: false,
       legalMoves: [],
       legalMovesRequestId: 0,
+      syncRequestInFlight: false,
       pendingSyncTimeoutId: null,
       pendingBotRecoveryTimeoutId: null,
       boardInitialized: false,

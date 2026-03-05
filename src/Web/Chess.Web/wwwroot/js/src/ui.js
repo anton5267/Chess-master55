@@ -187,6 +187,7 @@ export function resetGameUi(elements, state) {
     state.botPlayerName = null;
     state.legalMoves = [];
     state.legalMovesRequestId += 1;
+    state.syncRequestInFlight = false;
 
     if (state.pendingSyncTimeoutId) {
         clearTimeout(state.pendingSyncTimeoutId);
