@@ -229,6 +229,18 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
+    public async Task LegacyGameScript_ShouldBridgeToModernBundle()
+    {
+        var response = await this.client.GetAsync("/js/game.js");
+        var script = await response.Content.ReadAsStringAsync();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        script.Should().Contain("__chessLegacyGameBridgeLoaded");
+        script.Should().Contain("/js/game.bundle.js");
+        script.Should().NotContain("alert(");
+    }
+
+    [Fact]
     public async Task Manage_ShouldRenderModernShell_ForAuthenticatedUser()
     {
         await this.SeedAuthenticatedUserAsync();
