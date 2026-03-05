@@ -257,9 +257,30 @@
     }
     elements.playAgainVsBotBtn.style.display = isVisible ? "inline-flex" : "none";
   }
+  var gameResultTones = /* @__PURE__ */ new Set(["win", "loss", "draw"]);
+  var gameResultToneClasses = ["game-result-win", "game-result-loss", "game-result-draw"];
+  function clearGameResultBanner(elements) {
+    if (!elements.gameResultBanner) {
+      return;
+    }
+    elements.gameResultBanner.textContent = "";
+    elements.gameResultBanner.classList.add("game-result-hidden");
+    elements.gameResultBanner.classList.remove(...gameResultToneClasses);
+  }
+  function setGameResultBanner(elements, message, tone = "draw") {
+    if (!elements.gameResultBanner) {
+      return;
+    }
+    const normalizedTone = gameResultTones.has(tone) ? tone : "draw";
+    elements.gameResultBanner.textContent = message || "";
+    elements.gameResultBanner.classList.remove(...gameResultToneClasses);
+    elements.gameResultBanner.classList.add(`game-result-${normalizedTone}`);
+    elements.gameResultBanner.classList.remove("game-result-hidden");
+  }
   function resetGameUi(elements, state) {
     elements.statusCheck.style.display = "none";
     elements.statusCheck.textContent = "";
+    clearGameResultBanner(elements);
     elements.whitePointsValue.innerText = "0";
     elements.blackPointsValue.innerText = "0";
     elements.blackPawnsTaken.innerText = "0";
@@ -554,6 +575,25 @@
       elements.board.style.pointerEvents = "none";
     }
   }
+  function resolveGameResultTone(state, player, gameOver) {
+    const isPlayerKnown = !!(player && player.name);
+    const isCurrentPlayer = isPlayerKnown && player.name === state.playerName;
+    switch (gameOver) {
+      case 1:
+        return isPlayerKnown ? isCurrentPlayer ? "win" : "loss" : "draw";
+      case 2:
+      case 3:
+      case 4:
+      case 5:
+      case 8:
+        return "draw";
+      case 6:
+      case 7:
+        return isPlayerKnown ? isCurrentPlayer ? "loss" : "win" : "draw";
+      default:
+        return "draw";
+    }
+  }
   function registerConnectionHandlers(connection, elements, state) {
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible" && state.isGameStarted) {
@@ -612,6 +652,7 @@
       state.hasGameEnded = false;
       state.gameOverCode = null;
       state.gameOverWinnerName = null;
+      clearGameResultBanner(elements);
       setPlayAgainVsBotVisibility(elements, false);
       elements.whiteName.textContent = state.playerOneName;
       elements.blackName.textContent = state.playerTwoName;
@@ -736,6 +777,11 @@
         default:
           break;
       }
+      setGameResultBanner(
+        elements,
+        elements.statusText.innerText,
+        resolveGameResultTone(state, player, gameOver)
+      );
       $(".option-btn").prop("disabled", true);
       setPlayAgainVsBotVisibility(elements, state.isBotGame);
     });
@@ -994,6 +1040,7 @@
     return {
       playground: document.querySelector(".main-playground"),
       board: document.querySelector("#board"),
+      gameResultBanner: document.querySelector(".game-result-banner"),
       statusText: document.querySelector(".status-bar-text"),
       statusCheck: document.querySelector(".status-bar-check-notification"),
       whiteName: document.querySelector(".main-playground-white-name"),

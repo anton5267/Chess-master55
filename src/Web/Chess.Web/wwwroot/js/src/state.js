@@ -21,6 +21,7 @@ export function getElements() {
     return {
         playground: document.querySelector('.main-playground'),
         board: document.querySelector('#board'),
+        gameResultBanner: document.querySelector('.game-result-banner'),
         statusText: document.querySelector('.status-bar-text'),
         statusCheck: document.querySelector('.status-bar-check-notification'),
         whiteName: document.querySelector('.main-playground-white-name'),

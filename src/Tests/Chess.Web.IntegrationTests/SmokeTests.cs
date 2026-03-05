@@ -212,6 +212,7 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         decodedHtml.Should().Contain("legal-moves-toggle");
         decodedHtml.Should().Contain("game-lobby-input-vs-bot-btn");
         decodedHtml.Should().Contain("game-play-again-btn");
+        decodedHtml.Should().Contain("game-result-banner");
     }
 
     [Fact]

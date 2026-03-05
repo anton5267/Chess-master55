@@ -130,7 +130,15 @@ namespace Chess.Web.Hubs
                 return;
             }
 
-            await this.SyncPositionToCaller(gameSession.Game);
+            var game = gameSession.Game;
+            await this.SyncPositionToCaller(game);
+            await this.SyncTerminalStateToCallerIfNeeded(game);
+
+            if (game.GameOver != GameOver.None)
+            {
+                this.logger.LogDebug("BotTurnRecoverySkipped GameId={GameId} Reason=GameOver", gameSession.GameId);
+                return;
+            }
 
             if (!gameSession.IsBotGame)
             {
@@ -138,11 +146,10 @@ namespace Chess.Web.Hubs
                 return;
             }
 
-            var game = gameSession.Game;
             var botSession = this.GetBotSession(gameSession);
-            if (botSession == null || game.GameOver != GameOver.None)
+            if (botSession == null)
             {
-                this.logger.LogDebug("BotTurnRecoverySkipped GameId={GameId} Reason=NoBotOrGameOver", gameSession.GameId);
+                this.logger.LogDebug("BotTurnRecoverySkipped GameId={GameId} Reason=NoBotSession", gameSession.GameId);
                 return;
             }
 
@@ -300,6 +307,22 @@ namespace Chess.Web.Hubs
         {
             var fen = this.boardFenSerializer.Serialize(game.ChessBoard);
             await this.Clients.Caller.SendAsync("SyncPosition", fen, game.MovingPlayer.Name, game.Turn, game.MovingPlayer.Id);
+        }
+
+        private async Task SyncTerminalStateToCallerIfNeeded(Game game)
+        {
+            if (game.GameOver == GameOver.None)
+            {
+                return;
+            }
+
+            Player winner = null;
+            if (game.GameOver == GameOver.Checkmate)
+            {
+                winner = game.Opponent;
+            }
+
+            await this.Clients.Caller.SendAsync("GameOver", winner, game.GameOver);
         }
 
         private async Task Snapback(string sourceFen)

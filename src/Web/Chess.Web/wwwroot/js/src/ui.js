@@ -100,9 +100,36 @@ export function setPlayAgainVsBotVisibility(elements, isVisible) {
     elements.playAgainVsBotBtn.style.display = isVisible ? 'inline-flex' : 'none';
 }
 
+const gameResultTones = new Set(['win', 'loss', 'draw']);
+const gameResultToneClasses = ['game-result-win', 'game-result-loss', 'game-result-draw'];
+
+export function clearGameResultBanner(elements) {
+    if (!elements.gameResultBanner) {
+        return;
+    }
+
+    elements.gameResultBanner.textContent = '';
+    elements.gameResultBanner.classList.add('game-result-hidden');
+    elements.gameResultBanner.classList.remove(...gameResultToneClasses);
+}
+
+export function setGameResultBanner(elements, message, tone = 'draw') {
+    if (!elements.gameResultBanner) {
+        return;
+    }
+
+    const normalizedTone = gameResultTones.has(tone) ? tone : 'draw';
+
+    elements.gameResultBanner.textContent = message || '';
+    elements.gameResultBanner.classList.remove(...gameResultToneClasses);
+    elements.gameResultBanner.classList.add(`game-result-${normalizedTone}`);
+    elements.gameResultBanner.classList.remove('game-result-hidden');
+}
+
 export function resetGameUi(elements, state) {
     elements.statusCheck.style.display = 'none';
     elements.statusCheck.textContent = '';
+    clearGameResultBanner(elements);
 
     elements.whitePointsValue.innerText = '0';
     elements.blackPointsValue.innerText = '0';

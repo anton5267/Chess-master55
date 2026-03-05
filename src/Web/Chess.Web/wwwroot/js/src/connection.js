@@ -5,10 +5,12 @@ import {
 } from './board.js';
 import {
     applyGameStats,
+    clearGameResultBanner,
     createRoomElement,
     removeHighlight,
     renderRooms,
     resetGameUi,
+    setGameResultBanner,
     setPlayAgainVsBotVisibility,
     sleep,
     updateChat,
@@ -179,6 +181,27 @@ function syncTurnDependentState(connection, elements, state, movingPlayerId, mov
     }
 }
 
+function resolveGameResultTone(state, player, gameOver) {
+    const isPlayerKnown = !!(player && player.name);
+    const isCurrentPlayer = isPlayerKnown && player.name === state.playerName;
+
+    switch (gameOver) {
+        case 1:
+            return isPlayerKnown ? (isCurrentPlayer ? 'win' : 'loss') : 'draw';
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 8:
+            return 'draw';
+        case 6:
+        case 7:
+            return isPlayerKnown ? (isCurrentPlayer ? 'loss' : 'win') : 'draw';
+        default:
+            return 'draw';
+    }
+}
+
 export function registerConnectionHandlers(connection, elements, state) {
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && state.isGameStarted) {
@@ -246,6 +269,7 @@ export function registerConnectionHandlers(connection, elements, state) {
         state.hasGameEnded = false;
         state.gameOverCode = null;
         state.gameOverWinnerName = null;
+        clearGameResultBanner(elements);
         setPlayAgainVsBotVisibility(elements, false);
 
         elements.whiteName.textContent = state.playerOneName;
@@ -384,6 +408,11 @@ export function registerConnectionHandlers(connection, elements, state) {
             default:
                 break;
         }
+
+        setGameResultBanner(
+            elements,
+            elements.statusText.innerText,
+            resolveGameResultTone(state, player, gameOver));
 
         $('.option-btn').prop('disabled', true);
         setPlayAgainVsBotVisibility(elements, state.isBotGame);

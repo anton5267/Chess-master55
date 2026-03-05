@@ -86,6 +86,39 @@
     height: 1rem;
 }
 
+.game-result-banner {
+    margin: 0.15rem auto 0.45rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border: 1px solid transparent;
+    max-width: 94%;
+    text-align: center;
+}
+
+.game-result-hidden {
+    display: none;
+}
+
+.game-result-win {
+    color: #176d3d;
+    background: #eaf8ef;
+    border-color: #b9e7c9;
+}
+
+.game-result-loss {
+    color: #9e2f2f;
+    background: #fff0f0;
+    border-color: #f4c0c0;
+}
+
+.game-result-draw {
+    color: #6b5a22;
+    background: #fff8e6;
+    border-color: #edd9a3;
+}
+
 .status-bar-container {
     display: flex;
     align-items: center;
