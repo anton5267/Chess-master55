@@ -33,6 +33,9 @@
                 return this.RedirectToAction("Index", "Home");
             }
 
+            var mostGamesUser = this.statsService.GetMostGamesUser();
+            var mostWinsUser = this.statsService.GetMostWinsUser();
+
             var model = new StatsViewModel
             {
                 UserName = this.User.Identity.Name,
@@ -40,8 +43,8 @@
                 TotalUsers = this.userManager.Users.Count(),
                 LastThirtyDaysRegisteredUsers = this.userManager.Users.Where(x => x.CreatedOn >= DateTime.UtcNow.AddDays(-30)).Count(),
                 TotalGames = this.statsService.GetTotalGames(),
-                MostGamesUser = this.statsService.GetMostGamesUser(),
-                MostWinsUser = this.statsService.GetMostWinsUser(),
+                MostGamesUser = string.IsNullOrWhiteSpace(mostGamesUser) ? string.Empty : mostGamesUser,
+                MostWinsUser = string.IsNullOrWhiteSpace(mostWinsUser) ? string.Empty : mostWinsUser,
             };
 
             return this.View(model);

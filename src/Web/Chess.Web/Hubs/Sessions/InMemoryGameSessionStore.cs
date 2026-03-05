@@ -12,6 +12,9 @@ namespace Chess.Web.Hubs.Sessions
 
     public sealed class InMemoryGameSessionStore : IGameSessionStore, IDisposable
     {
+        private const string BotName = "ChessBot";
+        private const string BotUserId = "__bot__";
+
         private readonly ConcurrentDictionary<string, PlayerSession> players;
         private readonly ConcurrentDictionary<string, GameSession> games;
         private readonly List<string> waitingConnections;
@@ -41,6 +44,8 @@ namespace Chess.Web.Hubs.Sessions
             this.sync.Wait();
             try
             {
+                this.RemoveStaleWaitingSessionsByUserId(userId, connectionId);
+
                 if (this.players.TryGetValue(connectionId, out var existingSession))
                 {
                     if (existingSession.State != PlayerSessionState.Idle)
@@ -84,6 +89,8 @@ namespace Chess.Web.Hubs.Sessions
             this.sync.Wait();
             try
             {
+                this.RemoveStaleWaitingSessionsByUserId(userId, connectionId);
+
                 if (waitingPlayerConnectionId.Equals(connectionId, StringComparison.OrdinalIgnoreCase))
                 {
                     error = "You cannot join your own room.";
@@ -148,6 +155,92 @@ namespace Chess.Web.Hubs.Sessions
             }
         }
 
+        public bool TryCreateBotGame(
+            string connectionId,
+            string userId,
+            string name,
+            int rating,
+            IServiceProvider serviceProvider,
+            out PlayerSession playerSession,
+            out GameSession gameSession,
+            out string error)
+        {
+            playerSession = null;
+            gameSession = null;
+            error = null;
+
+            this.sync.Wait();
+            try
+            {
+                this.RemoveStaleWaitingSessionsByUserId(userId, connectionId);
+
+                if (this.players.TryGetValue(connectionId, out var existingSession))
+                {
+                    if (existingSession.State != PlayerSessionState.Idle)
+                    {
+                        error = "Player session already exists for this connection.";
+                        return false;
+                    }
+
+                    this.players.TryRemove(connectionId, out _);
+                }
+
+                var humanPlayer = Factory.GetPlayer(name, connectionId, userId);
+                humanPlayer.Rating = rating;
+
+                var botConnectionId = $"bot:{Guid.NewGuid():N}";
+                var botPlayer = Factory.GetPlayer(BotName, botConnectionId, BotUserId);
+                botPlayer.Rating = 1200;
+
+                var humanIsWhite = Random.Shared.Next(0, 2) == 0;
+                if (humanIsWhite)
+                {
+                    humanPlayer.Color = Color.White;
+                    humanPlayer.HasToMove = true;
+
+                    botPlayer.Color = Color.Black;
+                    botPlayer.HasToMove = false;
+                }
+                else
+                {
+                    humanPlayer.Color = Color.Black;
+                    humanPlayer.HasToMove = false;
+
+                    botPlayer.Color = Color.White;
+                    botPlayer.HasToMove = true;
+                }
+
+                playerSession = new PlayerSession(humanPlayer, PlayerSessionState.Playing);
+                var botSession = new PlayerSession(botPlayer, PlayerSessionState.Playing, isBot: true);
+
+                var game = humanIsWhite
+                    ? Factory.GetGame(humanPlayer, botPlayer, serviceProvider)
+                    : Factory.GetGame(botPlayer, humanPlayer, serviceProvider);
+
+                playerSession.GameId = game.Id;
+                botSession.GameId = game.Id;
+
+                gameSession = new GameSession
+                {
+                    GameId = game.Id,
+                    Player1 = game.Player1.Id.Equals(playerSession.ConnectionId, StringComparison.OrdinalIgnoreCase) ? playerSession : botSession,
+                    Player2 = game.Player2.Id.Equals(playerSession.ConnectionId, StringComparison.OrdinalIgnoreCase) ? playerSession : botSession,
+                    Game = game,
+                    Mode = GameMode.HumanVsBot,
+                    CreatedAtUtc = this.clock.UtcNow,
+                };
+
+                this.players[playerSession.ConnectionId] = playerSession;
+                this.players[botSession.ConnectionId] = botSession;
+                this.games[game.Id] = gameSession;
+                return true;
+            }
+            finally
+            {
+                this.sync.Release();
+            }
+        }
+
         public bool TryGetGameByConnection(string connectionId, out GameSession gameSession, out PlayerSession playerSession)
         {
             gameSession = null;
@@ -176,7 +269,7 @@ namespace Chess.Web.Hubs.Sessions
             return this.games.TryGetValue(gameId, out gameSession);
         }
 
-        public bool TryRemoveConnection(string connectionId, out ConnectionRemovalResult removalResult)
+        public bool TryMarkDisconnectedConnection(string connectionId, out ConnectionRemovalResult removalResult)
         {
             removalResult = new ConnectionRemovalResult
             {
@@ -186,15 +279,168 @@ namespace Chess.Web.Hubs.Sessions
             this.sync.Wait();
             try
             {
-                if (!this.players.TryRemove(connectionId, out var leavingPlayer))
+                if (!this.players.TryGetValue(connectionId, out var leavingPlayer))
                 {
                     return false;
                 }
 
                 var removedFromWaiting = this.waitingConnections.Remove(connectionId);
+
+                if (leavingPlayer.State == PlayerSessionState.Waiting ||
+                    string.IsNullOrEmpty(leavingPlayer.GameId))
+                {
+                    this.players.TryRemove(connectionId, out _);
+                    this.ResetPlayerToIdle(leavingPlayer);
+
+                    removalResult = new ConnectionRemovalResult
+                    {
+                        Success = true,
+                        RemovedFromWaiting = removedFromWaiting,
+                        Player = leavingPlayer,
+                    };
+
+                    return true;
+                }
+
+                if (!this.games.TryGetValue(leavingPlayer.GameId, out var gameSession))
+                {
+                    this.players.TryRemove(connectionId, out _);
+                    this.ResetPlayerToIdle(leavingPlayer);
+
+                    removalResult = new ConnectionRemovalResult
+                    {
+                        Success = true,
+                        RemovedFromWaiting = removedFromWaiting,
+                        Player = leavingPlayer,
+                    };
+
+                    return true;
+                }
+
+                var opponent = gameSession.Player1.ConnectionId.Equals(connectionId, StringComparison.OrdinalIgnoreCase)
+                    ? gameSession.Player2
+                    : gameSession.Player1;
+
+                if (gameSession.IsBotGame)
+                {
+                    this.players.TryRemove(connectionId, out _);
+                    if (opponent != null)
+                    {
+                        this.players.TryRemove(opponent.ConnectionId, out _);
+                    }
+
+                    this.games.TryRemove(gameSession.GameId, out _);
+                    this.ResetPlayerToIdle(leavingPlayer);
+                    if (opponent != null)
+                    {
+                        this.ResetPlayerToIdle(opponent);
+                    }
+
+                    removalResult = new ConnectionRemovalResult
+                    {
+                        Success = true,
+                        RemovedFromWaiting = removedFromWaiting,
+                        FinalizedDisconnectedGame = true,
+                        Player = leavingPlayer,
+                        Opponent = opponent,
+                        GameSession = gameSession,
+                    };
+
+                    return true;
+                }
+
+                leavingPlayer.State = PlayerSessionState.Disconnected;
+
+                removalResult = new ConnectionRemovalResult
+                {
+                    Success = true,
+                    RemovedFromWaiting = removedFromWaiting,
+                    MarkedAsDisconnected = true,
+                    Player = leavingPlayer,
+                    GameSession = gameSession,
+                    Opponent = opponent,
+                };
+
+                return true;
+            }
+            finally
+            {
+                this.sync.Release();
+            }
+        }
+
+        public bool TryReattachDisconnectedPlayer(
+            string connectionId,
+            string userId,
+            out GameSession gameSession,
+            out PlayerSession playerSession)
+        {
+            gameSession = null;
+            playerSession = null;
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return false;
+            }
+
+            this.sync.Wait();
+            try
+            {
+                if (this.players.ContainsKey(connectionId))
+                {
+                    return false;
+                }
+
+                var disconnectedEntry = this.players
+                    .FirstOrDefault(x =>
+                        x.Value.State == PlayerSessionState.Disconnected &&
+                        !string.IsNullOrWhiteSpace(x.Value.UserId) &&
+                        x.Value.UserId.Equals(userId, StringComparison.OrdinalIgnoreCase));
+
+                if (string.IsNullOrWhiteSpace(disconnectedEntry.Key) || disconnectedEntry.Value == null)
+                {
+                    return false;
+                }
+
+                if (!this.games.TryGetValue(disconnectedEntry.Value.GameId, out gameSession))
+                {
+                    this.players.TryRemove(disconnectedEntry.Key, out _);
+                    return false;
+                }
+
+                playerSession = disconnectedEntry.Value;
+                this.players.TryRemove(disconnectedEntry.Key, out _);
+                playerSession.Player.Id = connectionId;
+                playerSession.State = PlayerSessionState.Playing;
+                this.players[connectionId] = playerSession;
+                return true;
+            }
+            finally
+            {
+                this.sync.Release();
+            }
+        }
+
+        public bool TryFinalizeDisconnectedConnection(string connectionId, out ConnectionRemovalResult removalResult)
+        {
+            removalResult = new ConnectionRemovalResult
+            {
+                Success = false,
+            };
+
+            this.sync.Wait();
+            try
+            {
+                if (!this.players.TryGetValue(connectionId, out var leavingPlayer) ||
+                    leavingPlayer.State != PlayerSessionState.Disconnected)
+                {
+                    return false;
+                }
+
+                this.players.TryRemove(connectionId, out _);
+
                 GameSession gameSession = null;
                 PlayerSession opponent = null;
-
                 if (!string.IsNullOrEmpty(leavingPlayer.GameId) &&
                     this.games.TryRemove(leavingPlayer.GameId, out gameSession))
                 {
@@ -204,22 +450,22 @@ namespace Chess.Web.Hubs.Sessions
 
                     if (opponent != null)
                     {
-                        opponent.State = PlayerSessionState.Idle;
-                        opponent.GameId = null;
-                        opponent.Player.GameId = null;
-                        opponent.Player.HasToMove = false;
+                        if (opponent.IsBot || opponent.State == PlayerSessionState.Disconnected)
+                        {
+                            this.players.TryRemove(opponent.ConnectionId, out _);
+                        }
+                        else
+                        {
+                            this.ResetPlayerToIdle(opponent);
+                        }
                     }
                 }
 
-                leavingPlayer.State = PlayerSessionState.Idle;
-                leavingPlayer.GameId = null;
-                leavingPlayer.Player.GameId = null;
-                leavingPlayer.Player.HasToMove = false;
-
+                this.ResetPlayerToIdle(leavingPlayer);
                 removalResult = new ConnectionRemovalResult
                 {
                     Success = true,
-                    RemovedFromWaiting = removedFromWaiting,
+                    FinalizedDisconnectedGame = true,
                     Player = leavingPlayer,
                     GameSession = gameSession,
                     Opponent = opponent,
@@ -258,6 +504,37 @@ namespace Chess.Web.Hubs.Sessions
         {
             this.sync.Dispose();
             GC.SuppressFinalize(this);
+        }
+
+        private void RemoveStaleWaitingSessionsByUserId(string userId, string currentConnectionId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return;
+            }
+
+            var staleConnections = this.players
+                .Where(x =>
+                    x.Value.State == PlayerSessionState.Waiting &&
+                    !string.IsNullOrWhiteSpace(x.Value.UserId) &&
+                    x.Value.UserId.Equals(userId, StringComparison.OrdinalIgnoreCase) &&
+                    !x.Key.Equals(currentConnectionId, StringComparison.OrdinalIgnoreCase))
+                .Select(x => x.Key)
+                .ToList();
+
+            foreach (var staleConnectionId in staleConnections)
+            {
+                this.players.TryRemove(staleConnectionId, out _);
+                this.waitingConnections.Remove(staleConnectionId);
+            }
+        }
+
+        private void ResetPlayerToIdle(PlayerSession session)
+        {
+            session.State = PlayerSessionState.Idle;
+            session.GameId = null;
+            session.Player.GameId = null;
+            session.Player.HasToMove = false;
         }
     }
 }

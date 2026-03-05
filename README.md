@@ -60,3 +60,77 @@ cd ../..
 dotnet build src/Chess.sln
 dotnet test src/Chess.sln
 ```
+
+## Local Development
+
+```bash
+cd src/Web/Chess.Web
+npm install
+npm run dev
+```
+
+Trusted HTTPS setup (recommended):
+
+```bash
+dotnet dev-certs https --trust
+```
+
+HTTP fallback when local certificate is not trusted:
+
+```bash
+cd src/Web/Chess.Web
+npm run dev:http
+```
+
+## Ngrok-First Development (fixed public URL)
+
+Use this mode when you want to open the app only through:
+`https://nonhostilely-unhampered-noah.ngrok-free.dev`
+
+```bash
+cd src/Web/Chess.Web
+npm install
+npm run dev:remote
+```
+
+What it starts:
+- `watch:assets`
+- `dotnet watch run --project Chess.Web.csproj` (upstream: `https://localhost:5001`)
+- `ngrok` tunnel with fixed domain
+
+Verify tunnel status:
+
+```bash
+curl http://127.0.0.1:4040/api/tunnels
+```
+
+## Restart Runbook (when updates do not appear)
+
+1. Stop all running `dotnet` and `ngrok` processes.
+2. Rebuild assets:
+
+```bash
+cd src/Web/Chess.Web
+npm ci
+npm run build:assets
+```
+
+3. Restart remote dev mode:
+
+```bash
+npm run dev:remote
+```
+
+4. Open the app in an incognito window:
+`https://nonhostilely-unhampered-noah.ngrok-free.dev`
+
+## Troubleshooting
+
+1. `ERR_NGROK_8012` / `502 Bad Gateway`:
+   - upstream `https://localhost:5001` is not running;
+   - restart `npm run dev:remote`.
+2. `NET::ERR_CERT_AUTHORITY_INVALID` on localhost upstream:
+   - run `dotnet dev-certs https --trust`;
+   - or switch to HTTP mode (`npm run dev:http` + `ngrok http http://localhost:5000`).
+3. Port is already in use:
+   - stop old `dotnet`/`ngrok` processes and rerun.

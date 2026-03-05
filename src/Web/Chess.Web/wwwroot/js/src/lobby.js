@@ -2,21 +2,21 @@ import { showWaitingForOpponent } from './ui.js';
 
 export function bindLobbyHandlers(connection, elements, state) {
     window.addEventListener('beforeunload', function onBeforeUnload(e) {
-        if (state.playerTwoName !== undefined && state.playerTwoName !== null) {
+        if (state.isGameStarted) {
             e.preventDefault();
             e.returnValue = '';
         }
     });
 
     $(document).on('click', '.game-lobby-room-join-btn', function onJoinRoomClick() {
-        const id = $(this).parent().attr('class');
-        const name = elements.lobbyInputName.value;
+        const roomElement = $(this).closest('.game-lobby-room-item');
+        const id = roomElement.data('room-id');
+        const name = (elements.lobbyInputName.value || '').trim();
 
-        if (name !== '') {
+        if (name !== '' && id) {
             connection.invoke('JoinRoom', name, id)
                 .then((player) => {
                     state.playerId = player.id;
-                    state.board.orientation('black');
                 })
                 .catch((err) => alert(err));
         } else {
@@ -25,7 +25,7 @@ export function bindLobbyHandlers(connection, elements, state) {
     });
 
     elements.lobbyInputCreateBtn.addEventListener('click', function onCreateRoomClick() {
-        const name = elements.lobbyInputName.value;
+        const name = (elements.lobbyInputName.value || '').trim();
 
         if (name !== '') {
             connection.invoke('CreateRoom', name)
@@ -37,4 +37,20 @@ export function bindLobbyHandlers(connection, elements, state) {
             elements.lobbyInputName.focus();
         }
     });
+
+    if (elements.lobbyInputVsBotBtn) {
+        elements.lobbyInputVsBotBtn.addEventListener('click', function onStartVsBotClick() {
+            const name = (elements.lobbyInputName.value || '').trim();
+
+            if (name !== '') {
+                connection.invoke('StartVsBot', name)
+                    .then((player) => {
+                        state.playerId = player.id;
+                    })
+                    .catch((err) => alert(err));
+            } else {
+                elements.lobbyInputName.focus();
+            }
+        });
+    }
 }

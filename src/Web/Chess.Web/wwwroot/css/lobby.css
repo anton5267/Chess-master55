@@ -1,121 +1,167 @@
-﻿.game-lobby-input-container {
+.game-lobby {
+    margin-top: 0.8rem;
+}
+
+.game-lobby-input-container {
     display: flex;
-    flex-flow: row wrap;
-    justify-content: space-between;
-    margin-top: 10px;
-    height: 7vh;
-    margin: 10px 0;
+    gap: 0.55rem;
+    align-items: stretch;
+    margin: 0 0 0.7rem;
 }
 
 .game-lobby-input-name {
     flex-grow: 1;
+    border: 1px solid #c3cedf;
+    border-radius: 10px;
     text-indent: 10px;
-    font-size: 1.7em;
+    font-size: 1.05rem;
+    min-height: 2.85rem;
+    background: #ffffff;
 }
 
 .game-lobby-input-name:focus {
-    outline: none;
+    outline: 2px solid rgba(47, 111, 237, 0.23);
 }
 
 .game-lobby-input-create-btn {
-    background-color: #454a52;
-    color: white;
-    width: 25%;
-    font-size: 1.7em;
-    border-radius: 0 5px 5px 0;
+    min-width: 175px;
+    font-size: 1rem;
+    border-radius: 10px;
+}
+
+.game-lobby-input-vs-bot-btn {
+    min-width: 175px;
+    font-size: 1rem;
+    border-radius: 10px;
 }
 
 .game-lobby-title-container {
-    display: flex;
-    flex-flow: row wrap;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin-bottom: 0.45rem;
 }
 
-.game-lobby-title-room {
-    width: 50%;
-    background-color: darkslategray;
-    color: white;
-    padding: 5px;
-    border-radius: 5px 0 0 0;
-    font-size: 1.1em;
-}
-
+.game-lobby-title-room,
 .game-lobby-title-chat {
-    flex-grow: 1;
-    background-color: darkslategray;
-    color: white;
-    padding: 5px;
-    border-radius: 0 5px 0 0;
-    font-size: 1.1em;
+    background: #30445d;
+    color: #ffffff;
+    padding: 0.5rem 0.75rem;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-weight: 700;
 }
 
 .game-lobby-room-chat-container {
-    display: flex;
-    flex-flow: row wrap;
-    height: 70vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    min-height: 62vh;
 }
 
 .game-lobby-room-container {
     display: flex;
-    flex-flow: column nowrap;
-    border: 1px solid;
-    border-radius: 0 0 0 7px;
-    background-color: whitesmoke;
-    width: 50%;
-    height: inherit;
-    overflow: hidden;
+    flex-direction: column;
+    gap: 0.35rem;
+    border: 1px solid #d3dbe8;
+    border-radius: 12px;
+    background-color: #ffffff;
+    padding: 0.4rem;
     overflow-y: auto;
+    min-height: 62vh;
 }
 
-.game-lobby-room-container div {
+.game-lobby-room-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border: 1px solid;
-    border-radius: 5px;
-    padding: 3px;
-    margin: 2px 2px 0px 2px;
-    background-color: lightslategray;
-    color: white;
+    gap: 0.4rem;
+    border: 1px solid #dbe4f2;
+    border-radius: 10px;
+    padding: 0.45rem 0.55rem;
+    background: #f6f9ff;
+    color: #22324a;
 }
 
 .game-lobby-room-name {
-    font-weight: bold;
-    text-indent: 5px;
+    font-weight: 700;
+    text-indent: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .game-lobby-room-join-btn {
-    width: 20%;
+    min-width: 84px;
     border: none;
     text-transform: uppercase;
+    font-weight: 700;
 }
 
 .game-lobby-chat-container {
-    height: inherit;
-    flex-grow: 1;
-    border: 1px solid;
-    border-radius: 0 0 7px 0;
+    height: 100%;
+    min-height: 62vh;
+    border: 1px solid #d3dbe8;
+    border-radius: 12px;
+    background: #ffffff;
+    overflow: hidden;
 }
 
 .game-lobby-chat-window-wrapper {
-    height: 94%;
-    background-color: whitesmoke;
+    height: calc(100% - 46px);
+    background-color: #ffffff;
 }
 
 .game-lobby-chat-window {
-    height: inherit;
+    height: 100%;
 }
 
 .game-lobby-chat-input-wrapper {
-    height: 6%;
+    height: 46px;
 }
 
 .game-lobby-chat-input {
     border: none;
-    border-top: 1px solid;
+    border-top: 1px solid #d3dbe8;
 }
 
 .game-lobby-chat-send-btn {
-    width: 15%;
+    width: 82px;
     border: none;
-    font-weight: bold;
+    font-weight: 700;
+    border-radius: 0;
+}
+
+@media (max-width: 992px) {
+    .game-lobby-title-container,
+    .game-lobby-room-chat-container {
+        grid-template-columns: 1fr;
+    }
+
+    .game-lobby-room-container,
+    .game-lobby-chat-container {
+        min-height: 42vh;
+    }
+}
+
+@media (max-width: 640px) {
+    .game-lobby-input-container {
+        flex-direction: column;
+    }
+
+    .game-lobby-input-create-btn {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .game-lobby-input-vs-bot-btn {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .game-lobby-chat-send-btn {
+        width: 64px;
+    }
 }

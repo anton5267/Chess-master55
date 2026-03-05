@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -156,6 +156,9 @@
   <data name="Game_CreateRoom" xml:space="preserve">
     <value>CREAR HABITACIÓN</value>
   </data>
+  <data name="Game_PlayVsBot" xml:space="preserve">
+    <value>JUGAR CONTRA BOT</value>
+  </data>
   <data name="Game_RoomsTitle" xml:space="preserve">
     <value>SALAS DE JUEGO</value>
   </data>
@@ -170,6 +173,12 @@
   </data>
   <data name="Js_YourTurn" xml:space="preserve">
     <value>¡Tu turno!</value>
+  </data>
+  <data name="Js_BotThinking" xml:space="preserve">
+    <value>El bot está pensando...</value>
+  </data>
+  <data name="Js_BotJoinedGame" xml:space="preserve">
+    <value>{name} se unió como bot. ¡La partida ha comenzado!</value>
   </data>
   <data name="Js_PlayerTurnFormat" xml:space="preserve">
     <value>¡El turno de {name}!</value>
@@ -186,8 +195,17 @@
   <data name="Js_CheckmateWinFormat" xml:space="preserve">
     <value>¡MATE! {name} ¡GANA!</value>
   </data>
+  <data name="Js_Checkmate" xml:space="preserve">
+    <value>¡JAQUE MATE!</value>
+  </data>
   <data name="Js_Stalemate" xml:space="preserve">
     <value>¡ESTANCAMIENTO!</value>
+  </data>
+  <data name="BotGame_CheckmateWin" xml:space="preserve">
+    <value>¡JAQUE MATE! {0} gana contra el bot.</value>
+  </data>
+  <data name="BotGame_Stalemate" xml:space="preserve">
+    <value>Ahogado. La partida contra el bot termina en tablas.</value>
   </data>
   <data name="Js_Draw" xml:space="preserve">
     <value>¡DIBUJAR!</value>
@@ -921,6 +939,99 @@
   <data name="About_SourceConsole" xml:space="preserve">
     <value>Chess.Console - Código fuente</value>
   </data>
+  <data name="About_HeroTagline" xml:space="preserve">
+    <value>Ajedrez multijugador moderno</value>
+  </data>
+  <data name="About_HeroSupport" xml:space="preserve">
+    <value>Diseñado para aprendizaje práctico: arquitectura clara, partidas en tiempo real y base lista para producción.</value>
+  </data>
+  <data name="About_HeroChipLive" xml:space="preserve">
+    <value>Partidas en vivo con SignalR</value>
+  </data>
+  <data name="About_HeroChipCloud" xml:space="preserve">
+    <value>.NET 8 + EF Core</value>
+  </data>
+  <data name="About_HeroChipResponsive" xml:space="preserve">
+    <value>Interfaz adaptable</value>
+  </data>
+  <data name="About_HeroPrimaryCta" xml:space="preserve">
+    <value>Iniciar partida</value>
+  </data>
+  <data name="About_HeroSecondaryCta" xml:space="preserve">
+    <value>Ver estadísticas</value>
+  </data>
+  <data name="About_MetaTitle" xml:space="preserve">
+    <value>Resumen del proyecto</value>
+  </data>
+  <data name="About_MetaStackLabel" xml:space="preserve">
+    <value>Stack</value>
+  </data>
+  <data name="About_MetaStackValue" xml:space="preserve">
+    <value>ASP.NET Core MVC, SignalR, EF Core, SQL, JavaScript</value>
+  </data>
+  <data name="About_MetaModeLabel" xml:space="preserve">
+    <value>Multijugador</value>
+  </data>
+  <data name="About_MetaModeValue" xml:space="preserve">
+    <value>Salas en tiempo real con estado del tablero sincronizado</value>
+  </data>
+  <data name="About_MetaLocalesLabel" xml:space="preserve">
+    <value>Localización</value>
+  </data>
+  <data name="About_MetaLocalesValue" xml:space="preserve">
+    <value>Inglés, ucraniano, alemán, polaco, español</value>
+  </data>
+  <data name="About_MetaUpdatesLabel" xml:space="preserve">
+    <value>Entrega</value>
+  </data>
+  <data name="About_MetaUpdatesValue" xml:space="preserve">
+    <value>Compilaciones automatizadas y lanzamientos incrementales</value>
+  </data>
+  <data name="About_MediaGameTitle" xml:space="preserve">
+    <value>Experiencia de juego web</value>
+  </data>
+  <data name="About_MediaGameText" xml:space="preserve">
+    <value>Lobby, chat, temas de tablero e historial de movimientos en un solo espacio.</value>
+  </data>
+  <data name="About_MediaConsoleTitle" xml:space="preserve">
+    <value>Herencia de consola</value>
+  </data>
+  <data name="About_MediaConsoleText" xml:space="preserve">
+    <value>El proyecto conserva el espíritu de la versión original de ajedrez en consola.</value>
+  </data>
+  <data name="About_FeaturesIntro" xml:space="preserve">
+    <value>Las capacidades principales están agrupadas abajo para una revisión rápida.</value>
+  </data>
+  <data name="About_CategoryGameplay" xml:space="preserve">
+    <value>Juego</value>
+  </data>
+  <data name="About_CategoryMultiplayer" xml:space="preserve">
+    <value>Multijugador</value>
+  </data>
+  <data name="About_CategoryData" xml:space="preserve">
+    <value>Datos y estadísticas</value>
+  </data>
+  <data name="About_CategoryUx" xml:space="preserve">
+    <value>UX y accesibilidad</value>
+  </data>
+  <data name="About_Feature_UxThemes" xml:space="preserve">
+    <value>Selector de temas de tablero y piezas</value>
+  </data>
+  <data name="About_Feature_UxRealtimeSync" xml:space="preserve">
+    <value>Sincronización de movimientos con autoridad del servidor</value>
+  </data>
+  <data name="About_Feature_UxLocalization" xml:space="preserve">
+    <value>Interfaz localizada en cinco idiomas</value>
+  </data>
+  <data name="About_CtaTitle" xml:space="preserve">
+    <value>¿Listo para tu próxima partida?</value>
+  </data>
+  <data name="About_CtaText" xml:space="preserve">
+    <value>Crea una sala, invita a un amigo y juega con movimientos sincronizados y estado en vivo.</value>
+  </data>
+  <data name="About_CtaButton" xml:space="preserve">
+    <value>Abrir lobby de juego</value>
+  </data>
   <data name="Game_PawnAlt" xml:space="preserve">
     <value>Empeñar</value>
   </data>
@@ -1067,5 +1178,20 @@
   </data>
   <data name="RecoveryCodeRedemptionFailed" xml:space="preserve">
     <value>Error al canjear el código de recuperación.</value>
+  </data>
+  <data name="Stats_NoGamesYet" xml:space="preserve">
+    <value>Juega partidas para ver las estadísticas en el gráfico.</value>
+  </data>
+  <data name="Stats_NoDataUser" xml:space="preserve">
+    <value>Aún no hay datos</value>
+  </data>
+  <data name="Js_CheckEscapeHint" xml:space="preserve">
+    <value>mover rey, bloquear o capturar</value>
+  </data>
+  <data name="Game_Hint_CheckEscape" xml:space="preserve">
+    <value>Mostrar pistas para salir del jaque</value>
+  </data>
+  <data name="Game_Hint_LegalMoves" xml:space="preserve">
+    <value>Mostrar movimientos legales</value>
   </data>
 </root>

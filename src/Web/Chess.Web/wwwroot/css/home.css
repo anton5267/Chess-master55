@@ -1,59 +1,127 @@
-﻿.home-title-container {
+.home-hero {
+    border: 1px solid #d3dceb;
+    border-radius: 16px;
+    padding: 1.25rem;
+    background:
+        linear-gradient(135deg, rgba(26, 53, 93, 0.95), rgba(47, 111, 237, 0.92)),
+        url("../img/chess.jpg");
+    background-size: cover;
+    box-shadow: 0 12px 30px rgba(17, 26, 43, 0.22);
+    margin-bottom: 1rem;
+}
+
+.home-hero-content {
+    max-width: 640px;
+    color: #f7fbff;
+}
+
+.home-hero-title {
+    margin: 0 0 0.5rem;
+    font-size: 3rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    font-weight: 800;
+}
+
+.home-hero-subtitle {
+    margin: 0;
+    line-height: 1.65;
+    color: rgba(246, 251, 255, 0.96);
+    font-size: 1.02rem;
+}
+
+.home-hero-actions {
+    margin-top: 1rem;
     display: flex;
-    flex-flow: column wrap;
-    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
 }
 
-.home-title {
-    background-color: #454a52;
-    font-variant: small-caps;
+.home-hero-btn {
+    min-width: 175px;
+    font-weight: 700;
+    border-radius: 999px;
 }
 
-.home-author {
-    background-color: black;
-    font-size: small;
+.home-feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1rem;
 }
 
-.card {
-    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
-    border-radius: 5px;
-}
-
-.card:hover {
-    box-shadow: 0 10px 20px 0 rgba(0,0,0,0.2);
-}
-
-.card:hover img {
-    transform: scale(1.1);
-    opacity: 0.85;
-}
-
-.card-img-wrap {
+.home-feature-card {
+    background: #ffffff;
+    border: 1px solid #d3dceb;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.09);
     overflow: hidden;
 }
 
-.card-img {
-    height: 37vh;
+.home-feature-image-wrap {
+    overflow: hidden;
+}
+
+.home-feature-image {
+    width: 100%;
+    height: 250px;
     object-fit: cover;
-    transition: transform .3s;
+    transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
-.card-text-container {
-    margin-top: 10px;
-    padding: 5px 16px;
+.home-feature-card:hover .home-feature-image {
+    transform: scale(1.04);
+    opacity: 0.9;
 }
 
-.card-text-title a {
-    font-variant:small-caps;
-    color: black;
-    font-weight: 700;
+.home-feature-body {
+    padding: 0.85rem 0.95rem 1rem;
 }
 
-.card-text-title a:hover {
-    color: #557d5f;
+.home-feature-title {
+    margin: 0 0 0.35rem;
+    font-size: 1.35rem;
+}
+
+.home-feature-title a {
+    color: #1f314a;
+    font-weight: 800;
     text-decoration: none;
 }
 
-.card-text-desciption {
-    margin-bottom: 10px;
+.home-feature-title a:hover {
+    color: #2f6fed;
+}
+
+.home-feature-description {
+    margin: 0;
+    color: #415875;
+}
+
+.home-history-card {
+    background: #ffffff;
+    border: 1px solid #d3dceb;
+    border-radius: 14px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.07);
+    padding: 1rem 1.1rem;
+}
+
+.home-history-text {
+    margin: 0;
+    color: #2a405d;
+    line-height: 1.72;
+}
+
+.home-history-text + .home-history-text {
+    margin-top: 0.75rem;
+}
+
+@media (max-width: 992px) {
+    .home-feature-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .home-hero-title {
+        font-size: 2.35rem;
+    }
 }

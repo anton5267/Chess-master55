@@ -3,7 +3,7 @@ import { t } from './i18n.js';
 
 export function bindChatHandlers(connection, elements) {
     elements.lobbyChatSendBtn.addEventListener('click', function onLobbyChatSend() {
-        const message = elements.lobbyChatInput.value;
+        const message = (elements.lobbyChatInput.value || '').trim();
         if (message !== '') {
             connection.invoke('LobbySendMessage', message)
                 .then(() => {
@@ -16,7 +16,7 @@ export function bindChatHandlers(connection, elements) {
     });
 
     elements.gameChatSendBtn.addEventListener('click', function onGameChatSend() {
-        const message = elements.gameChatInput.value;
+        const message = (elements.gameChatInput.value || '').trim();
         if (message !== '') {
             connection.invoke('GameSendMessage', message)
                 .then(() => {

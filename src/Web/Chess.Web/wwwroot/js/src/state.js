@@ -1,6 +1,8 @@
 export const storageKeys = {
     boardTheme: "chess.boardTheme",
     pieceTheme: "chess.pieceTheme",
+    checkHints: "chess.checkHints",
+    legalMoveHints: "chess.legalMoveHints",
 };
 
 export const boardThemes = {
@@ -44,6 +46,7 @@ export function getElements() {
         rooms: document.querySelector('.game-lobby-room-container'),
         lobbyInputName: document.querySelector('.game-lobby-input-name'),
         lobbyInputCreateBtn: document.querySelector('.game-lobby-input-create-btn'),
+        lobbyInputVsBotBtn: document.querySelector('.game-lobby-input-vs-bot-btn'),
         lobbyChatInput: document.querySelector('.game-lobby-chat-input'),
         lobbyChatSendBtn: document.querySelector('.game-lobby-chat-send-btn'),
         gameChatInput: document.querySelector('.game-chat-input'),
@@ -53,6 +56,8 @@ export function getElements() {
         threefoldDrawBtn: document.querySelector('.threefold-draw-btn'),
         boardThemeSelect: document.querySelector('#board-theme-select'),
         pieceThemeSelect: document.querySelector('#piece-theme-select'),
+        checkHintsToggle: document.querySelector('#check-hints-toggle'),
+        legalMovesToggle: document.querySelector('#legal-moves-toggle'),
         lobbyContainer: document.querySelector('.game-lobby'),
     };
 }
@@ -64,9 +69,29 @@ export function createState() {
         playerColor: null,
         playerOneName: null,
         playerTwoName: null,
+        isBotGame: false,
+        botPlayerId: null,
+        botPlayerName: null,
         board: null,
+        currentFen: 'start',
+        isGameStarted: false,
+        hasGameEnded: false,
+        gameOverCode: null,
+        gameOverWinnerName: null,
+        connectionState: 'disconnected',
+        turnNumber: 1,
+        activeMovingPlayerId: null,
+        activeMovingPlayerName: null,
+        isYourTurn: false,
+        isInCheck: false,
+        legalMoves: [],
+        legalMovesRequestId: 0,
+        pendingSyncTimeoutId: null,
+        boardInitialized: false,
         selectedBoardTheme: getStoredValue(storageKeys.boardTheme, "classic", boardThemes),
         selectedPieceTheme: getStoredValue(storageKeys.pieceTheme, "wikipedia", pieceThemes),
+        hintsEnabled: getStoredBoolean(storageKeys.checkHints, true),
+        legalHintsEnabled: getStoredBoolean(storageKeys.legalMoveHints, true),
     };
 }
 
@@ -86,6 +111,27 @@ export function getStoredValue(storageKey, fallbackValue, options) {
 export function storeValue(storageKey, value) {
     try {
         localStorage.setItem(storageKey, value);
+    } catch (error) {
+        // Ignore storage errors and keep in-memory value only.
+    }
+}
+
+export function getStoredBoolean(storageKey, fallbackValue) {
+    try {
+        const storedValue = localStorage.getItem(storageKey);
+        if (storedValue === null) {
+            return fallbackValue;
+        }
+
+        return storedValue === "true";
+    } catch (error) {
+        return fallbackValue;
+    }
+}
+
+export function storeBoolean(storageKey, value) {
+    try {
+        localStorage.setItem(storageKey, value ? "true" : "false");
     } catch (error) {
         // Ignore storage errors and keep in-memory value only.
     }

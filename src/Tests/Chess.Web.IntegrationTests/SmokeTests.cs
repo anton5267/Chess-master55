@@ -10,16 +10,22 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using Chess.Data;
+using Chess.Data.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
 {
     private readonly HttpClient client;
+    private readonly ChessWebApplicationFactory factory;
 
     public SmokeTests(ChessWebApplicationFactory factory)
     {
+        this.factory = factory;
         this.client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false,
@@ -49,7 +55,7 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         var html = await response.Content.ReadAsStringAsync();
         var decodedHtml = WebUtility.HtmlDecode(html);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.OK, because: decodedHtml);
         decodedHtml.Should().Contain(homeMarker);
         decodedHtml.Should().Contain(playMarker);
     }
@@ -156,6 +162,87 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
+    public async Task About_ShouldNotContainPersonalContactBlock()
+    {
+        var response = await this.client.GetAsync("/About");
+        var html = await response.Content.ReadAsStringAsync();
+        var decodedHtml = WebUtility.HtmlDecode(html);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        decodedHtml.Should().NotContain("Anton Lyshtva");
+        decodedHtml.Should().NotContain("antonlistva47@gmail.com");
+        decodedHtml.Should().NotContain("Chess.Web -");
+        decodedHtml.Should().NotContain("Chess.Console -");
+    }
+
+    [Fact]
+    public async Task Stats_ShouldRenderCleanUtf8AndMappedValues_ForAuthenticatedUser()
+    {
+        await this.SeedAuthenticatedUserAsync();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/Stats");
+        request.Headers.Add(TestAuthHandler.HeaderName, "1");
+
+        var response = await this.client.SendAsync(request);
+        var html = await response.Content.ReadAsStringAsync();
+        var decodedHtml = WebUtility.HtmlDecode(html);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK, because: decodedHtml);
+        decodedHtml.Should().Contain("1440");
+        decodedHtml.Should().NotContain("&#x");
+        decodedHtml.Should().NotContain("&amp;#x");
+        decodedHtml.Should().Contain("stats-data");
+        decodedHtml.Should().Contain("stats-pie-chart");
+    }
+
+    [Fact]
+    public async Task Game_ShouldRenderHintToggles_ForAuthenticatedUser()
+    {
+        await this.SeedAuthenticatedUserAsync();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/Game");
+        request.Headers.Add(TestAuthHandler.HeaderName, "1");
+
+        var response = await this.client.SendAsync(request);
+        var html = await response.Content.ReadAsStringAsync();
+        var decodedHtml = WebUtility.HtmlDecode(html);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        decodedHtml.Should().Contain("check-hints-toggle");
+        decodedHtml.Should().Contain("legal-moves-toggle");
+        decodedHtml.Should().Contain("game-lobby-input-vs-bot-btn");
+    }
+
+    [Fact]
+    public async Task GameBundle_ShouldContainTerminalLockMarkers()
+    {
+        var response = await this.client.GetAsync("/js/game.bundle.js");
+        var script = await response.Content.ReadAsStringAsync();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        script.Should().Contain("hasGameEnded");
+        script.Should().Contain("gameOverCode");
+        script.Should().Contain("gameOverWinnerName");
+    }
+
+    [Fact]
+    public async Task Manage_ShouldRenderModernShell_ForAuthenticatedUser()
+    {
+        await this.SeedAuthenticatedUserAsync();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/Identity/Account/Manage");
+        request.Headers.Add(TestAuthHandler.HeaderName, "1");
+
+        var response = await this.client.SendAsync(request);
+        var html = await response.Content.ReadAsStringAsync();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        html.Should().Contain("manage-shell");
+        html.Should().Contain("manage-user-chip");
+        html.Should().Contain("manage-shell-content");
+    }
+
+    [Fact]
     public async Task Layout_ShouldIncludePasswordToggleScript()
     {
         var response = await this.client.GetAsync("/Identity/Account/Login");
@@ -195,5 +282,41 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         antiForgeryCookie.Should().NotBeNullOrEmpty();
 
         return (tokenMatch.Groups[1].Value, antiForgeryCookie!.Split(';')[0]);
+    }
+
+    private async Task SeedAuthenticatedUserAsync()
+    {
+        await using var scope = this.factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ChessDbContext>();
+
+        if (!await dbContext.Users.AnyAsync(x => x.Id == TestAuthHandler.UserId))
+        {
+            dbContext.Users.Add(new UserEntity
+            {
+                Id = TestAuthHandler.UserId,
+                UserName = TestAuthHandler.UserName,
+                NormalizedUserName = TestAuthHandler.UserName.ToUpperInvariant(),
+                Email = TestAuthHandler.UserName,
+                NormalizedEmail = TestAuthHandler.UserName.ToUpperInvariant(),
+                CreatedOn = DateTime.UtcNow,
+                SecurityStamp = Guid.NewGuid().ToString("N"),
+            });
+        }
+
+        if (!await dbContext.Stats.AnyAsync(x => x.UserId == TestAuthHandler.UserId))
+        {
+            dbContext.Stats.Add(new StatisticEntity
+            {
+                UserId = TestAuthHandler.UserId,
+                Played = 18,
+                Won = 10,
+                Drawn = 4,
+                Lost = 4,
+                EloRating = 1440,
+                CreatedOn = DateTime.UtcNow,
+            });
+        }
+
+        await dbContext.SaveChangesAsync();
     }
 }

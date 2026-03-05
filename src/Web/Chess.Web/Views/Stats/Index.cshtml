@@ -1,55 +1,77 @@
 @model Chess.Web.ViewModels.StatsViewModel
+@using System.Text.Json
 
 @{
     this.ViewData["Title"] = Localizer["Stats_Title"];
+
+    var noDataUser = Localizer["Stats_NoDataUser"].Value;
+    var chartPayload = new
+    {
+        labels = new[]
+        {
+            Localizer["Stats_Wins"].Value,
+            Localizer["Stats_Draws"].Value,
+            Localizer["Stats_Losses"].Value,
+        },
+        values = new[]
+        {
+            Model.UserStats.Wins,
+            Model.UserStats.Draws,
+            Model.UserStats.Losses,
+        },
+        title = string.Format(Localizer["Stats_ChartTitle"].Value, Model.UserStats.Games),
+        emptyState = Localizer["Stats_NoGamesYet"].Value,
+        colors = new[] { "#2f6fed", "#7d8ba7", "#d14d5a" },
+    };
+
+    var chartJson = JsonSerializer.Serialize(chartPayload);
+    var mostGamesUser = string.IsNullOrWhiteSpace(Model.MostGamesUser) ? noDataUser : Model.MostGamesUser;
+    var mostWinsUser = string.IsNullOrWhiteSpace(Model.MostWinsUser) ? noDataUser : Model.MostWinsUser;
 }
 
-<article class="elo-rating-container">
-    <section class="elo-rating-text">@Localizer["Stats_EloRating"]</section>
-    <section class="elo-rating-value">@Model.UserStats.Rating</section>
-</article>
+<section class="stats-dashboard">
+    <header class="stats-hero-card">
+        <div class="stats-hero-label">@Localizer["Stats_EloRating"]</div>
+        <div class="stats-hero-value">@Model.UserStats.Rating</div>
+    </header>
 
-<div id="piechart"></div>
+    <section class="stats-kpi-grid" aria-label="@Localizer["Stats_AllUsers"]">
+        <article class="stats-kpi-card">
+            <span class="stats-kpi-title">@Localizer["Stats_TotalUsers"]</span>
+            <span class="stats-kpi-value">@Model.TotalUsers</span>
+        </article>
+        <article class="stats-kpi-card">
+            <span class="stats-kpi-title">@Localizer["Stats_LastThirtyDaysUsers"]</span>
+            <span class="stats-kpi-value">@Model.LastThirtyDaysRegisteredUsers</span>
+        </article>
+        <article class="stats-kpi-card">
+            <span class="stats-kpi-title">@Localizer["Stats_TotalGames"]</span>
+            <span class="stats-kpi-value">@Model.TotalGames</span>
+        </article>
+        <article class="stats-kpi-card">
+            <span class="stats-kpi-title">@Localizer["Stats_MostGamesUser"]</span>
+            <span class="stats-kpi-value">@mostGamesUser</span>
+        </article>
+        <article class="stats-kpi-card">
+            <span class="stats-kpi-title">@Localizer["Stats_MostWinsUser"]</span>
+            <span class="stats-kpi-value">@mostWinsUser</span>
+        </article>
+    </section>
 
-<table>
-    <tr class="table-title">
-        <th colspan="5">@Localizer["Stats_AllUsers"]</th>
-    </tr>
-    <tr>
-        <th class="col-title">@Localizer["Stats_TotalUsers"]</th>
-        <th class="col-title">@Localizer["Stats_LastThirtyDaysUsers"]</th>
-        <th class="col-title">@Localizer["Stats_TotalGames"]</th>
-        <th class="col-title">@Localizer["Stats_MostGamesUser"]</th>
-        <th class="col-title">@Localizer["Stats_MostWinsUser"]</th>
-    </tr>
-    <tr>
-        <td>@Model.TotalUsers</td>
-        <td>@Model.LastThirtyDaysRegisteredUsers</td>
-        <td>@Model.TotalGames</td>
-        <td>@Model.MostGamesUser</td>
-        <td>@Model.MostWinsUser</td>
-    </tr>
-</table>
+    <section class="stats-chart-card">
+        <canvas id="stats-pie-chart" role="img" aria-label="@Localizer["Stats_ChartTitle", Model.UserStats.Games]"></canvas>
+        <p id="stats-chart-empty" class="stats-chart-empty" hidden>@Localizer["Stats_NoGamesYet"]</p>
+    </section>
+</section>
 
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<script type="text/javascript">
-    google.charts.load('current', { 'packages': ['corechart'] });
-    google.charts.setOnLoadCallback(drawChart);
+<script id="stats-data" type="application/json">@Html.Raw(chartJson)</script>
 
-    function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-            ['@Localizer["Stats_Games"]', '@Localizer["Stats_Ending"]'],
-            ['@Localizer["Stats_Wins"]', @Model.UserStats.Wins],
-            ['@Localizer["Stats_Draws"]', @Model.UserStats.Draws],
-            ['@Localizer["Stats_Losses"]', @Model.UserStats.Losses],
-        ]);
-
-        var options = {
-            title: '@Localizer["Stats_ChartTitle", Model.UserStats.Games]',
-            colors: ['#70e663', '#A9A9A9', '#2F4F4F'],
-        };
-
-        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
-        chart.draw(data, options);
-    }
-</script>
+@section Scripts
+{
+    <environment names="Development">
+        <script src="~/js/stats.bundle.js" asp-append-version="true"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="~/js/stats.bundle.min.js" asp-append-version="true"></script>
+    </environment>
+}

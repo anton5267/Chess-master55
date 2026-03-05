@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -237,6 +237,99 @@
   <data name="About_SourceConsole" xml:space="preserve">
     <value>Chess.Console - Вихідний код</value>
   </data>
+  <data name="About_HeroTagline" xml:space="preserve">
+    <value>Сучасні багатокористувацькі шахи</value>
+  </data>
+  <data name="About_HeroSupport" xml:space="preserve">
+    <value>Створено для практичного навчання: зрозуміла архітектура, гра в реальному часі та основа для production.</value>
+  </data>
+  <data name="About_HeroChipLive" xml:space="preserve">
+    <value>Матчі в реальному часі через SignalR</value>
+  </data>
+  <data name="About_HeroChipCloud" xml:space="preserve">
+    <value>.NET 8 + EF Core</value>
+  </data>
+  <data name="About_HeroChipResponsive" xml:space="preserve">
+    <value>Адаптивний інтерфейс</value>
+  </data>
+  <data name="About_HeroPrimaryCta" xml:space="preserve">
+    <value>Почати гру</value>
+  </data>
+  <data name="About_HeroSecondaryCta" xml:space="preserve">
+    <value>Переглянути статистику</value>
+  </data>
+  <data name="About_MetaTitle" xml:space="preserve">
+    <value>Коротко про проєкт</value>
+  </data>
+  <data name="About_MetaStackLabel" xml:space="preserve">
+    <value>Стек</value>
+  </data>
+  <data name="About_MetaStackValue" xml:space="preserve">
+    <value>ASP.NET Core MVC, SignalR, EF Core, SQL, JavaScript</value>
+  </data>
+  <data name="About_MetaModeLabel" xml:space="preserve">
+    <value>Мультиплеєр</value>
+  </data>
+  <data name="About_MetaModeValue" xml:space="preserve">
+    <value>Кімнати в реальному часі із синхронізованим станом дошки</value>
+  </data>
+  <data name="About_MetaLocalesLabel" xml:space="preserve">
+    <value>Локалізація</value>
+  </data>
+  <data name="About_MetaLocalesValue" xml:space="preserve">
+    <value>Англійська, українська, німецька, польська, іспанська</value>
+  </data>
+  <data name="About_MetaUpdatesLabel" xml:space="preserve">
+    <value>Доставка змін</value>
+  </data>
+  <data name="About_MetaUpdatesValue" xml:space="preserve">
+    <value>Автоматизовані збірки та інкрементальні релізи</value>
+  </data>
+  <data name="About_MediaGameTitle" xml:space="preserve">
+    <value>Ігровий досвід у вебі</value>
+  </data>
+  <data name="About_MediaGameText" xml:space="preserve">
+    <value>Лобі, чат, теми дошки та історія ходів в одному робочому просторі.</value>
+  </data>
+  <data name="About_MediaConsoleTitle" xml:space="preserve">
+    <value>Спадщина консольної версії</value>
+  </data>
+  <data name="About_MediaConsoleText" xml:space="preserve">
+    <value>Проєкт зберігає дух оригінальної консольної реалізації шахів.</value>
+  </data>
+  <data name="About_FeaturesIntro" xml:space="preserve">
+    <value>Основні можливості згруповано нижче для швидкого огляду.</value>
+  </data>
+  <data name="About_CategoryGameplay" xml:space="preserve">
+    <value>Ігрова логіка</value>
+  </data>
+  <data name="About_CategoryMultiplayer" xml:space="preserve">
+    <value>Мультиплеєр</value>
+  </data>
+  <data name="About_CategoryData" xml:space="preserve">
+    <value>Дані та статистика</value>
+  </data>
+  <data name="About_CategoryUx" xml:space="preserve">
+    <value>UX та доступність</value>
+  </data>
+  <data name="About_Feature_UxThemes" xml:space="preserve">
+    <value>Вибір теми дошки та фігур</value>
+  </data>
+  <data name="About_Feature_UxRealtimeSync" xml:space="preserve">
+    <value>Сервер-авторитетна синхронізація ходів</value>
+  </data>
+  <data name="About_Feature_UxLocalization" xml:space="preserve">
+    <value>Локалізований інтерфейс п'ятьма мовами</value>
+  </data>
+  <data name="About_CtaTitle" xml:space="preserve">
+    <value>Готові до наступної партії?</value>
+  </data>
+  <data name="About_CtaText" xml:space="preserve">
+    <value>Створіть кімнату, запросіть друга та грайте із синхронними ходами й live-статусом.</value>
+  </data>
+  <data name="About_CtaButton" xml:space="preserve">
+    <value>Відкрити ігрове лобі</value>
+  </data>
   <data name="Stats_Title" xml:space="preserve">
     <value>статистика</value>
   </data>
@@ -318,6 +411,9 @@
   <data name="Game_CreateRoom" xml:space="preserve">
     <value>СТВОРИТИ КІМНАТУ</value>
   </data>
+  <data name="Game_PlayVsBot" xml:space="preserve">
+    <value>ГРАТИ ПРОТИ БОТА</value>
+  </data>
   <data name="Game_RoomsTitle" xml:space="preserve">
     <value>ІГРОВІ КІМНАТИ</value>
   </data>
@@ -332,6 +428,12 @@
   </data>
   <data name="Js_YourTurn" xml:space="preserve">
     <value>Ваша черга!</value>
+  </data>
+  <data name="Js_BotThinking" xml:space="preserve">
+    <value>Бот думає...</value>
+  </data>
+  <data name="Js_BotJoinedGame" xml:space="preserve">
+    <value>{name} приєднався як бот. Гру розпочато!</value>
   </data>
   <data name="Js_PlayerTurnFormat" xml:space="preserve">
     <value>Черга {name}!</value>
@@ -348,8 +450,17 @@
   <data name="Js_CheckmateWinFormat" xml:space="preserve">
     <value>ШАХ МАТ! {name} ПЕРЕМОГА!</value>
   </data>
+  <data name="Js_Checkmate" xml:space="preserve">
+    <value>ШАХ І МАТ!</value>
+  </data>
   <data name="Js_Stalemate" xml:space="preserve">
     <value>ПАТУК!</value>
+  </data>
+  <data name="BotGame_CheckmateWin" xml:space="preserve">
+    <value>ШАХ І МАТ! {0} перемагає бота.</value>
+  </data>
+  <data name="BotGame_Stalemate" xml:space="preserve">
+    <value>Пат. Партія з ботом завершилась нічиєю.</value>
   </data>
   <data name="Js_Draw" xml:space="preserve">
     <value>РОЗІГРАТИ!</value>
@@ -1067,5 +1178,20 @@
   </data>
   <data name="RecoveryCodeRedemptionFailed" xml:space="preserve">
     <value>Не вдалося активувати код відновлення.</value>
+  </data>
+  <data name="Stats_NoGamesYet" xml:space="preserve">
+    <value>Зіграйте партії, щоб побачити статистику на графіку.</value>
+  </data>
+  <data name="Stats_NoDataUser" xml:space="preserve">
+    <value>Ще немає даних</value>
+  </data>
+  <data name="Js_CheckEscapeHint" xml:space="preserve">
+    <value>хід королем, блок або взяття</value>
+  </data>
+  <data name="Game_Hint_CheckEscape" xml:space="preserve">
+    <value>Показувати підказки виходу з шаху</value>
+  </data>
+  <data name="Game_Hint_LegalMoves" xml:space="preserve">
+    <value>Показувати легальні ходи</value>
   </data>
 </root>

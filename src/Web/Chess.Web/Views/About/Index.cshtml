@@ -2,51 +2,128 @@
     this.ViewData["Title"] = Localizer["About_Title"];
 }
 
-<section class="about-container">
-    <h2 class="about-title title-text">@Localizer["About_ProjectTitle"]</h2>
-    <p class="about-description">
-        @Localizer["About_Description"]
-        <br /><br />
+<section class="about-page">
+    <header class="about-hero">
+        <div class="about-hero-content">
+            <p class="about-hero-kicker">@Localizer["About_HeroTagline"]</p>
+            <h1 class="about-hero-title">@Localizer["About_ProjectTitle"]</h1>
+            <p class="about-hero-text">@Localizer["About_Description"]</p>
+            <p class="about-hero-support">@Localizer["About_HeroSupport"]</p>
 
-        <img class="about-img-web" src="~/img/ezgif.com-gif-maker.gif" alt="@Localizer["About_ImageGameAlt"]" /><br /><br />
+            <div class="about-hero-chips">
+                <span class="about-chip">@Localizer["About_HeroChipLive"]</span>
+                <span class="about-chip">@Localizer["About_HeroChipCloud"]</span>
+                <span class="about-chip">@Localizer["About_HeroChipResponsive"]</span>
+            </div>
 
-        @Localizer["About_FeaturesTitle"]
-        <ul class="about-feature-list">
-            <li><b>@Localizer["About_Feature_MoveValidation"]</b></li>
-            <li><b>@Localizer["About_Feature_Check"]</b></li>
-            <li><b>@Localizer["About_Feature_Checkmate"]</b></li>
-            <li><b>@Localizer["About_Feature_Stalemate"]</b></li>
-            <li><b>@Localizer["About_Feature_Draw"]</b></li>
-            <li><b>@Localizer["About_Feature_OfferDraw"]</b></li>
-            <li><b>@Localizer["About_Feature_Threefold"]</b></li>
-            <li><b>@Localizer["About_Feature_Fivefold"]</b></li>
-            <li><b>@Localizer["About_Feature_Resign"]</b></li>
-            <li><b>@Localizer["About_Feature_Castling"]</b></li>
-            <li><b>@Localizer["About_Feature_PawnPromotion"]</b></li>
-            <li><b>@Localizer["About_Feature_EnPassant"]</b></li>
-            <li><b>@Localizer["About_Feature_Points"]</b></li>
-            <li><b>@Localizer["About_Feature_TakenPiecesHistory"]</b></li>
-            <li><b>@Localizer["About_Feature_NotationHistory"]</b></li>
-            <li><b>@Localizer["About_Feature_UserAuthentication"]</b></li>
-            <li><b>@Localizer["About_Feature_HighlightLastMove"]</b></li>
-            <li><b>@Localizer["About_Feature_GameLobby"]</b></li>
-            <li><b>@Localizer["About_Feature_GameChat"]</b></li>
-            <li><b>@Localizer["About_Feature_LobbyChat"]</b></li>
-            <li><b>@Localizer["About_Feature_StatsPage"]</b></li>
-            <li><b>@Localizer["About_Feature_EloRating"]</b></li>
-            <li><b>@Localizer["About_Feature_FiftyMove"]</b></li>
-        </ul>
+            <div class="about-hero-actions">
+                <a class="about-btn about-btn-primary" asp-controller="Game" asp-action="Index">@Localizer["About_HeroPrimaryCta"]</a>
+                <a class="about-btn about-btn-secondary" asp-controller="Stats" asp-action="Index">@Localizer["About_HeroSecondaryCta"]</a>
+            </div>
+        </div>
 
-        @Localizer["About_InspiredBy"]
-        <br />
-        <img class="about-img-console" src="~/img/console_chess.jpg" alt="@Localizer["About_ImageConsoleAlt"]" /><br /><br />
+        <aside class="about-meta-card">
+            <h2 class="about-meta-title">@Localizer["About_MetaTitle"]</h2>
+            <dl class="about-meta-list">
+                <div class="about-meta-item">
+                    <dt>@Localizer["About_MetaStackLabel"]</dt>
+                    <dd>@Localizer["About_MetaStackValue"]</dd>
+                </div>
+                <div class="about-meta-item">
+                    <dt>@Localizer["About_MetaModeLabel"]</dt>
+                    <dd>@Localizer["About_MetaModeValue"]</dd>
+                </div>
+                <div class="about-meta-item">
+                    <dt>@Localizer["About_MetaLocalesLabel"]</dt>
+                    <dd>@Localizer["About_MetaLocalesValue"]</dd>
+                </div>
+                <div class="about-meta-item">
+                    <dt>@Localizer["About_MetaUpdatesLabel"]</dt>
+                    <dd>@Localizer["About_MetaUpdatesValue"]</dd>
+                </div>
+            </dl>
+        </aside>
+    </header>
 
-        <address>
-            <b>Anton Lyshtva</b><br />
-            Email: antonlistva47@gmail.com<br />
+    <section class="about-media-grid">
+        <article class="about-media-card">
+            <img class="about-media-image" src="~/img/ezgif.com-gif-maker.gif" alt="@Localizer["About_ImageGameAlt"]" />
+            <div class="about-media-overlay">
+                <h2 class="about-media-title">@Localizer["About_MediaGameTitle"]</h2>
+                <p class="about-media-caption">@Localizer["About_MediaGameText"]</p>
+            </div>
+        </article>
+        <article class="about-media-card">
+            <img class="about-media-image" src="~/img/console_chess.jpg" alt="@Localizer["About_ImageConsoleAlt"]" />
+            <div class="about-media-overlay">
+                <h2 class="about-media-title">@Localizer["About_MediaConsoleTitle"]</h2>
+                <p class="about-media-caption">@Localizer["About_MediaConsoleText"]</p>
+            </div>
+        </article>
+    </section>
 
-            <i class="fab fa-github"></i> <a href="https://github.com/anton5267/Chess-master55" target="_blank">@Localizer["About_SourceWeb"]</a><br />
-            <i class="fab fa-github"></i> <a href="https://github.com/anton5267/Chess-master55" target="_blank">@Localizer["About_SourceConsole"]</a>
-        </address>
-    </p>
+    <section class="about-features-card about-card">
+        <h2 class="about-features-title">@Localizer["About_FeaturesTitle"]</h2>
+        <p class="about-features-intro">@Localizer["About_FeaturesIntro"]</p>
+
+        <div class="about-features-grid">
+            <article class="about-feature-group">
+                <h3>@Localizer["About_CategoryGameplay"]</h3>
+                <ul class="about-feature-list">
+                    <li>@Localizer["About_Feature_MoveValidation"]</li>
+                    <li>@Localizer["About_Feature_Check"]</li>
+                    <li>@Localizer["About_Feature_Checkmate"]</li>
+                    <li>@Localizer["About_Feature_Stalemate"]</li>
+                    <li>@Localizer["About_Feature_Draw"]</li>
+                    <li>@Localizer["About_Feature_OfferDraw"]</li>
+                    <li>@Localizer["About_Feature_Resign"]</li>
+                    <li>@Localizer["About_Feature_Castling"]</li>
+                    <li>@Localizer["About_Feature_PawnPromotion"]</li>
+                    <li>@Localizer["About_Feature_EnPassant"]</li>
+                    <li>@Localizer["About_Feature_FiftyMove"]</li>
+                </ul>
+            </article>
+
+            <article class="about-feature-group">
+                <h3>@Localizer["About_CategoryMultiplayer"]</h3>
+                <ul class="about-feature-list">
+                    <li>@Localizer["About_Feature_GameLobby"]</li>
+                    <li>@Localizer["About_Feature_GameChat"]</li>
+                    <li>@Localizer["About_Feature_LobbyChat"]</li>
+                    <li>@Localizer["About_Feature_UserAuthentication"]</li>
+                    <li>@Localizer["About_Feature_Threefold"]</li>
+                    <li>@Localizer["About_Feature_Fivefold"]</li>
+                </ul>
+            </article>
+
+            <article class="about-feature-group">
+                <h3>@Localizer["About_CategoryData"]</h3>
+                <ul class="about-feature-list">
+                    <li>@Localizer["About_Feature_Points"]</li>
+                    <li>@Localizer["About_Feature_TakenPiecesHistory"]</li>
+                    <li>@Localizer["About_Feature_NotationHistory"]</li>
+                    <li>@Localizer["About_Feature_StatsPage"]</li>
+                    <li>@Localizer["About_Feature_EloRating"]</li>
+                </ul>
+            </article>
+
+            <article class="about-feature-group">
+                <h3>@Localizer["About_CategoryUx"]</h3>
+                <ul class="about-feature-list">
+                    <li>@Localizer["About_Feature_HighlightLastMove"]</li>
+                    <li>@Localizer["About_Feature_UxThemes"]</li>
+                    <li>@Localizer["About_Feature_UxRealtimeSync"]</li>
+                    <li>@Localizer["About_Feature_UxLocalization"]</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section class="about-cta about-card">
+        <div>
+            <h2 class="about-cta-title">@Localizer["About_CtaTitle"]</h2>
+            <p class="about-cta-text">@Localizer["About_CtaText"]</p>
+        </div>
+        <a class="about-btn about-btn-primary" asp-controller="Game" asp-action="Index">@Localizer["About_CtaButton"]</a>
+    </section>
 </section>

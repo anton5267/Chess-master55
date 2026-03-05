@@ -19,6 +19,7 @@
     using Chess.Services.Mapping;
     using Chess.Services.Messaging;
     using Chess.Services.Messaging.Contracts;
+    using Chess.Web.Hubs.Bot;
     using Chess.Web.Hubs;
     using Chess.Web.Hubs.Sessions;
     using Chess.Web.Infrastructure;
@@ -170,11 +171,13 @@
             services.AddTransient<IEmailSender>(x =>
                 new SendGridEmailSender(this.configuration.GetValue<string>("SendGridApiKey")));
             services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, IdentityUiEmailSender>();
+            services.AddTransient<IBoardFenSerializer, BoardFenSerializer>();
             services.AddTransient<IGameService, GameService>();
             services.AddTransient<IStatsService, StatsService>();
             services.AddTransient<IDrawService, DrawService>();
             services.AddTransient<ICheckService, CheckService>();
             services.AddTransient<IUtilityService, UtilityService>();
+            services.AddSingleton<IBotMoveSelector, RandomLegalMoveSelector>();
             services.AddSingleton<INotificationService, NotificationService>();
             services.AddHostedService<DatabaseInitializationHostedService>();
         }

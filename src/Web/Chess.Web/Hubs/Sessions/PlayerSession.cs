@@ -4,10 +4,11 @@ namespace Chess.Web.Hubs.Sessions
 
     public class PlayerSession
     {
-        public PlayerSession(Player player, PlayerSessionState state)
+        public PlayerSession(Player player, PlayerSessionState state, bool isBot = false)
         {
             this.Player = player;
             this.State = state;
+            this.IsBot = isBot;
         }
 
         public Player Player { get; }
@@ -29,6 +30,8 @@ namespace Chess.Web.Hubs.Sessions
             get => this.Player.GameId;
             set => this.Player.GameId = value;
         }
+
+        public bool IsBot { get; }
 
         public PlayerSessionState State { get; set; }
     }

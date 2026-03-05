@@ -1,12 +1,26 @@
 {
   "name": "chess-web-assets",
   "private": true,
+  "dependencies": {
+    "chart.js": "^4.5.1"
+  },
   "devDependencies": {
+    "@esbuild/win32-x64": "^0.25.12",
+    "concurrently": "^9.2.1",
     "esbuild": "^0.25.0"
   },
   "scripts": {
-    "build:js": "esbuild wwwroot/js/src/game.js --bundle --format=iife --outfile=wwwroot/js/game.bundle.js --sourcemap",
-    "build:js:min": "esbuild wwwroot/js/src/game.js --bundle --format=iife --minify --outfile=wwwroot/js/game.bundle.min.js",
-    "build:assets": "npm run build:js && npm run build:js:min"
+    "build:js:game": "esbuild wwwroot/js/src/game.js --bundle --format=iife --outfile=wwwroot/js/game.bundle.js --sourcemap",
+    "build:js:game:min": "esbuild wwwroot/js/src/game.js --bundle --format=iife --minify --outfile=wwwroot/js/game.bundle.min.js",
+    "build:js:stats": "esbuild wwwroot/js/src/stats.js --bundle --format=iife --outfile=wwwroot/js/stats.bundle.js --sourcemap",
+    "build:js:stats:min": "esbuild wwwroot/js/src/stats.js --bundle --format=iife --minify --outfile=wwwroot/js/stats.bundle.min.js",
+    "watch:assets": "esbuild wwwroot/js/src/game.js wwwroot/js/src/stats.js --bundle --format=iife --sourcemap --outdir=wwwroot/js --entry-names=[name].bundle --watch",
+    "build:assets": "npm run build:js:game && npm run build:js:game:min && npm run build:js:stats && npm run build:js:stats:min",
+    "dev:web": "dotnet watch run --project Chess.Web.csproj",
+    "dev:web:http": "dotnet watch run --project Chess.Web.csproj --urls http://localhost:5000",
+    "tunnel:up": "ngrok http https://localhost:5001 --domain=nonhostilely-unhampered-noah.ngrok-free.dev --host-header=rewrite",
+    "dev": "concurrently -k -n assets,web \"npm run watch:assets\" \"npm run dev:web\"",
+    "dev:http": "concurrently -k -n assets,web \"npm run watch:assets\" \"npm run dev:web:http\"",
+    "dev:remote": "concurrently -k -n assets,web,tunnel \"npm run watch:assets\" \"npm run dev:web\" \"npm run tunnel:up\""
   }
 }

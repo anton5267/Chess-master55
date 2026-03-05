@@ -6,6 +6,10 @@ namespace Chess.Web.Hubs.Sessions
 
         public bool RemovedFromWaiting { get; set; }
 
+        public bool MarkedAsDisconnected { get; set; }
+
+        public bool FinalizedDisconnectedGame { get; set; }
+
         public PlayerSession Player { get; set; }
 
         public GameSession GameSession { get; set; }

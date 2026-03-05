@@ -34,21 +34,54 @@ namespace Chess.Services.Data.Services
 
         public int GetTotalGames()
         {
-            return this.statsRepository.All().Select(x => x.Played).Sum() / 2;
+            var stats = this.statsRepository.All();
+            if (!stats.Any())
+            {
+                return 0;
+            }
+
+            var totalPlayed = stats.Sum(x => x.Played);
+            return totalPlayed / 2;
         }
 
         public string GetMostGamesUser()
         {
-            int maxGames = this.statsRepository.All().Max(x => x.Played);
+            var stats = this.statsRepository.All();
+            if (!stats.Any())
+            {
+                return string.Empty;
+            }
 
-            return this.statsRepository.All().Where(x => x.Played == maxGames).Select(x => x.User.UserName).FirstOrDefault();
+            var maxGames = stats.Max(x => x.Played);
+            if (maxGames == 0)
+            {
+                return string.Empty;
+            }
+
+            return stats
+                .Where(x => x.Played == maxGames)
+                .Select(x => x.User == null ? string.Empty : x.User.UserName)
+                .FirstOrDefault();
         }
 
         public string GetMostWinsUser()
         {
-            int maxWins = this.statsRepository.All().Max(x => x.Won);
+            var stats = this.statsRepository.All();
+            if (!stats.Any())
+            {
+                return string.Empty;
+            }
 
-            return this.statsRepository.All().Where(x => x.Won == maxWins).Select(x => x.User.UserName).FirstOrDefault();
+            var maxWins = stats.Max(x => x.Won);
+            if (maxWins == 0)
+            {
+                return string.Empty;
+            }
+
+            return stats
+                .Where(x => x.Won == maxWins)
+                .Select(x => x.User == null ? string.Empty : x.User.UserName)
+                .FirstOrDefault();
         }
 
         public async Task InitiateStatsAsync(string id)

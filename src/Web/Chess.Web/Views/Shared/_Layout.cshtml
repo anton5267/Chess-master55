@@ -13,7 +13,7 @@
         <script src="~/lib/jquery/dist/jquery.js" asp-append-version="true"></script>
     </environment>
     <environment names="Staging,Production">
-        <link rel="stylesheet" href="~/css/style.min.css" asp-append-version="true" />
+        <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
         <script src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
     </environment>
 </head>
@@ -22,7 +22,7 @@
         <nav class="navbar navbar-expand-sm navbar-light bg-white box-shadow">
             <div class="container">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
-                    <i class="fas fa-chess-knight" style="font-size: 25px; color: #454a52;"></i>
+                    <i class="fas fa-chess-knight chess-brand-icon" aria-hidden="true"></i>
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">

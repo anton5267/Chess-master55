@@ -2,45 +2,56 @@
     this.ViewData["Title"] = Localizer["Home_Title"];
 }
 
-<section class="home-title-container">
-    <h1 class="home-title title-text">Chess</h1>
-</section>
-<hr />
-<section class="cards-container d-lg-flex">
-    <div class="card p-0 mb-1 col-lg-4 m-lg-0">
-        <div class="card-img-wrap">
-            <img class="card-img" src="~/img/chess.jpg" alt="@Localizer["Home_PlayImageAlt"]">
-        </div>
-        <div class="card-text-container">
-            <h4 class="card-text-title"><a asp-controller="Game" asp-action="Index"><i class="fas fa-play"></i> @Localizer["Home_CardPlayTitle"]</a></h4>
-            <p class="card-text-desciption">@Localizer["Home_CardPlayDescription"]</p>
-        </div>
-    </div>
-    <div class="card p-0 mb-1 col-lg-4 m-lg-0">
-        <div class="card-img-wrap">
-            <img class="card-img" src="~/img/image2.jpg" alt="@Localizer["Home_StatsImageAlt"]">
-        </div>
-        <div class="card-text-container">
-            <h4 class="card-text-title"><a asp-controller="Stats" asp-action="Index"><i class="fas fa-chart-bar"></i> @Localizer["Home_CardStatsTitle"]</a></h4>
-            <p class="card-text-desciption">@Localizer["Home_CardStatsDescription"]</p>
-        </div>
-    </div>
-    <div class="card p-0 mb-1 col-lg-4 m-lg-0">
-        <div class="card-img-wrap">
-            <img class="card-img" src="~/img/image3.jpg" alt="@Localizer["Home_AboutImageAlt"]">
-        </div>
-        <div class="card-text-container">
-            <h4 class="card-text-title"><a asp-controller="About" asp-action="Index"><i class="fas fa-info-circle"></i> @Localizer["Home_CardAboutTitle"]</a></h4>
-            <p class="card-text-desciption">@Localizer["Home_CardAboutDescription"]</p>
+<section class="home-hero">
+    <div class="home-hero-content">
+        <h1 class="home-hero-title">Chess</h1>
+        <p class="home-hero-subtitle">@Localizer["Home_HistoryParagraph1"]</p>
+        <div class="home-hero-actions">
+            <a class="btn btn-primary home-hero-btn" asp-controller="Game" asp-action="Index">@Localizer["Home_CardPlayTitle"]</a>
+            <a class="btn btn-outline-primary home-hero-btn" asp-controller="Stats" asp-action="Index">@Localizer["Home_CardStatsTitle"]</a>
         </div>
     </div>
 </section>
-<hr />
-<section class="text-container">
-    <p class="text-chess-info">
-        @Localizer["Home_HistoryParagraph1"]
-    </p>
-    <p class="text-chess-info">
-        @Localizer["Home_HistoryParagraph2"]
-    </p>
+
+<section class="home-feature-grid">
+    <article class="home-feature-card">
+        <div class="home-feature-image-wrap">
+            <img class="home-feature-image" src="~/img/chess.jpg" alt="@Localizer["Home_PlayImageAlt"]">
+        </div>
+        <div class="home-feature-body">
+            <h3 class="home-feature-title">
+                <a asp-controller="Game" asp-action="Index"><i class="fas fa-play"></i> @Localizer["Home_CardPlayTitle"]</a>
+            </h3>
+            <p class="home-feature-description">@Localizer["Home_CardPlayDescription"]</p>
+        </div>
+    </article>
+
+    <article class="home-feature-card">
+        <div class="home-feature-image-wrap">
+            <img class="home-feature-image" src="~/img/image2.jpg" alt="@Localizer["Home_StatsImageAlt"]">
+        </div>
+        <div class="home-feature-body">
+            <h3 class="home-feature-title">
+                <a asp-controller="Stats" asp-action="Index"><i class="fas fa-chart-bar"></i> @Localizer["Home_CardStatsTitle"]</a>
+            </h3>
+            <p class="home-feature-description">@Localizer["Home_CardStatsDescription"]</p>
+        </div>
+    </article>
+
+    <article class="home-feature-card">
+        <div class="home-feature-image-wrap">
+            <img class="home-feature-image" src="~/img/image3.jpg" alt="@Localizer["Home_AboutImageAlt"]">
+        </div>
+        <div class="home-feature-body">
+            <h3 class="home-feature-title">
+                <a asp-controller="About" asp-action="Index"><i class="fas fa-info-circle"></i> @Localizer["Home_CardAboutTitle"]</a>
+            </h3>
+            <p class="home-feature-description">@Localizer["Home_CardAboutDescription"]</p>
+        </div>
+    </article>
+</section>
+
+<section class="home-history-card">
+    <p class="home-history-text">@Localizer["Home_HistoryParagraph1"]</p>
+    <p class="home-history-text">@Localizer["Home_HistoryParagraph2"]</p>
 </section>

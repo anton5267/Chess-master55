@@ -24,13 +24,31 @@ namespace Chess.Web.Hubs.Sessions
             out GameSession gameSession,
             out string error);
 
+        bool TryCreateBotGame(
+            string connectionId,
+            string userId,
+            string name,
+            int rating,
+            IServiceProvider serviceProvider,
+            out PlayerSession playerSession,
+            out GameSession gameSession,
+            out string error);
+
         bool TryGetGameByConnection(string connectionId, out GameSession gameSession, out PlayerSession playerSession);
 
         bool TryGetPlayer(string connectionId, out PlayerSession playerSession);
 
         bool TryGetGameById(string gameId, out GameSession gameSession);
 
-        bool TryRemoveConnection(string connectionId, out ConnectionRemovalResult removalResult);
+        bool TryMarkDisconnectedConnection(string connectionId, out ConnectionRemovalResult removalResult);
+
+        bool TryReattachDisconnectedPlayer(
+            string connectionId,
+            string userId,
+            out GameSession gameSession,
+            out PlayerSession playerSession);
+
+        bool TryFinalizeDisconnectedConnection(string connectionId, out ConnectionRemovalResult removalResult);
 
         IReadOnlyCollection<PlayerSession> GetWaitingRoomsSnapshot();
     }

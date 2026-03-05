@@ -1,6 +1,7 @@
 namespace Chess.Web.Hubs.Sessions
 {
     using System;
+    using System.Threading;
 
     using Chess.Services.Data.Models;
 
@@ -15,5 +16,11 @@ namespace Chess.Web.Hubs.Sessions
         public Game Game { get; set; }
 
         public DateTime CreatedAtUtc { get; set; }
+
+        public GameMode Mode { get; set; } = GameMode.HumanVsHuman;
+
+        public bool IsBotGame => this.Mode == GameMode.HumanVsBot;
+
+        public SemaphoreSlim BotTurnLock { get; } = new (1, 1);
     }
 }

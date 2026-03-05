@@ -1,5 +1,5 @@
 @{
-    if (ViewData.TryGetValue("ParentLayout", out var parentLayout) && parentLayout !=  null)
+    if (ViewData.TryGetValue("ParentLayout", out var parentLayout) && parentLayout != null)
     {
         Layout = parentLayout.ToString();
     }
@@ -9,20 +9,27 @@
     }
 }
 
-<h1>@Localizer["Manage_AccountTitle"]</h1>
+<section class="manage-shell">
+    <header class="manage-shell-header">
+        <div>
+            <h1 class="manage-shell-title">@Localizer["Manage_AccountTitle"]</h1>
+            <p class="manage-shell-subtitle">@Localizer["Manage_AccountSubtitle"]</p>
+        </div>
+        <div class="manage-user-chip">
+            <i class="fas fa-user-circle" aria-hidden="true"></i>
+            <span>@(this.User?.Identity?.Name ?? Localizer["Manage_Profile"])</span>
+        </div>
+    </header>
 
-<div>
-    <h2>@Localizer["Manage_AccountSubtitle"]</h2>
-    <hr />
-    <div class="row">
-        <div class="col-md-3">
+    <div class="manage-shell-content">
+        <aside class="manage-nav-card">
             <partial name="_ManageNav" />
-        </div>
-        <div class="col-md-9">
+        </aside>
+        <section class="manage-content-card">
             @RenderBody()
-        </div>
+        </section>
     </div>
-</div>
+</section>
 
 @section Scripts {
     @RenderSection("Scripts", required: false)

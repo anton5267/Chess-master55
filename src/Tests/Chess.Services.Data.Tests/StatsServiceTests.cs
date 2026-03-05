@@ -5,9 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using AutoMapper;
+
 using Chess.Data.Common.Repositories;
 using Chess.Data.Models;
 using Chess.Services.Data.Services;
+using Chess.Services.Mapping;
+using Chess.Web.ViewModels;
 using FluentAssertions;
 using Xunit;
 
@@ -78,6 +82,65 @@ public class StatsServiceTests
         var mostWinsUser = service.GetMostWinsUser();
 
         mostWinsUser.Should().Be("beta");
+    }
+
+    [Fact]
+    public void GetTotalGames_ShouldReturnZero_WhenNoStatsExist()
+    {
+        var repository = new InMemoryStatisticRepository();
+        var service = new StatsService(repository);
+
+        var totalGames = service.GetTotalGames();
+
+        totalGames.Should().Be(0);
+    }
+
+    [Fact]
+    public void GetMostGamesUser_ShouldReturnEmpty_WhenNoStatsExist()
+    {
+        var repository = new InMemoryStatisticRepository();
+        var service = new StatsService(repository);
+
+        var mostGamesUser = service.GetMostGamesUser();
+
+        mostGamesUser.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void GetMostWinsUser_ShouldReturnEmpty_WhenNoStatsExist()
+    {
+        var repository = new InMemoryStatisticRepository();
+        var service = new StatsService(repository);
+
+        var mostWinsUser = service.GetMostWinsUser();
+
+        mostWinsUser.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void UserStatsViewModel_CustomMapping_ShouldMapStatisticEntityFields()
+    {
+        var expression = new MapperConfigurationExpression();
+        var viewModel = new UserStatsViewModel();
+        viewModel.CreateMappings(expression);
+
+        var mapper = new Mapper(new MapperConfiguration(expression));
+        var entity = new StatisticEntity
+        {
+            Played = 31,
+            Won = 15,
+            Drawn = 6,
+            Lost = 10,
+            EloRating = 1542,
+        };
+
+        var mapped = mapper.Map<UserStatsViewModel>(entity);
+
+        mapped.Games.Should().Be(31);
+        mapped.Wins.Should().Be(15);
+        mapped.Draws.Should().Be(6);
+        mapped.Losses.Should().Be(10);
+        mapped.Rating.Should().Be(1542);
     }
 
     private sealed class InMemoryStatisticRepository : IRepository<StatisticEntity>

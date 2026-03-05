@@ -13,6 +13,7 @@
         ["notAvailable"] = Localizer["Js_NotAvailable"],
         ["drawRequestSent"] = Localizer["Js_DrawRequestSent"],
         ["checkmateWinFormat"] = Localizer["Js_CheckmateWinFormat"],
+        ["checkmate"] = Localizer["Js_Checkmate"],
         ["stalemate"] = Localizer["Js_Stalemate"],
         ["draw"] = Localizer["Js_Draw"],
         ["threefoldDeclaredByFormat"] = Localizer["Js_ThreefoldDeclaredByFormat"],
@@ -28,6 +29,9 @@
         ["no"] = Localizer["Js_No"],
         ["drawRequestQuestionFormat"] = Localizer["Js_DrawRequestQuestionFormat"],
         ["drawOfferRejectedFormat"] = Localizer["Js_DrawOfferRejectedFormat"],
+        ["checkEscapeHint"] = Localizer["Js_CheckEscapeHint"],
+        ["botThinking"] = Localizer["Js_BotThinking"],
+        ["botJoinedGame"] = Localizer["Js_BotJoinedGame"],
     };
 }
 
@@ -55,23 +59,23 @@
             <div class="main-playground-white-points player-points"><span class="white-points-value player-points-value">0</span> @Localizer["Game_PointsSuffix"]</div>
             <div class="main-playground-white-taken-pieces taken-pieces-container">
                 <div class="taken-pieces">
-                    <img src="~/img/chesspieces/wikipedia/bP.png" alt="@Localizer["Game_PawnAlt"]" />
+                    <img class="taken-piece-image" data-piece-code="bP" src="~/img/chesspieces/wikipedia/bP.png" alt="@Localizer["Game_PawnAlt"]" />
                     <span class="taken-pieces-black-pawn-value">0</span>
                 </div>
                 <div class="taken-pieces">
-                    <img src="~/img/chesspieces/wikipedia/bN.png" alt="@Localizer["Game_KnightAlt"]" />
+                    <img class="taken-piece-image" data-piece-code="bN" src="~/img/chesspieces/wikipedia/bN.png" alt="@Localizer["Game_KnightAlt"]" />
                     <span class="taken-pieces-black-knight-value">0</span>
                 </div>
                 <div class="taken-pieces">
-                    <img src="~/img/chesspieces/wikipedia/bB.png" alt="@Localizer["Game_BishopAlt"]" />
+                    <img class="taken-piece-image" data-piece-code="bB" src="~/img/chesspieces/wikipedia/bB.png" alt="@Localizer["Game_BishopAlt"]" />
                     <span class="taken-pieces-black-bishop-value">0</span>
                 </div>
                 <div class="taken-pieces">
-                    <img src="~/img/chesspieces/wikipedia/bR.png" alt="@Localizer["Game_RookAlt"]" />
+                    <img class="taken-piece-image" data-piece-code="bR" src="~/img/chesspieces/wikipedia/bR.png" alt="@Localizer["Game_RookAlt"]" />
                     <span class="taken-pieces-black-rook-value">0</span>
                 </div>
                 <div class="taken-pieces">
-                    <img src="~/img/chesspieces/wikipedia/bQ.png" alt="@Localizer["Game_QueenAlt"]" />
+                    <img class="taken-piece-image" data-piece-code="bQ" src="~/img/chesspieces/wikipedia/bQ.png" alt="@Localizer["Game_QueenAlt"]" />
                     <span class="taken-pieces-black-queen-value">0</span>
                 </div>
             </div>
@@ -93,6 +97,16 @@
                     <option value="alpha">@Localizer["Game_PieceTheme_Alpha"]</option>
                     <option value="leipzig">@Localizer["Game_PieceTheme_Leipzig"]</option>
                 </select>
+            </div>
+            <div class="board-hints-container">
+                <label class="board-hint-option" for="check-hints-toggle">
+                    <input id="check-hints-toggle" type="checkbox" />
+                    <span>@Localizer["Game_Hint_CheckEscape"]</span>
+                </label>
+                <label class="board-hint-option" for="legal-moves-toggle">
+                    <input id="legal-moves-toggle" type="checkbox" />
+                    <span>@Localizer["Game_Hint_LegalMoves"]</span>
+                </label>
             </div>
             <h6 class="status-bar-container"><i class="fas fa-arrow-alt-circle-right"></i> <span class="status-bar-text"></span> <span class="status-bar-check-notification"></span></h6>
             <div id="board"></div>
@@ -121,23 +135,23 @@
             <div class="main-playground-black-points player-points"><span class="black-points-value player-points-value">0</span> @Localizer["Game_PointsSuffix"]</div>
             <div class="main-playground-black-taken-pieces taken-pieces-container">
                 <div class="taken-pieces">
-                    <img src="~/img/chesspieces/wikipedia/wP.png" alt="@Localizer["Game_PawnAlt"]" />
+                    <img class="taken-piece-image" data-piece-code="wP" src="~/img/chesspieces/wikipedia/wP.png" alt="@Localizer["Game_PawnAlt"]" />
                     <span class="taken-pieces-white-pawn-value">0</span>
                 </div>
                 <div class="taken-pieces">
-                    <img src="~/img/chesspieces/wikipedia/wN.png" alt="@Localizer["Game_KnightAlt"]" />
+                    <img class="taken-piece-image" data-piece-code="wN" src="~/img/chesspieces/wikipedia/wN.png" alt="@Localizer["Game_KnightAlt"]" />
                     <span class="taken-pieces-white-knight-value">0</span>
                 </div>
                 <div class="taken-pieces">
-                    <img src="~/img/chesspieces/wikipedia/wB.png" alt="@Localizer["Game_BishopAlt"]" />
+                    <img class="taken-piece-image" data-piece-code="wB" src="~/img/chesspieces/wikipedia/wB.png" alt="@Localizer["Game_BishopAlt"]" />
                     <span class="taken-pieces-white-bishop-value">0</span>
                 </div>
                 <div class="taken-pieces">
-                    <img src="~/img/chesspieces/wikipedia/wR.png" alt="@Localizer["Game_RookAlt"]" />
+                    <img class="taken-piece-image" data-piece-code="wR" src="~/img/chesspieces/wikipedia/wR.png" alt="@Localizer["Game_RookAlt"]" />
                     <span class="taken-pieces-white-rook-value">0</span>
                 </div>
                 <div class="taken-pieces">
-                    <img src="~/img/chesspieces/wikipedia/wQ.png" alt="@Localizer["Game_QueenAlt"]" />
+                    <img class="taken-piece-image" data-piece-code="wQ" src="~/img/chesspieces/wikipedia/wQ.png" alt="@Localizer["Game_QueenAlt"]" />
                     <span class="taken-pieces-white-queen-value">0</span>
                 </div>
             </div>
@@ -149,6 +163,7 @@
         <section class="game-lobby-input-container form">
             <input type="text" class="game-lobby-input-name" placeholder="@Localizer["Game_EnterName"]" autofocus />
             <button type="submit" class="game-lobby-input-create-btn game-btn">@Localizer["Game_CreateRoom"]</button>
+            <button type="button" class="game-lobby-input-vs-bot-btn game-btn">@Localizer["Game_PlayVsBot"]</button>
         </section>
 
         <section class="game-lobby-title-container">

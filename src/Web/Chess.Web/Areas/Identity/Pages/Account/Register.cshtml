@@ -4,11 +4,14 @@
     ViewData["Title"] = Localizer["Id_RegisterTitle"];
 }
 
-<h1>@ViewData["Title"]</h1>
+<section class="auth-shell">
+    <header class="auth-shell-header">
+        <h1>@ViewData["Title"]</h1>
+    </header>
 
-<div class="row">
-    <div class="col-md-4">
-        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+<div class="row auth-shell-row">
+    <div class="col-lg-5 col-md-6">
+        <form id="registerForm" class="auth-panel" asp-route-returnUrl="@Model.ReturnUrl" method="post">
             <h2>@Localizer["Id_RegisterSubtitle"]</h2>
             <hr />
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
@@ -30,8 +33,8 @@
             <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">@Localizer["Id_RegisterButton"]</button>
         </form>
     </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
+    <div class="col-lg-6 col-md-6">
+        <section class="auth-panel auth-panel-muted">
             <h3>@Localizer["Id_RegisterExternalTitle"]</h3>
             <hr />
             @{
@@ -60,6 +63,7 @@
         </section>
     </div>
 </div>
+</section>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

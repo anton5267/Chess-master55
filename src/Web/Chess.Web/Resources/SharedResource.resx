@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -237,6 +237,99 @@
   <data name="About_SourceConsole" xml:space="preserve">
     <value>Chess.Console - Source Code</value>
   </data>
+  <data name="About_HeroTagline" xml:space="preserve">
+    <value>Modern Multiplayer Chess</value>
+  </data>
+  <data name="About_HeroSupport" xml:space="preserve">
+    <value>Designed for practical learning: clear architecture, real-time gameplay, and production-ready foundations.</value>
+  </data>
+  <data name="About_HeroChipLive" xml:space="preserve">
+    <value>Live SignalR matches</value>
+  </data>
+  <data name="About_HeroChipCloud" xml:space="preserve">
+    <value>.NET 8 + EF Core</value>
+  </data>
+  <data name="About_HeroChipResponsive" xml:space="preserve">
+    <value>Responsive UI</value>
+  </data>
+  <data name="About_HeroPrimaryCta" xml:space="preserve">
+    <value>Start Game</value>
+  </data>
+  <data name="About_HeroSecondaryCta" xml:space="preserve">
+    <value>View Stats</value>
+  </data>
+  <data name="About_MetaTitle" xml:space="preserve">
+    <value>Project Snapshot</value>
+  </data>
+  <data name="About_MetaStackLabel" xml:space="preserve">
+    <value>Stack</value>
+  </data>
+  <data name="About_MetaStackValue" xml:space="preserve">
+    <value>ASP.NET Core MVC, SignalR, EF Core, SQL, JavaScript</value>
+  </data>
+  <data name="About_MetaModeLabel" xml:space="preserve">
+    <value>Multiplayer</value>
+  </data>
+  <data name="About_MetaModeValue" xml:space="preserve">
+    <value>Real-time rooms with synchronized board state</value>
+  </data>
+  <data name="About_MetaLocalesLabel" xml:space="preserve">
+    <value>Localization</value>
+  </data>
+  <data name="About_MetaLocalesValue" xml:space="preserve">
+    <value>English, Ukrainian, German, Polish, Spanish</value>
+  </data>
+  <data name="About_MetaUpdatesLabel" xml:space="preserve">
+    <value>Delivery</value>
+  </data>
+  <data name="About_MetaUpdatesValue" xml:space="preserve">
+    <value>Automated builds and incremental releases</value>
+  </data>
+  <data name="About_MediaGameTitle" xml:space="preserve">
+    <value>Web Match Experience</value>
+  </data>
+  <data name="About_MediaGameText" xml:space="preserve">
+    <value>Lobby, chat, board themes, and move history in one focused game workspace.</value>
+  </data>
+  <data name="About_MediaConsoleTitle" xml:space="preserve">
+    <value>Console Heritage</value>
+  </data>
+  <data name="About_MediaConsoleText" xml:space="preserve">
+    <value>The project keeps the spirit of the original console chess implementation.</value>
+  </data>
+  <data name="About_FeaturesIntro" xml:space="preserve">
+    <value>Core capabilities are grouped below for faster overview.</value>
+  </data>
+  <data name="About_CategoryGameplay" xml:space="preserve">
+    <value>Gameplay</value>
+  </data>
+  <data name="About_CategoryMultiplayer" xml:space="preserve">
+    <value>Multiplayer</value>
+  </data>
+  <data name="About_CategoryData" xml:space="preserve">
+    <value>Data &amp; Stats</value>
+  </data>
+  <data name="About_CategoryUx" xml:space="preserve">
+    <value>UX &amp; Accessibility</value>
+  </data>
+  <data name="About_Feature_UxThemes" xml:space="preserve">
+    <value>Board and piece theme selector</value>
+  </data>
+  <data name="About_Feature_UxRealtimeSync" xml:space="preserve">
+    <value>Server-authoritative move synchronization</value>
+  </data>
+  <data name="About_Feature_UxLocalization" xml:space="preserve">
+    <value>Localized UI across five languages</value>
+  </data>
+  <data name="About_CtaTitle" xml:space="preserve">
+    <value>Ready for your next match?</value>
+  </data>
+  <data name="About_CtaText" xml:space="preserve">
+    <value>Create a room, invite a friend, and play with synchronized moves and live status updates.</value>
+  </data>
+  <data name="About_CtaButton" xml:space="preserve">
+    <value>Open Game Lobby</value>
+  </data>
   <data name="Stats_Title" xml:space="preserve">
     <value>Stats</value>
   </data>
@@ -342,6 +435,9 @@
   <data name="Game_CreateRoom" xml:space="preserve">
     <value>CREATE ROOM</value>
   </data>
+  <data name="Game_PlayVsBot" xml:space="preserve">
+    <value>PLAY VS BOT</value>
+  </data>
   <data name="Game_RoomsTitle" xml:space="preserve">
     <value>GAME ROOMS</value>
   </data>
@@ -356,6 +452,12 @@
   </data>
   <data name="Js_YourTurn" xml:space="preserve">
     <value>Your turn!</value>
+  </data>
+  <data name="Js_BotThinking" xml:space="preserve">
+    <value>Bot is thinking...</value>
+  </data>
+  <data name="Js_BotJoinedGame" xml:space="preserve">
+    <value>{name} joined as bot. The game started!</value>
   </data>
   <data name="Js_PlayerTurnFormat" xml:space="preserve">
     <value>{name}'s turn!</value>
@@ -372,8 +474,17 @@
   <data name="Js_CheckmateWinFormat" xml:space="preserve">
     <value>CHECKMATE! {name} WIN!</value>
   </data>
+  <data name="Js_Checkmate" xml:space="preserve">
+    <value>CHECKMATE!</value>
+  </data>
   <data name="Js_Stalemate" xml:space="preserve">
     <value>STALEMATE!</value>
+  </data>
+  <data name="BotGame_CheckmateWin" xml:space="preserve">
+    <value>CHECKMATE! {0} wins against the bot.</value>
+  </data>
+  <data name="BotGame_Stalemate" xml:space="preserve">
+    <value>Stalemate. The bot game ends in a draw.</value>
   </data>
   <data name="Js_Draw" xml:space="preserve">
     <value>DRAW!</value>
@@ -1067,5 +1178,20 @@
   </data>
   <data name="Id_ResetPasswordConfirmationTitle" xml:space="preserve">
     <value>Reset password confirmation</value>
+  </data>
+  <data name="Stats_NoGamesYet" xml:space="preserve">
+    <value>Play games to see chart statistics.</value>
+  </data>
+  <data name="Stats_NoDataUser" xml:space="preserve">
+    <value>No data yet</value>
+  </data>
+  <data name="Js_CheckEscapeHint" xml:space="preserve">
+    <value>escape with king, block, or capture</value>
+  </data>
+  <data name="Game_Hint_CheckEscape" xml:space="preserve">
+    <value>Show check escape hints</value>
+  </data>
+  <data name="Game_Hint_LegalMoves" xml:space="preserve">
+    <value>Show legal move hints</value>
   </data>
 </root>
