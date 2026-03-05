@@ -681,6 +681,58 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
+    public async Task BotGame_MoveSelected_WhenNotYourTurn_ShouldSnapbackAndKeepTurn()
+    {
+        await this.SeedUserAsync("bot-user-not-your-turn-1", "bot-not-your-turn-1@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-not-your-turn-1", "bot-not-your-turn-1@example.com");
+
+        var startTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var snapbackTcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var syncQueue = new Queue<SyncMessage>();
+        var boardMoveCount = 0;
+        using var syncSignal = new SemaphoreSlim(0, int.MaxValue);
+
+        connection.On<JsonElement>("Start", payload => startTcs.TrySetResult(payload));
+        connection.On<string>("BoardSnapback", fen => snapbackTcs.TrySetResult(fen));
+        connection.On<string, string>("BoardMove", (_, _) => Interlocked.Increment(ref boardMoveCount));
+        connection.On<string, string, long, string>("SyncPosition", (fen, movingPlayerName, turnNumber, movingPlayerId) =>
+        {
+            lock (syncQueue)
+            {
+                syncQueue.Enqueue(new SyncMessage(fen, movingPlayerName, turnNumber, movingPlayerId));
+            }
+
+            syncSignal.Release();
+        });
+
+        await connection.StartAsync();
+        await connection.InvokeAsync<JsonElement>("StartVsBot", "human_notturn1");
+        var startPayload = await WaitWithTimeout(startTcs.Task);
+        var gameId = startPayload.GetProperty("game").GetProperty("id").GetString();
+        gameId.Should().NotBeNullOrWhiteSpace();
+
+        var botPlayerId = startPayload.GetProperty("botPlayerId").GetString();
+        botPlayerId.Should().NotBeNullOrWhiteSpace();
+
+        this.ConfigureBotPendingTurnPosition(gameId!);
+        var snapshot = this.GetGameSnapshot(gameId!);
+
+        ClearQueueAndSignal(syncQueue, syncSignal);
+        Interlocked.Exchange(ref boardMoveCount, 0);
+
+        await connection.InvokeAsync("MoveSelected", "a2", "a3", snapshot.Fen, null);
+
+        var snapbackFen = await WaitWithTimeout(snapbackTcs.Task, timeoutMs: 5000);
+        snapbackFen.Should().Be(snapshot.Fen);
+
+        var sync = await WaitNextSync(syncQueue, syncSignal, timeoutMs: 5000);
+        sync.Fen.Should().Be(snapshot.Fen);
+        sync.TurnNumber.Should().Be(snapshot.TurnNumber);
+        sync.MovingPlayerId.Should().Be(botPlayerId);
+        boardMoveCount.Should().Be(0);
+    }
+
+    [Fact]
     public async Task BotGame_ShouldNotPersistGamesMovesOrStats()
     {
         const string userId = "bot-user-3";

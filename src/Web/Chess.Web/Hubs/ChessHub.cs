@@ -40,6 +40,8 @@ namespace Chess.Web.Hubs
                 if (!this.IsValidSquareName(source) || !this.IsValidSquareName(target) || source == target)
                 {
                     await this.SnapbackToServerPosition(game);
+                    await this.SyncPositionToCaller(game);
+                    await this.SyncTerminalStateToCallerIfNeeded(game);
                     return;
                 }
 
@@ -119,6 +121,8 @@ namespace Chess.Web.Hubs
                     else
                     {
                         await this.SnapbackToServerPosition(game);
+                        await this.SyncPositionToCaller(game);
+                        await this.SyncTerminalStateToCallerIfNeeded(game);
                     }
                 }
                 catch (Exception ex)
@@ -204,28 +208,37 @@ namespace Chess.Web.Hubs
             await this.TryExecuteBotTurnIfNeededAsync(gameSession, trigger: "request_sync_recovery");
         }
 
-        public LegalMoveDto[] GetLegalMoves()
+        public async Task<LegalMoveDto[]> GetLegalMoves()
         {
-            var player = this.GetPlayer();
-            var game = this.GetGame();
-            if (game.GameOver != GameOver.None)
+            var gameSession = this.GetGameSession();
+            await gameSession.MoveLock.WaitAsync();
+            try
             {
-                return Array.Empty<LegalMoveDto>();
-            }
-
-            if (!player.HasToMove)
-            {
-                return Array.Empty<LegalMoveDto>();
-            }
-
-            return game.GetLegalMoves()
-                .Select(x => new LegalMoveDto
+                var player = this.GetPlayer();
+                var game = gameSession.Game;
+                if (game.GameOver != GameOver.None)
                 {
-                    Source = x.Source,
-                    Target = x.Target,
-                    IsCapture = x.IsCapture,
-                })
-                .ToArray();
+                    return Array.Empty<LegalMoveDto>();
+                }
+
+                if (!player.HasToMove)
+                {
+                    return Array.Empty<LegalMoveDto>();
+                }
+
+                return game.GetLegalMoves()
+                    .Select(x => new LegalMoveDto
+                    {
+                        Source = x.Source,
+                        Target = x.Target,
+                        IsCapture = x.IsCapture,
+                    })
+                    .ToArray();
+            }
+            finally
+            {
+                gameSession.MoveLock.Release();
+            }
         }
 
         public async Task ThreefoldDraw()
