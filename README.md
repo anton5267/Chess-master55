@@ -20,6 +20,13 @@
 * CSS
 * Bootstrap
 
+## Asset Pipeline
+
+Frontend assets are built with `esbuild` only.
+
+- JS outputs: `wwwroot/js/game.bundle(.min).js`, `wwwroot/js/stats.bundle(.min).js`
+- Legacy `BuildBundlerMinifier`/`bundleconfig.json` pipeline was removed
+
 ## Features
 
 - [x] Move Validation
