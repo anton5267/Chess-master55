@@ -56,6 +56,7 @@
             this.AddSignalR(services);
             this.AddRepositories(services);
             this.AddServices(services);
+            services.AddHealthChecks();
             services.AddDatabaseDeveloperPageExceptionFilter();
             this.AddRazorPages(services);
         }
@@ -92,6 +93,7 @@
                         endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
                         endpoints.MapRazorPages();
                         endpoints.MapHub<GameHub>("/hub").RequireAuthorization();
+                        endpoints.MapHealthChecks("/healthz");
                     });
         }
 

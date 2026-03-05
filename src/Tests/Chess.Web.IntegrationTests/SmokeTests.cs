@@ -40,6 +40,14 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
+    [Fact]
+    public async Task Healthz_ShouldOpenSuccessfully()
+    {
+        var response = await this.client.GetAsync("/healthz");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
     [Theory]
     [InlineData("en", "Home", "Play")]
     [InlineData("uk", "додому", "грати")]

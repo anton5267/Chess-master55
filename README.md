@@ -134,3 +134,13 @@ npm run dev:remote
    - or switch to HTTP mode (`npm run dev:http` + `ngrok http http://localhost:5000`).
 3. Port is already in use:
    - stop old `dotnet`/`ngrok` processes and rerun.
+
+## Health Check
+
+Service health endpoint:
+
+```bash
+GET /healthz
+```
+
+Expected response code: `200 OK`.
