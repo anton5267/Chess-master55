@@ -88,6 +88,12 @@ namespace Chess.Web.Hubs
                     await this.HighlightMove(source, target, game);
                     await this.IsSpecialMove(target, game);
                     await this.SyncPosition(game);
+
+                    if (isBotGame && await this.TryResolveTerminalBotStateAsync(gameSession, "human_move_postsync"))
+                    {
+                        return;
+                    }
+
                     await this.UpdateStatus(game);
                     await this.TryExecuteBotTurnIfNeededAsync(gameSession, trigger: "human_move");
                 }
@@ -416,6 +422,11 @@ namespace Chess.Web.Hubs
             try
             {
                 if (this.ShouldAbortBotTurn(game, botSession))
+                {
+                    return;
+                }
+
+                if (await this.TryResolveTerminalBotStateAsync(gameSession, $"bot_turn_{trigger}_pre_delay"))
                 {
                     return;
                 }
