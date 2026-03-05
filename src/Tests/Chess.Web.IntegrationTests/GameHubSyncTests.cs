@@ -805,6 +805,37 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         secondGameOver.Player.GetProperty("name").GetString().Should().Be(humanName);
     }
 
+    [Fact]
+    public async Task BotGame_RequestSync_ShouldResolveTerminalState_WhenHumanHasNoLegalMoves()
+    {
+        await this.SeedUserAsync("bot-user-terminal-4", "bot-terminal-4@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-terminal-4", "bot-terminal-4@example.com");
+
+        var startTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var gameOverTcs = new TaskCompletionSource<(JsonElement Player, int GameOver)>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        connection.On<JsonElement>("Start", payload => startTcs.TrySetResult(payload));
+        connection.On<JsonElement, int>("GameOver", (player, gameOver) => gameOverTcs.TrySetResult((player, gameOver)));
+
+        await connection.StartAsync();
+        await connection.InvokeAsync<JsonElement>("StartVsBot", "human_bot_terminal_4");
+
+        var startPayload = await WaitWithTimeout(startTcs.Task);
+        var gameId = startPayload.GetProperty("game").GetProperty("id").GetString();
+        gameId.Should().NotBeNullOrWhiteSpace();
+
+        var botName = startPayload.GetProperty("botPlayerName").GetString();
+        botName.Should().NotBeNullOrWhiteSpace();
+
+        this.ConfigureBotTerminalPosition(gameId!, checkmate: true, botToMove: false);
+
+        await connection.InvokeAsync("RequestSync");
+        var gameOverEvent = await WaitWithTimeout(gameOverTcs.Task, timeoutMs: 15000);
+        gameOverEvent.GameOver.Should().Be((int)GameOver.Checkmate);
+        gameOverEvent.Player.ValueKind.Should().NotBe(JsonValueKind.Null);
+        gameOverEvent.Player.GetProperty("name").GetString().Should().Be(botName);
+    }
+
     private HubConnection CreateHubConnection(string userId, string userName)
     {
         var baseAddress = this.factory.Server.BaseAddress ?? new Uri("http://localhost");
@@ -887,7 +918,7 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         await dbContext.SaveChangesAsync();
     }
 
-    private void ConfigureBotTerminalPosition(string gameId, bool checkmate)
+    private void ConfigureBotTerminalPosition(string gameId, bool checkmate, bool botToMove = true)
     {
         using var scope = this.factory.Services.CreateScope();
         var store = scope.ServiceProvider.GetRequiredService<IGameSessionStore>();
@@ -901,8 +932,8 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
             var botColor = botSession.Player.Color;
             var opponentColor = humanSession.Player.Color;
 
-            gameSession.Player1.Player.HasToMove = gameSession.Player1.IsBot;
-            gameSession.Player2.Player.HasToMove = gameSession.Player2.IsBot;
+            gameSession.Player1.Player.HasToMove = gameSession.Player1.IsBot == botToMove;
+            gameSession.Player2.Player.HasToMove = gameSession.Player2.IsBot == botToMove;
             gameSession.Game.GameOver = GameOver.None;
             gameSession.Game.Turn = 20;
 
@@ -911,17 +942,35 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
                 square.Piece = null;
             }
 
-            if (botColor == Color.Black)
+            if (botToMove)
             {
-                gameSession.Game.ChessBoard.GetSquareByName("h8").Piece = Factory.GetKing(botColor);
-                gameSession.Game.ChessBoard.GetSquareByName("f6").Piece = Factory.GetKing(opponentColor);
-                gameSession.Game.ChessBoard.GetSquareByName(checkmate ? "g7" : "g6").Piece = Factory.GetQueen(opponentColor);
+                if (botColor == Color.Black)
+                {
+                    gameSession.Game.ChessBoard.GetSquareByName("h8").Piece = Factory.GetKing(botColor);
+                    gameSession.Game.ChessBoard.GetSquareByName("f6").Piece = Factory.GetKing(opponentColor);
+                    gameSession.Game.ChessBoard.GetSquareByName(checkmate ? "g7" : "g6").Piece = Factory.GetQueen(opponentColor);
+                }
+                else
+                {
+                    gameSession.Game.ChessBoard.GetSquareByName("h1").Piece = Factory.GetKing(botColor);
+                    gameSession.Game.ChessBoard.GetSquareByName(checkmate ? "f3" : "f2").Piece = Factory.GetKing(opponentColor);
+                    gameSession.Game.ChessBoard.GetSquareByName(checkmate ? "g2" : "g3").Piece = Factory.GetQueen(opponentColor);
+                }
             }
             else
             {
-                gameSession.Game.ChessBoard.GetSquareByName("h1").Piece = Factory.GetKing(botColor);
-                gameSession.Game.ChessBoard.GetSquareByName(checkmate ? "f3" : "f2").Piece = Factory.GetKing(opponentColor);
-                gameSession.Game.ChessBoard.GetSquareByName(checkmate ? "g2" : "g3").Piece = Factory.GetQueen(opponentColor);
+                if (opponentColor == Color.Black)
+                {
+                    gameSession.Game.ChessBoard.GetSquareByName("h8").Piece = Factory.GetKing(opponentColor);
+                    gameSession.Game.ChessBoard.GetSquareByName("f6").Piece = Factory.GetKing(botColor);
+                    gameSession.Game.ChessBoard.GetSquareByName(checkmate ? "g7" : "g6").Piece = Factory.GetQueen(botColor);
+                }
+                else
+                {
+                    gameSession.Game.ChessBoard.GetSquareByName("h1").Piece = Factory.GetKing(opponentColor);
+                    gameSession.Game.ChessBoard.GetSquareByName(checkmate ? "f3" : "f2").Piece = Factory.GetKing(botColor);
+                    gameSession.Game.ChessBoard.GetSquareByName(checkmate ? "g2" : "g3").Piece = Factory.GetQueen(botColor);
+                }
             }
 
             gameSession.Game.ChessBoard.CalculateAttackedSquares();

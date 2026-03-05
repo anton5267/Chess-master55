@@ -131,6 +131,13 @@ namespace Chess.Web.Hubs
             }
 
             var game = gameSession.Game;
+            if (await this.TryResolveTerminalBotStateAsync(gameSession, "request_sync_precheck"))
+            {
+                await this.SyncPositionToCaller(game);
+                await this.SyncTerminalStateToCallerIfNeeded(game);
+                return;
+            }
+
             await this.SyncPositionToCaller(game);
             await this.SyncTerminalStateToCallerIfNeeded(game);
 
@@ -585,6 +592,37 @@ namespace Chess.Web.Hubs
         {
             return game.GameOver != GameOver.None ||
                 !string.Equals(game.MovingPlayer.Id, botSession.ConnectionId, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private async Task<bool> TryResolveTerminalBotStateAsync(GameSession gameSession, string trigger)
+        {
+            if (gameSession == null || !gameSession.IsBotGame)
+            {
+                return false;
+            }
+
+            var game = gameSession.Game;
+            if (game.GameOver != GameOver.None)
+            {
+                return false;
+            }
+
+            var (resolved, gameOver, winnerOrActor) = game.ResolveTerminalStateForCurrentMovingPlayer();
+            if (!resolved)
+            {
+                return false;
+            }
+
+            await this.PublishBotGameOverAsync(game, winnerOrActor, gameOver);
+            await this.SyncPosition(game);
+            this.logger.LogInformation(
+                "BotTerminalResolved GameId={GameId} Trigger={Trigger} GameOver={GameOver} Winner={Winner}",
+                game.Id,
+                trigger,
+                gameOver,
+                winnerOrActor?.Name ?? "<none>");
+
+            return true;
         }
 
         private async Task PublishBotGameOverAsync(Game game, Player winner, GameOver gameOver)
