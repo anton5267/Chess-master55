@@ -32,6 +32,9 @@
         ["checkEscapeHint"] = Localizer["Js_CheckEscapeHint"],
         ["botThinking"] = Localizer["Js_BotThinking"],
         ["botJoinedGame"] = Localizer["Js_BotJoinedGame"],
+        ["gameResultWin"] = Localizer["Js_GameResult_Win"],
+        ["gameResultLoss"] = Localizer["Js_GameResult_Loss"],
+        ["gameResultDraw"] = Localizer["Js_GameResult_Draw"],
     };
 }
 
@@ -165,6 +168,11 @@
         <section class="game-lobby-input-container form">
             <input type="text" class="game-lobby-input-name" placeholder="@Localizer["Game_EnterName"]" autofocus />
             <button type="submit" class="game-lobby-input-create-btn game-btn">@Localizer["Game_CreateRoom"]</button>
+            <label class="game-lobby-input-bot-difficulty-label" for="bot-difficulty-select">@Localizer["Game_BotDifficultyLabel"]</label>
+            <select class="game-lobby-input-bot-difficulty" id="bot-difficulty-select">
+                <option value="normal">@Localizer["Game_BotDifficulty_Normal"]</option>
+                <option value="easy">@Localizer["Game_BotDifficulty_Easy"]</option>
+            </select>
             <button type="button" class="game-lobby-input-vs-bot-btn game-btn">@Localizer["Game_PlayVsBot"]</button>
         </section>
 

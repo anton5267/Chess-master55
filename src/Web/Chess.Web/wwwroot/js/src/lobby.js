@@ -1,4 +1,5 @@
 import { reportClientError, showWaitingForOpponent } from './ui.js';
+import { storageKeys, storeValue } from './state.js';
 
 function setLobbyButtonsDisabled(elements, isDisabled) {
     elements.lobbyInputCreateBtn.disabled = isDisabled;
@@ -33,6 +34,21 @@ function runLobbyAction(elements, state, action) {
             state.lobbyActionInFlight = false;
             setLobbyButtonsDisabled(elements, false);
         });
+}
+
+function normalizeDifficulty(value) {
+    return value === 'easy' ? 'easy' : 'normal';
+}
+
+function getSelectedBotDifficulty(elements, state) {
+    const rawValue = elements.botDifficultySelect
+        ? elements.botDifficultySelect.value
+        : state.botDifficulty;
+
+    const normalized = normalizeDifficulty(rawValue);
+    state.botDifficulty = normalized;
+    storeValue(storageKeys.botDifficulty, normalized);
+    return normalized;
 }
 
 export function bindLobbyHandlers(connection, elements, state) {
@@ -81,7 +97,9 @@ export function bindLobbyHandlers(connection, elements, state) {
                 return;
             }
 
-            runLobbyAction(elements, state, () => connection.invoke('StartVsBot', name)
+            const difficulty = getSelectedBotDifficulty(elements, state);
+
+            runLobbyAction(elements, state, () => connection.invoke('StartVsBotWithDifficulty', name, difficulty)
                 .then((player) => {
                     state.playerId = player.id;
                 }));

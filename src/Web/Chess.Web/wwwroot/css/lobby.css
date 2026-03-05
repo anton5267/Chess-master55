@@ -35,6 +35,28 @@
     border-radius: 10px;
 }
 
+.game-lobby-input-bot-difficulty-label {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    padding: 0 0.2rem;
+    color: #4d5b73;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.game-lobby-input-bot-difficulty {
+    min-width: 150px;
+    border: 1px solid #c3cedf;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #21324a;
+    font-size: 0.96rem;
+    padding: 0.35rem 0.5rem;
+}
+
 .game-lobby-title-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -152,6 +174,16 @@
     }
 
     .game-lobby-input-create-btn {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .game-lobby-input-bot-difficulty-label {
+        justify-content: flex-start;
+        padding: 0;
+    }
+
+    .game-lobby-input-bot-difficulty {
         width: 100%;
         min-width: 0;
     }

@@ -526,7 +526,58 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         startPayload.GetProperty("gameMode").GetString().Should().Be("bot");
         startPayload.GetProperty("botPlayerId").GetString().Should().NotBeNullOrWhiteSpace();
         startPayload.GetProperty("botPlayerName").GetString().Should().Be("ChessBot");
+        startPayload.GetProperty("botDifficulty").GetString().Should().Be("normal");
         startPayload.GetProperty("startFen").GetString().Should().Be(StartFen);
+    }
+
+    [Fact]
+    public async Task StartVsBotWithDifficulty_ShouldStartAndEchoDifficulty()
+    {
+        await this.SeedUserAsync("bot-user-difficulty-1", "bot-difficulty-1@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-difficulty-1", "bot-difficulty-1@example.com");
+
+        var startTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        connection.On<JsonElement>("Start", payload => startTcs.TrySetResult(payload));
+
+        await connection.StartAsync();
+
+        await connection.InvokeAsync<JsonElement>("StartVsBotWithDifficulty", "human_bot_easy_1", "easy");
+        var startPayload = await WaitWithTimeout(startTcs.Task);
+
+        startPayload.GetProperty("isBotGame").GetBoolean().Should().BeTrue();
+        startPayload.GetProperty("botDifficulty").GetString().Should().Be("easy");
+    }
+
+    [Fact]
+    public async Task StartVsBot_LegacyMethod_ShouldUseDefaultDifficulty()
+    {
+        await this.SeedUserAsync("bot-user-difficulty-2", "bot-difficulty-2@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-difficulty-2", "bot-difficulty-2@example.com");
+
+        var startTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        connection.On<JsonElement>("Start", payload => startTcs.TrySetResult(payload));
+
+        await connection.StartAsync();
+
+        await connection.InvokeAsync<JsonElement>("StartVsBot", "human_bot_default_1");
+        var startPayload = await WaitWithTimeout(startTcs.Task);
+
+        startPayload.GetProperty("isBotGame").GetBoolean().Should().BeTrue();
+        startPayload.GetProperty("botDifficulty").GetString().Should().Be("normal");
+    }
+
+    [Fact]
+    public async Task StartVsBotWithDifficulty_ShouldRejectUnsupportedDifficulty()
+    {
+        await this.SeedUserAsync("bot-user-difficulty-3", "bot-difficulty-3@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-difficulty-3", "bot-difficulty-3@example.com");
+
+        await connection.StartAsync();
+
+        var exception = await Assert.ThrowsAsync<HubException>(() =>
+            connection.InvokeAsync<JsonElement>("StartVsBotWithDifficulty", "human_bot_bad_difficulty_1", "hard"));
+
+        exception.Message.Should().NotBeNullOrWhiteSpace();
     }
 
     [Fact]

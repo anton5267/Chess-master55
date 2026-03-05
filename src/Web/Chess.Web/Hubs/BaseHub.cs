@@ -407,6 +407,9 @@ namespace Chess.Web.Hubs
                 GameMode = gameSession.IsBotGame ? "bot" : "pvp",
                 BotPlayerId = botPlayer?.ConnectionId,
                 BotPlayerName = botPlayer?.Name,
+                BotDifficulty = gameSession.IsBotGame
+                    ? gameSession.BotDifficulty.ToClientValue()
+                    : null,
             };
         }
     }

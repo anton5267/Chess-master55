@@ -165,6 +165,7 @@ namespace Chess.Web.Hubs.Sessions
             string name,
             int rating,
             IServiceProvider serviceProvider,
+            BotDifficulty difficulty,
             out PlayerSession playerSession,
             out GameSession gameSession,
             out string error)
@@ -264,6 +265,7 @@ namespace Chess.Web.Hubs.Sessions
                     Player2 = game.Player2.Id.Equals(playerSession.ConnectionId, StringComparison.OrdinalIgnoreCase) ? playerSession : botSession,
                     Game = game,
                     Mode = GameMode.HumanVsBot,
+                    BotDifficulty = difficulty,
                     CreatedAtUtc = this.clock.UtcNow,
                 };
 

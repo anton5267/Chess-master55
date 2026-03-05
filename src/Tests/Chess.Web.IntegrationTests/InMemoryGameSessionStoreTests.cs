@@ -176,6 +176,7 @@ public class InMemoryGameSessionStoreTests
             "human_player",
             1280,
             services,
+            BotDifficulty.Normal,
             out var humanSession,
             out var gameSession,
             out var error);
@@ -216,6 +217,7 @@ public class InMemoryGameSessionStoreTests
             "human_player",
             1280,
             services,
+            BotDifficulty.Normal,
             out _,
             out var gameSession,
             out var createError).Should().BeTrue(createError);
@@ -255,6 +257,7 @@ public class InMemoryGameSessionStoreTests
             "human_player",
             1280,
             services,
+            BotDifficulty.Normal,
             out var firstHumanSession,
             out var firstGameSession,
             out var firstError).Should().BeTrue(firstError);
@@ -274,6 +277,7 @@ public class InMemoryGameSessionStoreTests
             "human_player",
             1280,
             services,
+            BotDifficulty.Normal,
             out var secondHumanSession,
             out var secondGameSession,
             out var secondError).Should().BeTrue(secondError);
@@ -305,6 +309,7 @@ public class InMemoryGameSessionStoreTests
             "human_player",
             1280,
             services,
+            BotDifficulty.Normal,
             out var firstHumanSession,
             out var firstGameSession,
             out var firstError).Should().BeTrue(firstError);
@@ -319,6 +324,7 @@ public class InMemoryGameSessionStoreTests
             "human_player",
             1280,
             services,
+            BotDifficulty.Normal,
             out var secondHumanSession,
             out var secondGameSession,
             out var secondError);
@@ -354,6 +360,7 @@ public class InMemoryGameSessionStoreTests
             "human_player",
             1280,
             services,
+            BotDifficulty.Normal,
             out _,
             out _,
             out var firstError).Should().BeTrue(firstError);
@@ -364,6 +371,7 @@ public class InMemoryGameSessionStoreTests
             "human_player",
             1280,
             services,
+            BotDifficulty.Normal,
             out _,
             out _,
             out var secondError);
@@ -389,6 +397,7 @@ public class InMemoryGameSessionStoreTests
             "human_player",
             1280,
             services,
+            BotDifficulty.Normal,
             out _,
             out var firstGameSession,
             out var firstError).Should().BeTrue(firstError);
@@ -403,6 +412,7 @@ public class InMemoryGameSessionStoreTests
             "human_player",
             1280,
             services,
+            BotDifficulty.Normal,
             out var secondHumanSession,
             out var secondGameSession,
             out var secondError);
@@ -625,3 +635,4 @@ public class InMemoryGameSessionStoreTests
         return games!;
     }
 }
+

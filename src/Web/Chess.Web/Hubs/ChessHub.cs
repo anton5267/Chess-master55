@@ -560,7 +560,7 @@ namespace Chess.Web.Hubs
                         return;
                     }
 
-                    var botMove = this.SelectBotMoveCandidate(game, candidateMoves);
+                    var botMove = this.SelectBotMoveCandidate(gameSession, game, candidateMoves);
                     this.RemoveCandidate(candidateMoves, botMove);
 
                     var moved = await game.MakeMoveAsync(botMove.Source, botMove.Target, targetFen: null, persistHistory: false);
@@ -661,9 +661,9 @@ namespace Chess.Web.Hubs
                 trigger);
         }
 
-        private LegalMove SelectBotMoveCandidate(Game game, List<LegalMove> candidates)
+        private LegalMove SelectBotMoveCandidate(GameSession gameSession, Game game, List<LegalMove> candidates)
         {
-            if (this.botMoveSelector.TrySelectMove(game, out var selectedByStrategy))
+            if (this.botMoveSelector.TrySelectMove(game, gameSession.BotDifficulty, out var selectedByStrategy))
             {
                 var selectedCandidate = candidates.FirstOrDefault(x =>
                     x.Source.Equals(selectedByStrategy.Source, StringComparison.OrdinalIgnoreCase) &&

@@ -25,5 +25,7 @@ namespace Chess.Web.Hubs.Sessions
         public string BotPlayerId { get; set; }
 
         public string BotPlayerName { get; set; }
+
+        public string BotDifficulty { get; set; }
     }
 }

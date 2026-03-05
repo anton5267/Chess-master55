@@ -30,6 +30,7 @@ namespace Chess.Web.Hubs.Sessions
             string name,
             int rating,
             IServiceProvider serviceProvider,
+            BotDifficulty difficulty,
             out PlayerSession playerSession,
             out GameSession gameSession,
             out string error);

@@ -46,6 +46,7 @@ function normalizeStartPayload(payload) {
         gameMode: payload && payload.gameMode ? payload.gameMode : (isBotGame ? 'bot' : 'pvp'),
         botPlayerId,
         botPlayerName,
+        botDifficulty: payload && payload.botDifficulty ? payload.botDifficulty : 'normal',
     };
 }
 
@@ -352,6 +353,16 @@ export function registerConnectionHandlers(connection, elements, state) {
         state.isBotGame = normalizedPayload.isBotGame;
         state.botPlayerId = normalizedPayload.botPlayerId;
         state.botPlayerName = normalizedPayload.botPlayerName;
+        if (state.isBotGame) {
+            state.botDifficulty = normalizedPayload.botDifficulty === 'easy'
+                ? 'easy'
+                : 'normal';
+        }
+
+        if (elements.botDifficultySelect) {
+            elements.botDifficultySelect.value = state.botDifficulty;
+        }
+
         state.currentFen = normalizedPayload.startFen || 'start';
         state.isGameStarted = true;
         state.connectionState = 'in-game';
@@ -505,10 +516,19 @@ export function registerConnectionHandlers(connection, elements, state) {
                 break;
         }
 
-        setGameResultBanner(
-            elements,
-            elements.statusText.innerText,
-            resolveGameResultTone(state, player, gameOver));
+        const resultTone = resolveGameResultTone(state, player, gameOver);
+        let resultPrefix = t('gameResultDraw');
+        if (resultTone === 'win') {
+            resultPrefix = t('gameResultWin');
+        } else if (resultTone === 'loss') {
+            resultPrefix = t('gameResultLoss');
+        }
+
+        const resultMessage = elements.statusText.innerText
+            ? `${resultPrefix} ${elements.statusText.innerText}`.trim()
+            : resultPrefix;
+
+        setGameResultBanner(elements, resultMessage, resultTone);
 
         $('.option-btn').prop('disabled', true);
         setPlayAgainVsBotVisibility(elements, state.isBotGame);

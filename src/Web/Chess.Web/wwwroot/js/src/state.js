@@ -3,6 +3,7 @@ export const storageKeys = {
     pieceTheme: "chess.pieceTheme",
     checkHints: "chess.checkHints",
     legalMoveHints: "chess.legalMoveHints",
+    botDifficulty: "chess.botDifficulty",
 };
 
 export const boardThemes = {
@@ -15,6 +16,11 @@ export const pieceThemes = {
     wikipedia: "img/chesspieces/wikipedia/{piece}.png",
     alpha: "img/chesspieces/alpha/320/{piece}.png",
     leipzig: "img/chesspieces/leipzig/320/{piece}.png",
+};
+
+export const botDifficulties = {
+    easy: "easy",
+    normal: "normal",
 };
 
 export function getElements() {
@@ -47,6 +53,7 @@ export function getElements() {
         rooms: document.querySelector('.game-lobby-room-container'),
         lobbyInputName: document.querySelector('.game-lobby-input-name'),
         lobbyInputCreateBtn: document.querySelector('.game-lobby-input-create-btn'),
+        botDifficultySelect: document.querySelector('#bot-difficulty-select'),
         lobbyInputVsBotBtn: document.querySelector('.game-lobby-input-vs-bot-btn'),
         lobbyChatInput: document.querySelector('.game-lobby-chat-input'),
         lobbyChatSendBtn: document.querySelector('.game-lobby-chat-send-btn'),
@@ -96,6 +103,7 @@ export function createState() {
         selectedPieceTheme: getStoredValue(storageKeys.pieceTheme, "wikipedia", pieceThemes),
         hintsEnabled: getStoredBoolean(storageKeys.checkHints, true),
         legalHintsEnabled: getStoredBoolean(storageKeys.legalMoveHints, true),
+        botDifficulty: getStoredValue(storageKeys.botDifficulty, "normal", botDifficulties),
         lobbyActionInFlight: false,
     };
 }

@@ -17,55 +17,17 @@ namespace Chess.Web.Hubs
     {
         public async Task<Player> StartVsBot(string name)
         {
-            this.EnsureAuthenticatedUserContext();
-            var normalizedName = this.ValidateAndNormalizePlayerName(name);
-            this.TryGetValidatedUserContext(out var userId, out _, out _);
+            return await this.StartVsBotCore(name, BotDifficulty.Normal);
+        }
 
-            if (this.gameSessionStore.TryGetGameByConnection(this.Context.ConnectionId, out var existingGameSession, out var existingPlayerSession) &&
-                existingGameSession.IsBotGame &&
-                existingGameSession.Game.GameOver == GameOver.None &&
-                existingPlayerSession is { IsBot: false })
+        public async Task<Player> StartVsBotWithDifficulty(string name, string difficulty)
+        {
+            if (!BotDifficultyExtensions.TryParseClientValue(difficulty, out var parsedDifficulty))
             {
-                await this.Groups.AddToGroupAsync(this.Context.ConnectionId, groupName: existingGameSession.GameId);
-
-                var startPayload = this.CreateStartPayload(
-                    existingGameSession,
-                    selfPlayerId: this.Context.ConnectionId,
-                    selfPlayerName: existingPlayerSession.Name);
-
-                await this.Clients.Caller.SendAsync("Start", startPayload);
-                await this.SyncPositionToCaller(existingGameSession.Game);
-                await this.SyncTerminalStateToCallerIfNeeded(existingGameSession.Game);
-                await this.TryExecuteBotTurnIfNeededAsync(existingGameSession, trigger: "start_idempotent");
-
-                this.logger.LogInformation(
-                    "BotGameStartReused GameId={GameId} ConnectionId={ConnectionId} UserId={UserId}",
-                    existingGameSession.GameId,
-                    this.Context.ConnectionId,
-                    userId);
-
-                return existingPlayerSession.Player;
+                throw new HubException(this.localizer["Hub_Error_BotDifficultyInvalid"]);
             }
 
-            var player = Factory.GetPlayer(normalizedName, this.Context.ConnectionId, userId);
-            var rating = await this.GetUserRatingAsync(player.UserId);
-
-            if (!this.gameSessionStore.TryCreateBotGame(
-                    this.Context.ConnectionId,
-                    userId,
-                    normalizedName,
-                    rating,
-                    this.serviceProvider,
-                    out var playerSession,
-                    out var gameSession,
-                    out var error))
-            {
-                throw new HubException(error ?? this.localizer["Hub_Error_StartBotFailed"]);
-            }
-
-            await this.StartGame(gameSession);
-            await this.Clients.All.SendAsync("ListRooms", this.GetWaitingPlayersSnapshot());
-            return playerSession.Player;
+            return await this.StartVsBotCore(name, parsedDifficulty);
         }
 
         public async Task<Player> CreateRoom(string name)
@@ -117,6 +79,69 @@ namespace Chess.Web.Hubs
             }
 
             await this.StartGame(gameSession);
+            return playerSession.Player;
+        }
+
+        private async Task<Player> StartVsBotCore(string name, BotDifficulty difficulty)
+        {
+            this.EnsureAuthenticatedUserContext();
+            var normalizedName = this.ValidateAndNormalizePlayerName(name);
+            this.TryGetValidatedUserContext(out var userId, out _, out _);
+
+            if (this.gameSessionStore.TryGetGameByConnection(this.Context.ConnectionId, out var existingGameSession, out var existingPlayerSession) &&
+                existingGameSession.IsBotGame &&
+                existingGameSession.Game.GameOver == GameOver.None &&
+                existingPlayerSession is { IsBot: false })
+            {
+                await this.Groups.AddToGroupAsync(this.Context.ConnectionId, groupName: existingGameSession.GameId);
+
+                var startPayload = this.CreateStartPayload(
+                    existingGameSession,
+                    selfPlayerId: this.Context.ConnectionId,
+                    selfPlayerName: existingPlayerSession.Name);
+
+                await this.Clients.Caller.SendAsync("Start", startPayload);
+                await this.SyncPositionToCaller(existingGameSession.Game);
+                await this.SyncTerminalStateToCallerIfNeeded(existingGameSession.Game);
+                await this.TryExecuteBotTurnIfNeededAsync(existingGameSession, trigger: "start_idempotent");
+
+                this.logger.LogInformation(
+                    "BotGameStartReused GameId={GameId} ConnectionId={ConnectionId} UserId={UserId} Difficulty={Difficulty}",
+                    existingGameSession.GameId,
+                    this.Context.ConnectionId,
+                    userId,
+                    existingGameSession.BotDifficulty);
+
+                return existingPlayerSession.Player;
+            }
+
+            var player = Factory.GetPlayer(normalizedName, this.Context.ConnectionId, userId);
+            var rating = await this.GetUserRatingAsync(player.UserId);
+
+            if (!this.gameSessionStore.TryCreateBotGame(
+                    this.Context.ConnectionId,
+                    userId,
+                    normalizedName,
+                    rating,
+                    this.serviceProvider,
+                    difficulty,
+                    out var playerSession,
+                    out var gameSession,
+                    out var error))
+            {
+                throw new HubException(error ?? this.localizer["Hub_Error_StartBotFailed"]);
+            }
+
+            await this.StartGame(gameSession);
+            await this.Clients.All.SendAsync("ListRooms", this.GetWaitingPlayersSnapshot());
+
+            this.logger.LogInformation(
+                "BotGameStarted GameId={GameId} ConnectionId={ConnectionId} UserId={UserId} Difficulty={Difficulty}",
+                gameSession.GameId,
+                this.Context.ConnectionId,
+                userId,
+                difficulty);
+
             return playerSession.Player;
         }
 

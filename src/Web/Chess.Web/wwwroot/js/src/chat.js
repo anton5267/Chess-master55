@@ -80,8 +80,12 @@ export function bindGameOptionHandlers(connection, elements, state) {
                 return;
             }
 
+            const difficulty = state.botDifficulty === 'easy'
+                ? 'easy'
+                : 'normal';
+
             elements.playAgainVsBotBtn.disabled = true;
-            connection.invoke('StartVsBot', playerName)
+            connection.invoke('StartVsBotWithDifficulty', playerName, difficulty)
                 .then((player) => {
                     state.playerId = player.id;
                 })

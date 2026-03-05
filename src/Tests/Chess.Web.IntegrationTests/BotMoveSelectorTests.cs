@@ -7,6 +7,7 @@ using Chess.Services.Data.Models;
 using Chess.Services.Data.Services;
 using Chess.Services.Data.Services.Contracts;
 using Chess.Web.Hubs.Bot;
+using Chess.Web.Hubs.Sessions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -48,7 +49,7 @@ public class BotMoveSelectorTests
         legalMoves.Should().NotBeEmpty();
 
         var selector = new RandomLegalMoveSelector();
-        selector.TrySelectMove(game, out var selectedMove).Should().BeTrue();
+        selector.TrySelectMove(game, BotDifficulty.Easy, out var selectedMove).Should().BeTrue();
         selectedMove.Should().NotBeNull();
 
         legalMoves.Should().Contain(move =>
@@ -63,7 +64,7 @@ public class BotMoveSelectorTests
         var board = game.ChessBoard;
 
         board.GetSquareByName("a1").Piece = Factory.GetKing(Color.White);
-        board.GetSquareByName("h8").Piece = Factory.GetKing(Color.Black);
+        board.GetSquareByName("g8").Piece = Factory.GetKing(Color.Black);
         board.GetSquareByName("d4").Piece = Factory.GetQueen(Color.White);
         board.GetSquareByName("d5").Piece = Factory.GetPawn(Color.Black);
         board.GetSquareByName("g4").Piece = Factory.GetRook(Color.Black);
@@ -72,12 +73,30 @@ public class BotMoveSelectorTests
         var selector = new RandomLegalMoveSelector();
         for (var i = 0; i < 20; i++)
         {
-            selector.TrySelectMove(game, out var selectedMove).Should().BeTrue();
+            selector.TrySelectMove(game, BotDifficulty.Normal, out var selectedMove).Should().BeTrue();
             selectedMove.Should().NotBeNull();
             selectedMove.Source.Should().Be("d4");
             selectedMove.Target.Should().Be("g4");
             selectedMove.IsCapture.Should().BeTrue();
         }
+    }
+
+    [Fact]
+    public void RandomLegalMoveSelector_NormalDifficulty_ShouldPreferPromotionBonus()
+    {
+        var game = CreateEmptyGame(movingColor: Color.White);
+        var board = game.ChessBoard;
+
+        board.GetSquareByName("h1").Piece = Factory.GetKing(Color.White);
+        board.GetSquareByName("h8").Piece = Factory.GetKing(Color.Black);
+        board.GetSquareByName("a7").Piece = Factory.GetPawn(Color.White);
+        board.CalculateAttackedSquares();
+
+        var selector = new RandomLegalMoveSelector();
+        selector.TrySelectMove(game, BotDifficulty.Normal, out var selectedMove).Should().BeTrue();
+        selectedMove.Should().NotBeNull();
+        selectedMove.Source.Should().Be("a7");
+        selectedMove.Target.Should().Be("a8");
     }
 
     private static Game CreateEmptyGame(Color movingColor)

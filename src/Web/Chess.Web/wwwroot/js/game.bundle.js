@@ -467,8 +467,9 @@
           elements.lobbyInputName.focus();
           return;
         }
+        const difficulty = state.botDifficulty === "easy" ? "easy" : "normal";
         elements.playAgainVsBotBtn.disabled = true;
-        connection.invoke("StartVsBot", playerName).then((player) => {
+        connection.invoke("StartVsBotWithDifficulty", playerName, difficulty).then((player) => {
           state.playerId = player.id;
         }).catch((err) => reportClientError(elements, err, elements.lobbyInputName)).finally(() => {
           elements.playAgainVsBotBtn.disabled = false;
@@ -497,7 +498,8 @@
       isBotGame,
       gameMode: payload && payload.gameMode ? payload.gameMode : isBotGame ? "bot" : "pvp",
       botPlayerId,
-      botPlayerName
+      botPlayerName,
+      botDifficulty: payload && payload.botDifficulty ? payload.botDifficulty : "normal"
     };
   }
   function resolveSelfPlayer(game, state, normalizedPayload) {
@@ -742,6 +744,12 @@
       state.isBotGame = normalizedPayload.isBotGame;
       state.botPlayerId = normalizedPayload.botPlayerId;
       state.botPlayerName = normalizedPayload.botPlayerName;
+      if (state.isBotGame) {
+        state.botDifficulty = normalizedPayload.botDifficulty === "easy" ? "easy" : "normal";
+      }
+      if (elements.botDifficultySelect) {
+        elements.botDifficultySelect.value = state.botDifficulty;
+      }
       state.currentFen = normalizedPayload.startFen || "start";
       state.isGameStarted = true;
       state.connectionState = "in-game";
@@ -880,11 +888,15 @@
         default:
           break;
       }
-      setGameResultBanner(
-        elements,
-        elements.statusText.innerText,
-        resolveGameResultTone(state, player, gameOver)
-      );
+      const resultTone = resolveGameResultTone(state, player, gameOver);
+      let resultPrefix = t("gameResultDraw");
+      if (resultTone === "win") {
+        resultPrefix = t("gameResultWin");
+      } else if (resultTone === "loss") {
+        resultPrefix = t("gameResultLoss");
+      }
+      const resultMessage = elements.statusText.innerText ? `${resultPrefix} ${elements.statusText.innerText}`.trim() : resultPrefix;
+      setGameResultBanner(elements, resultMessage, resultTone);
       $(".option-btn").prop("disabled", true);
       setPlayAgainVsBotVisibility(elements, state.isBotGame);
     });
@@ -1078,82 +1090,13 @@
     });
   }
 
-  // wwwroot/js/src/lobby.js
-  function setLobbyButtonsDisabled(elements, isDisabled) {
-    elements.lobbyInputCreateBtn.disabled = isDisabled;
-    if (elements.lobbyInputVsBotBtn) {
-      elements.lobbyInputVsBotBtn.disabled = isDisabled;
-    }
-    $(".game-lobby-room-join-btn").prop("disabled", isDisabled);
-  }
-  function tryGetLobbyName(elements) {
-    const name = (elements.lobbyInputName.value || "").trim();
-    if (name === "") {
-      elements.lobbyInputName.focus();
-      return null;
-    }
-    return name;
-  }
-  function runLobbyAction(elements, state, action) {
-    if (state.lobbyActionInFlight) {
-      return;
-    }
-    state.lobbyActionInFlight = true;
-    setLobbyButtonsDisabled(elements, true);
-    action().catch((err) => reportClientError(elements, err, elements.lobbyInputName)).finally(() => {
-      state.lobbyActionInFlight = false;
-      setLobbyButtonsDisabled(elements, false);
-    });
-  }
-  function bindLobbyHandlers(connection, elements, state) {
-    window.addEventListener("beforeunload", function onBeforeUnload(e) {
-      if (state.isGameStarted) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    });
-    $(document).on("click", ".game-lobby-room-join-btn", function onJoinRoomClick() {
-      if (state.lobbyActionInFlight) {
-        return;
-      }
-      const roomElement = $(this).closest(".game-lobby-room-item");
-      const id = roomElement.data("room-id");
-      const name = tryGetLobbyName(elements);
-      if (!name || !id) {
-        return;
-      }
-      runLobbyAction(elements, state, () => connection.invoke("JoinRoom", name, id).then((player) => {
-        state.playerId = player.id;
-      }));
-    });
-    elements.lobbyInputCreateBtn.addEventListener("click", function onCreateRoomClick() {
-      const name = tryGetLobbyName(elements);
-      if (!name) {
-        return;
-      }
-      runLobbyAction(elements, state, () => connection.invoke("CreateRoom", name).then((player) => {
-        showWaitingForOpponent(elements, state, player);
-      }));
-    });
-    if (elements.lobbyInputVsBotBtn) {
-      elements.lobbyInputVsBotBtn.addEventListener("click", function onStartVsBotClick() {
-        const name = tryGetLobbyName(elements);
-        if (!name) {
-          return;
-        }
-        runLobbyAction(elements, state, () => connection.invoke("StartVsBot", name).then((player) => {
-          state.playerId = player.id;
-        }));
-      });
-    }
-  }
-
   // wwwroot/js/src/state.js
   var storageKeys = {
     boardTheme: "chess.boardTheme",
     pieceTheme: "chess.pieceTheme",
     checkHints: "chess.checkHints",
-    legalMoveHints: "chess.legalMoveHints"
+    legalMoveHints: "chess.legalMoveHints",
+    botDifficulty: "chess.botDifficulty"
   };
   var boardThemes = {
     classic: "board-theme-classic",
@@ -1164,6 +1107,10 @@
     wikipedia: "img/chesspieces/wikipedia/{piece}.png",
     alpha: "img/chesspieces/alpha/320/{piece}.png",
     leipzig: "img/chesspieces/leipzig/320/{piece}.png"
+  };
+  var botDifficulties = {
+    easy: "easy",
+    normal: "normal"
   };
   function getElements() {
     return {
@@ -1195,6 +1142,7 @@
       rooms: document.querySelector(".game-lobby-room-container"),
       lobbyInputName: document.querySelector(".game-lobby-input-name"),
       lobbyInputCreateBtn: document.querySelector(".game-lobby-input-create-btn"),
+      botDifficultySelect: document.querySelector("#bot-difficulty-select"),
       lobbyInputVsBotBtn: document.querySelector(".game-lobby-input-vs-bot-btn"),
       lobbyChatInput: document.querySelector(".game-lobby-chat-input"),
       lobbyChatSendBtn: document.querySelector(".game-lobby-chat-send-btn"),
@@ -1243,6 +1191,7 @@
       selectedPieceTheme: getStoredValue(storageKeys.pieceTheme, "wikipedia", pieceThemes),
       hintsEnabled: getStoredBoolean(storageKeys.checkHints, true),
       legalHintsEnabled: getStoredBoolean(storageKeys.legalMoveHints, true),
+      botDifficulty: getStoredValue(storageKeys.botDifficulty, "normal", botDifficulties),
       lobbyActionInFlight: false
     };
   }
@@ -1280,6 +1229,87 @@
     }
   }
 
+  // wwwroot/js/src/lobby.js
+  function setLobbyButtonsDisabled(elements, isDisabled) {
+    elements.lobbyInputCreateBtn.disabled = isDisabled;
+    if (elements.lobbyInputVsBotBtn) {
+      elements.lobbyInputVsBotBtn.disabled = isDisabled;
+    }
+    $(".game-lobby-room-join-btn").prop("disabled", isDisabled);
+  }
+  function tryGetLobbyName(elements) {
+    const name = (elements.lobbyInputName.value || "").trim();
+    if (name === "") {
+      elements.lobbyInputName.focus();
+      return null;
+    }
+    return name;
+  }
+  function runLobbyAction(elements, state, action) {
+    if (state.lobbyActionInFlight) {
+      return;
+    }
+    state.lobbyActionInFlight = true;
+    setLobbyButtonsDisabled(elements, true);
+    action().catch((err) => reportClientError(elements, err, elements.lobbyInputName)).finally(() => {
+      state.lobbyActionInFlight = false;
+      setLobbyButtonsDisabled(elements, false);
+    });
+  }
+  function normalizeDifficulty(value) {
+    return value === "easy" ? "easy" : "normal";
+  }
+  function getSelectedBotDifficulty(elements, state) {
+    const rawValue = elements.botDifficultySelect ? elements.botDifficultySelect.value : state.botDifficulty;
+    const normalized = normalizeDifficulty(rawValue);
+    state.botDifficulty = normalized;
+    storeValue(storageKeys.botDifficulty, normalized);
+    return normalized;
+  }
+  function bindLobbyHandlers(connection, elements, state) {
+    window.addEventListener("beforeunload", function onBeforeUnload(e) {
+      if (state.isGameStarted) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    });
+    $(document).on("click", ".game-lobby-room-join-btn", function onJoinRoomClick() {
+      if (state.lobbyActionInFlight) {
+        return;
+      }
+      const roomElement = $(this).closest(".game-lobby-room-item");
+      const id = roomElement.data("room-id");
+      const name = tryGetLobbyName(elements);
+      if (!name || !id) {
+        return;
+      }
+      runLobbyAction(elements, state, () => connection.invoke("JoinRoom", name, id).then((player) => {
+        state.playerId = player.id;
+      }));
+    });
+    elements.lobbyInputCreateBtn.addEventListener("click", function onCreateRoomClick() {
+      const name = tryGetLobbyName(elements);
+      if (!name) {
+        return;
+      }
+      runLobbyAction(elements, state, () => connection.invoke("CreateRoom", name).then((player) => {
+        showWaitingForOpponent(elements, state, player);
+      }));
+    });
+    if (elements.lobbyInputVsBotBtn) {
+      elements.lobbyInputVsBotBtn.addEventListener("click", function onStartVsBotClick() {
+        const name = tryGetLobbyName(elements);
+        if (!name) {
+          return;
+        }
+        const difficulty = getSelectedBotDifficulty(elements, state);
+        runLobbyAction(elements, state, () => connection.invoke("StartVsBotWithDifficulty", name, difficulty).then((player) => {
+          state.playerId = player.id;
+        }));
+      });
+    }
+  }
+
   // wwwroot/js/src/game.js
   function syncTakenPiecesTheme(state) {
     const themeTemplate = pieceThemes[state.selectedPieceTheme] || pieceThemes.wikipedia;
@@ -1301,6 +1331,9 @@
     const onDragStart = createOnDragStartHandler(state);
     elements.boardThemeSelect.value = state.selectedBoardTheme;
     elements.pieceThemeSelect.value = state.selectedPieceTheme;
+    if (elements.botDifficultySelect) {
+      elements.botDifficultySelect.value = state.botDifficulty;
+    }
     if (elements.checkHintsToggle) {
       elements.checkHintsToggle.checked = state.hintsEnabled;
     }
@@ -1320,6 +1353,16 @@
       rebuildBoard(state, pieceThemes, onDrop, onDragStart);
       safeResizeBoard(state);
     });
+    if (elements.botDifficultySelect) {
+      elements.botDifficultySelect.addEventListener("change", function onBotDifficultyChange(e) {
+        const selectedDifficulty = e.target.value;
+        if (!Object.prototype.hasOwnProperty.call(botDifficulties, selectedDifficulty)) {
+          return;
+        }
+        state.botDifficulty = selectedDifficulty;
+        storeValue(storageKeys.botDifficulty, state.botDifficulty);
+      });
+    }
     if (elements.checkHintsToggle) {
       elements.checkHintsToggle.addEventListener("change", function onCheckHintsChange(e) {
         state.hintsEnabled = !!e.target.checked;

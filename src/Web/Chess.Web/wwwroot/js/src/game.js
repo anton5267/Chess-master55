@@ -11,6 +11,7 @@ import { bindChatHandlers, bindGameOptionHandlers } from './chat.js';
 import { createConnection, registerConnectionHandlers } from './connection.js';
 import { bindLobbyHandlers } from './lobby.js';
 import {
+    botDifficulties,
     boardThemes,
     createState,
     getElements,
@@ -46,6 +47,10 @@ $(function bootstrapGameLobby() {
 
     elements.boardThemeSelect.value = state.selectedBoardTheme;
     elements.pieceThemeSelect.value = state.selectedPieceTheme;
+    if (elements.botDifficultySelect) {
+        elements.botDifficultySelect.value = state.botDifficulty;
+    }
+
     if (elements.checkHintsToggle) {
         elements.checkHintsToggle.checked = state.hintsEnabled;
     }
@@ -68,6 +73,18 @@ $(function bootstrapGameLobby() {
         rebuildBoard(state, pieceThemes, onDrop, onDragStart);
         safeResizeBoard(state);
     });
+
+    if (elements.botDifficultySelect) {
+        elements.botDifficultySelect.addEventListener('change', function onBotDifficultyChange(e) {
+            const selectedDifficulty = e.target.value;
+            if (!Object.prototype.hasOwnProperty.call(botDifficulties, selectedDifficulty)) {
+                return;
+            }
+
+            state.botDifficulty = selectedDifficulty;
+            storeValue(storageKeys.botDifficulty, state.botDifficulty);
+        });
+    }
 
     if (elements.checkHintsToggle) {
         elements.checkHintsToggle.addEventListener('change', function onCheckHintsChange(e) {

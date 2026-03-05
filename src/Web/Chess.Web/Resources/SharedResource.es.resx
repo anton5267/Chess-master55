@@ -162,6 +162,15 @@
   <data name="Game_PlayAgainVsBot" xml:space="preserve">
     <value>JUGAR DE NUEVO VS BOT</value>
   </data>
+  <data name="Game_BotDifficultyLabel" xml:space="preserve">
+    <value>Dificultad del bot</value>
+  </data>
+  <data name="Game_BotDifficulty_Easy" xml:space="preserve">
+    <value>Fácil</value>
+  </data>
+  <data name="Game_BotDifficulty_Normal" xml:space="preserve">
+    <value>Normal</value>
+  </data>
   <data name="Game_RoomsTitle" xml:space="preserve">
     <value>SALAS DE JUEGO</value>
   </data>
@@ -182,6 +191,15 @@
   </data>
   <data name="Js_BotJoinedGame" xml:space="preserve">
     <value>{name} se unió como bot. ¡La partida ha comenzado!</value>
+  </data>
+  <data name="Js_GameResult_Win" xml:space="preserve">
+    <value>Victoria:</value>
+  </data>
+  <data name="Js_GameResult_Loss" xml:space="preserve">
+    <value>Derrota:</value>
+  </data>
+  <data name="Js_GameResult_Draw" xml:space="preserve">
+    <value>Tablas:</value>
   </data>
   <data name="Js_PlayerTurnFormat" xml:space="preserve">
     <value>¡El turno de {name}!</value>
@@ -1283,6 +1301,9 @@
   </data>
   <data name="Hub_Error_StartBotFailed" xml:space="preserve">
     <value>No se pudo iniciar la partida contra el bot.</value>
+  </data>
+  <data name="Hub_Error_BotDifficultyInvalid" xml:space="preserve">
+    <value>Nivel de dificultad del bot no admitido.</value>
   </data>
   <data name="Hub_Error_JoinRoomFailed" xml:space="preserve">
     <value>No se pudo unir a la sala.</value>
