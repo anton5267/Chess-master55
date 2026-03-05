@@ -181,6 +181,15 @@
   function sleep(time) {
     return new Promise((resolve) => setTimeout(resolve, time));
   }
+  function normalizeErrorMessage(error) {
+    const fallback = "Request failed. Please try again.";
+    if (error == null) {
+      return fallback;
+    }
+    const rawMessage = typeof error === "string" ? error : error.message || String(error);
+    const normalized = rawMessage.replace(/^HubException:\s*/i, "").trim();
+    return normalized || fallback;
+  }
   function createRoomElement(player) {
     const div = document.createElement("div");
     const span = document.createElement("span");
@@ -373,6 +382,19 @@
     elements.statusText.innerText = t("waitingForOpponent");
     setPlayAgainVsBotVisibility(elements, false);
   }
+  function reportClientError(elements, error, inputElement) {
+    const message = normalizeErrorMessage(error);
+    console.error(error);
+    if (inputElement && typeof inputElement.setCustomValidity === "function" && typeof inputElement.reportValidity === "function") {
+      inputElement.setCustomValidity(message);
+      inputElement.reportValidity();
+      setTimeout(() => inputElement.setCustomValidity(""), 2200);
+    }
+    if (elements.statusText && elements.playground && elements.playground.style.display !== "none") {
+      elements.statusText.style.color = "#b42318";
+      elements.statusText.innerText = message;
+    }
+  }
 
   // wwwroot/js/src/chat.js
   function bindChatHandlers(connection, elements) {
@@ -381,7 +403,7 @@
       if (message !== "") {
         connection.invoke("LobbySendMessage", message).then(() => {
           elements.lobbyChatInput.value = "";
-        }).catch((err) => alert(err));
+        }).catch((err) => reportClientError(elements, err, elements.lobbyChatInput));
       } else {
         elements.lobbyChatInput.focus();
       }
@@ -391,25 +413,27 @@
       if (message !== "") {
         connection.invoke("GameSendMessage", message).then(() => {
           elements.gameChatInput.value = "";
-        }).catch((err) => alert(err));
+        }).catch((err) => reportClientError(elements, err, elements.gameChatInput));
       } else {
         elements.gameChatInput.focus();
       }
     });
-    elements.lobbyChatInput.addEventListener("keyup", function onLobbyChatKeyUp(e) {
-      if (e.keyCode === 13) {
+    elements.lobbyChatInput.addEventListener("keydown", function onLobbyChatKeyDown(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
         elements.lobbyChatSendBtn.click();
       }
     });
-    elements.gameChatInput.addEventListener("keyup", function onGameChatKeyUp(e) {
-      if (e.keyCode === 13) {
+    elements.gameChatInput.addEventListener("keydown", function onGameChatKeyDown(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
         elements.gameChatSendBtn.click();
       }
     });
   }
   function bindGameOptionHandlers(connection, elements, state) {
     elements.threefoldDrawBtn.addEventListener("click", function onThreefoldClick() {
-      connection.invoke("ThreefoldDraw").catch((err) => alert(err));
+      connection.invoke("ThreefoldDraw").catch((err) => reportClientError(elements, err, elements.gameChatInput));
     });
     elements.offerDrawBtn.addEventListener("click", function onOfferDrawClick() {
       const oldText = elements.statusText.innerText;
@@ -420,10 +444,10 @@
         elements.statusText.style.color = oldColor;
         elements.statusText.innerText = oldText;
       });
-      connection.invoke("OfferDrawRequest").catch((err) => alert(err));
+      connection.invoke("OfferDrawRequest").catch((err) => reportClientError(elements, err, elements.gameChatInput));
     });
     elements.resignBtn.addEventListener("click", function onResignClick() {
-      connection.invoke("Resign").catch((err) => alert(err));
+      connection.invoke("Resign").catch((err) => reportClientError(elements, err, elements.gameChatInput));
     });
     if (elements.playAgainVsBotBtn) {
       elements.playAgainVsBotBtn.addEventListener("click", function onPlayAgainVsBotClick() {
@@ -440,7 +464,7 @@
         elements.playAgainVsBotBtn.disabled = true;
         connection.invoke("StartVsBot", playerName).then((player) => {
           state.playerId = player.id;
-        }).catch((err) => alert(err)).finally(() => {
+        }).catch((err) => reportClientError(elements, err, elements.lobbyInputName)).finally(() => {
           elements.playAgainVsBotBtn.disabled = false;
         });
       });
@@ -990,7 +1014,7 @@
       if (name !== "" && id) {
         connection.invoke("JoinRoom", name, id).then((player) => {
           state.playerId = player.id;
-        }).catch((err) => alert(err));
+        }).catch((err) => reportClientError(elements, err, elements.lobbyInputName));
       } else {
         elements.lobbyInputName.focus();
       }
@@ -1000,7 +1024,7 @@
       if (name !== "") {
         connection.invoke("CreateRoom", name).then((player) => {
           showWaitingForOpponent(elements, state, player);
-        }).catch((err) => alert(err));
+        }).catch((err) => reportClientError(elements, err, elements.lobbyInputName));
       } else {
         elements.lobbyInputName.focus();
       }
@@ -1011,7 +1035,7 @@
         if (name !== "") {
           connection.invoke("StartVsBot", name).then((player) => {
             state.playerId = player.id;
-          }).catch((err) => alert(err));
+          }).catch((err) => reportClientError(elements, err, elements.lobbyInputName));
         } else {
           elements.lobbyInputName.focus();
         }

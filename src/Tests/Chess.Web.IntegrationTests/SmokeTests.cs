@@ -225,6 +225,7 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         script.Should().Contain("hasGameEnded");
         script.Should().Contain("gameOverCode");
         script.Should().Contain("gameOverWinnerName");
+        script.Should().NotContain("alert(");
     }
 
     [Fact]

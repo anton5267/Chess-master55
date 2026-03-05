@@ -5,6 +5,24 @@ export function sleep(time) {
     return new Promise((resolve) => setTimeout(resolve, time));
 }
 
+function normalizeErrorMessage(error) {
+    const fallback = 'Request failed. Please try again.';
+
+    if (error == null) {
+        return fallback;
+    }
+
+    const rawMessage = typeof error === 'string'
+        ? error
+        : (error.message || String(error));
+
+    const normalized = rawMessage
+        .replace(/^HubException:\s*/i, '')
+        .trim();
+
+    return normalized || fallback;
+}
+
 export function createRoomElement(player) {
     const div = document.createElement('div');
     const span = document.createElement('span');
@@ -241,4 +259,20 @@ export function showWaitingForOpponent(elements, state, player) {
     elements.statusText.style.color = 'red';
     elements.statusText.innerText = t('waitingForOpponent');
     setPlayAgainVsBotVisibility(elements, false);
+}
+
+export function reportClientError(elements, error, inputElement) {
+    const message = normalizeErrorMessage(error);
+    console.error(error);
+
+    if (inputElement && typeof inputElement.setCustomValidity === 'function' && typeof inputElement.reportValidity === 'function') {
+        inputElement.setCustomValidity(message);
+        inputElement.reportValidity();
+        setTimeout(() => inputElement.setCustomValidity(''), 2200);
+    }
+
+    if (elements.statusText && elements.playground && elements.playground.style.display !== 'none') {
+        elements.statusText.style.color = '#b42318';
+        elements.statusText.innerText = message;
+    }
 }

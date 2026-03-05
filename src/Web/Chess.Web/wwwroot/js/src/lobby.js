@@ -1,4 +1,4 @@
-import { showWaitingForOpponent } from './ui.js';
+import { reportClientError, showWaitingForOpponent } from './ui.js';
 
 export function bindLobbyHandlers(connection, elements, state) {
     window.addEventListener('beforeunload', function onBeforeUnload(e) {
@@ -18,7 +18,7 @@ export function bindLobbyHandlers(connection, elements, state) {
                 .then((player) => {
                     state.playerId = player.id;
                 })
-                .catch((err) => alert(err));
+                .catch((err) => reportClientError(elements, err, elements.lobbyInputName));
         } else {
             elements.lobbyInputName.focus();
         }
@@ -32,7 +32,7 @@ export function bindLobbyHandlers(connection, elements, state) {
                 .then((player) => {
                     showWaitingForOpponent(elements, state, player);
                 })
-                .catch((err) => alert(err));
+                .catch((err) => reportClientError(elements, err, elements.lobbyInputName));
         } else {
             elements.lobbyInputName.focus();
         }
@@ -47,7 +47,7 @@ export function bindLobbyHandlers(connection, elements, state) {
                     .then((player) => {
                         state.playerId = player.id;
                     })
-                    .catch((err) => alert(err));
+                    .catch((err) => reportClientError(elements, err, elements.lobbyInputName));
             } else {
                 elements.lobbyInputName.focus();
             }

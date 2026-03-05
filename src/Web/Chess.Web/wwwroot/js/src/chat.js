@@ -1,4 +1,4 @@
-import { sleep } from './ui.js';
+import { reportClientError, sleep } from './ui.js';
 import { t } from './i18n.js';
 
 export function bindChatHandlers(connection, elements) {
@@ -9,7 +9,7 @@ export function bindChatHandlers(connection, elements) {
                 .then(() => {
                     elements.lobbyChatInput.value = '';
                 })
-                .catch((err) => alert(err));
+                .catch((err) => reportClientError(elements, err, elements.lobbyChatInput));
         } else {
             elements.lobbyChatInput.focus();
         }
@@ -22,20 +22,22 @@ export function bindChatHandlers(connection, elements) {
                 .then(() => {
                     elements.gameChatInput.value = '';
                 })
-                .catch((err) => alert(err));
+                .catch((err) => reportClientError(elements, err, elements.gameChatInput));
         } else {
             elements.gameChatInput.focus();
         }
     });
 
-    elements.lobbyChatInput.addEventListener('keyup', function onLobbyChatKeyUp(e) {
-        if (e.keyCode === 13) {
+    elements.lobbyChatInput.addEventListener('keydown', function onLobbyChatKeyDown(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
             elements.lobbyChatSendBtn.click();
         }
     });
 
-    elements.gameChatInput.addEventListener('keyup', function onGameChatKeyUp(e) {
-        if (e.keyCode === 13) {
+    elements.gameChatInput.addEventListener('keydown', function onGameChatKeyDown(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
             elements.gameChatSendBtn.click();
         }
     });
@@ -43,7 +45,7 @@ export function bindChatHandlers(connection, elements) {
 
 export function bindGameOptionHandlers(connection, elements, state) {
     elements.threefoldDrawBtn.addEventListener('click', function onThreefoldClick() {
-        connection.invoke('ThreefoldDraw').catch((err) => alert(err));
+        connection.invoke('ThreefoldDraw').catch((err) => reportClientError(elements, err, elements.gameChatInput));
     });
 
     elements.offerDrawBtn.addEventListener('click', function onOfferDrawClick() {
@@ -57,11 +59,11 @@ export function bindGameOptionHandlers(connection, elements, state) {
             elements.statusText.innerText = oldText;
         });
 
-        connection.invoke('OfferDrawRequest').catch((err) => alert(err));
+        connection.invoke('OfferDrawRequest').catch((err) => reportClientError(elements, err, elements.gameChatInput));
     });
 
     elements.resignBtn.addEventListener('click', function onResignClick() {
-        connection.invoke('Resign').catch((err) => alert(err));
+        connection.invoke('Resign').catch((err) => reportClientError(elements, err, elements.gameChatInput));
     });
 
     if (elements.playAgainVsBotBtn) {
@@ -83,7 +85,7 @@ export function bindGameOptionHandlers(connection, elements, state) {
                 .then((player) => {
                     state.playerId = player.id;
                 })
-                .catch((err) => alert(err))
+                .catch((err) => reportClientError(elements, err, elements.lobbyInputName))
                 .finally(() => {
                     elements.playAgainVsBotBtn.disabled = false;
                 });
