@@ -19,6 +19,15 @@ namespace Chess.Web.Hubs
     {
         public async Task MoveSelected(string source, string target, string sourceFen, string targetFen)
         {
+            source = source?.Trim().ToLowerInvariant();
+            target = target?.Trim().ToLowerInvariant();
+
+            if (!this.IsValidSquareName(source) || !this.IsValidSquareName(target) || source == target)
+            {
+                await this.Snapback(sourceFen);
+                return;
+            }
+
             var gameSession = this.GetGameSession();
             var player = this.GetPlayer();
             var game = gameSession.Game;
@@ -341,6 +350,18 @@ namespace Chess.Web.Hubs
         private async Task Snapback(string sourceFen)
         {
             await this.Clients.Caller.SendAsync("BoardSnapback", sourceFen);
+        }
+
+        private bool IsValidSquareName(string square)
+        {
+            if (string.IsNullOrWhiteSpace(square) || square.Length != 2)
+            {
+                return false;
+            }
+
+            var file = square[0];
+            var rank = square[1];
+            return file >= 'a' && file <= 'h' && rank >= '1' && rank <= '8';
         }
 
         private bool IsEventForGame(object sender, string gameId, out Player eventPlayer)
