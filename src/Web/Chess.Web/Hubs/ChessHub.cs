@@ -183,7 +183,6 @@ namespace Chess.Web.Hubs
             if (await this.TryResolveTerminalBotStateAsync(gameSession, "request_sync_precheck"))
             {
                 await this.SyncPositionToCaller(game);
-                await this.SyncTerminalStateToCallerIfNeeded(game);
                 return;
             }
 

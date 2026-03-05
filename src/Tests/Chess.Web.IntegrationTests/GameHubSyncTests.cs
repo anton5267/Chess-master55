@@ -936,6 +936,52 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
+    public async Task BotGame_TerminalRecovery_ShouldEmitSingleImmediateGameOver()
+    {
+        await this.SeedUserAsync("bot-user-terminal-single-1", "bot-terminal-single-1@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-terminal-single-1", "bot-terminal-single-1@example.com");
+
+        var startTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var gameOverQueue = new Queue<(JsonElement Player, int GameOver)>();
+        using var gameOverSignal = new SemaphoreSlim(0, int.MaxValue);
+
+        connection.On<JsonElement>("Start", payload => startTcs.TrySetResult(payload));
+        connection.On<JsonElement, int>("GameOver", (player, gameOver) =>
+        {
+            lock (gameOverQueue)
+            {
+                gameOverQueue.Enqueue((player, gameOver));
+            }
+
+            gameOverSignal.Release();
+        });
+
+        await connection.StartAsync();
+        await connection.InvokeAsync<JsonElement>("StartVsBot", "human_bot_s1");
+
+        var startPayload = await WaitWithTimeout(startTcs.Task);
+        var gameId = startPayload.GetProperty("game").GetProperty("id").GetString();
+        gameId.Should().NotBeNullOrWhiteSpace();
+
+        this.ConfigureBotTerminalPosition(gameId!, checkmate: true, botToMove: true);
+        ClearQueueAndSignal(gameOverQueue, gameOverSignal);
+
+        await connection.InvokeAsync("RequestSync");
+
+        var firstGameOver = await WaitNextGameOver(gameOverQueue, gameOverSignal, timeoutMs: 15000);
+        firstGameOver.GameOver.Should().Be((int)GameOver.Checkmate);
+
+        await Task.Delay(500);
+
+        lock (gameOverQueue)
+        {
+            gameOverQueue.Count.Should().Be(0);
+        }
+
+        gameOverSignal.CurrentCount.Should().Be(0);
+    }
+
+    [Fact]
     public async Task BotGame_RequestSync_ShouldRecoverAndAdvance_WhenBotTurnPending()
     {
         await this.SeedUserAsync("bot-user-recovery-1", "bot-recovery-1@example.com");
