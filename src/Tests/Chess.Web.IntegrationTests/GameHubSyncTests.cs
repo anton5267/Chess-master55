@@ -893,6 +893,35 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         botStatusUpdates.Should().Be(0);
     }
 
+    [Fact]
+    public async Task MoveSelected_WithInvalidSquares_ShouldSnapbackWithoutTerminatingGame()
+    {
+        await this.SeedUserAsync("bot-user-invalid-move-1", "bot-invalid-move-1@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-invalid-move-1", "bot-invalid-move-1@example.com");
+
+        var startTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var snapbackTcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var gameOverTcs = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        connection.On<JsonElement>("Start", payload => startTcs.TrySetResult(payload));
+        connection.On<string>("BoardSnapback", fen => snapbackTcs.TrySetResult(fen));
+        connection.On<JsonElement, int>("GameOver", (_, gameOver) => gameOverTcs.TrySetResult(gameOver));
+
+        await connection.StartAsync();
+        await connection.InvokeAsync<JsonElement>("StartVsBot", "human_bot_1");
+        await WaitWithTimeout(startTcs.Task);
+
+        await connection.InvokeAsync("MoveSelected", "z9", "z9", "invalid_fen_payload", null);
+
+        var snapbackFen = await WaitWithTimeout(snapbackTcs.Task, timeoutMs: 5000);
+        snapbackFen.Should().Be("invalid_fen_payload");
+
+        var unexpectedGameOver = await Task.WhenAny(gameOverTcs.Task, Task.Delay(1000));
+        unexpectedGameOver.Should().NotBe(gameOverTcs.Task);
+
+        await connection.InvokeAsync("RequestSync");
+    }
+
     private HubConnection CreateHubConnection(string userId, string userName)
     {
         var baseAddress = this.factory.Server.BaseAddress ?? new Uri("http://localhost");
