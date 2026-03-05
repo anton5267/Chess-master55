@@ -659,4 +659,3 @@ namespace Chess.Web.Hubs
         }
     }
 }
-

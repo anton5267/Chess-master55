@@ -10,10 +10,10 @@ namespace Chess.Web.Hubs
     using Chess.Common.Enums;
     using Chess.Common.Time;
     using Chess.Data;
-    using Chess.Web.Hubs.Bot;
     using Chess.Services.Data.Models;
     using Chess.Services.Data.Services.Contracts;
     using Chess.Web;
+    using Chess.Web.Hubs.Bot;
     using Chess.Web.Hubs.Sessions;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.SignalR;

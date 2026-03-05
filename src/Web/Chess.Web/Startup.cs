@@ -19,11 +19,11 @@
     using Chess.Services.Mapping;
     using Chess.Services.Messaging;
     using Chess.Services.Messaging.Contracts;
-    using Chess.Web.Hubs.Bot;
     using Chess.Web.Hubs;
+    using Chess.Web.Hubs.Bot;
     using Chess.Web.Hubs.Sessions;
-    using Chess.Web.Infrastructure.HealthChecks;
     using Chess.Web.Infrastructure;
+    using Chess.Web.Infrastructure.HealthChecks;
     using Chess.Web.Infrastructure.Identity;
     using Chess.Web.ViewModels;
     using Microsoft.AspNetCore.Builder;
