@@ -633,6 +633,8 @@
   }
   function syncTurnDependentState(connection, elements, state, movingPlayerId, movingPlayerName) {
     clearHintSquares();
+    removeHighlight("white");
+    removeHighlight("black");
     if (state.hasGameEnded) {
       clearBotRecoveryWatchdog(state);
       state.isYourTurn = false;
@@ -796,6 +798,8 @@
     });
     connection.on("SyncPosition", function onSyncPosition(fen, movingPlayerName, turnNumber, movingPlayerId) {
       clearSyncWatchdog(state);
+      removeHighlight("white");
+      removeHighlight("black");
       state.turnNumber = turnNumber;
       applySyncPosition(state, elements, fen, movingPlayerId, movingPlayerName);
       if (!state.hasGameEnded) {
@@ -813,6 +817,8 @@
       clearSyncWatchdog(state);
       clearBotRecoveryWatchdog(state);
       clearHintSquares();
+      removeHighlight("white");
+      removeHighlight("black");
       elements.statusText.style.color = "purple";
       elements.board.style.pointerEvents = "none";
       switch (gameOver) {

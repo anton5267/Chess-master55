@@ -223,6 +223,8 @@ function refreshLegalMoves(connection, state, onCompleted) {
 function syncTurnDependentState(connection, elements, state, movingPlayerId, movingPlayerName) {
     // Never keep stale hint overlays between turns.
     clearHintSquares();
+    removeHighlight('white');
+    removeHighlight('black');
 
     if (state.hasGameEnded) {
         clearBotRecoveryWatchdog(state);
@@ -414,6 +416,8 @@ export function registerConnectionHandlers(connection, elements, state) {
 
     connection.on('SyncPosition', function onSyncPosition(fen, movingPlayerName, turnNumber, movingPlayerId) {
         clearSyncWatchdog(state);
+        removeHighlight('white');
+        removeHighlight('black');
         state.turnNumber = turnNumber;
         applySyncPosition(state, elements, fen, movingPlayerId, movingPlayerName);
 
@@ -433,6 +437,8 @@ export function registerConnectionHandlers(connection, elements, state) {
         clearSyncWatchdog(state);
         clearBotRecoveryWatchdog(state);
         clearHintSquares();
+        removeHighlight('white');
+        removeHighlight('black');
         elements.statusText.style.color = 'purple';
         elements.board.style.pointerEvents = 'none';
 
