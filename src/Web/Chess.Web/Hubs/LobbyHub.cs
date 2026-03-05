@@ -33,7 +33,7 @@ namespace Chess.Web.Hubs
                     out var gameSession,
                     out var error))
             {
-                throw new HubException(error ?? "Unable to start bot game.");
+                throw new HubException(error ?? this.localizer["Hub_Error_StartBotFailed"]);
             }
 
             await this.StartGame(gameSession);
@@ -58,7 +58,7 @@ namespace Chess.Web.Hubs
                     out var playerSession,
                     out var error))
             {
-                throw new HubException(error ?? "Unable to create room.");
+                throw new HubException(error ?? this.localizer["Hub_Error_CreateRoomFailed"]);
             }
 
             await this.LobbySendInternalMessage(playerSession.Name);
@@ -86,7 +86,7 @@ namespace Chess.Web.Hubs
                     out var gameSession,
                     out var error))
             {
-                throw new HubException(error ?? "Unable to join room.");
+                throw new HubException(error ?? this.localizer["Hub_Error_JoinRoomFailed"]);
             }
 
             await this.StartGame(gameSession);

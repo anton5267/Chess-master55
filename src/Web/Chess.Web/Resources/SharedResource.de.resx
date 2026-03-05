@@ -1278,4 +1278,13 @@
   <data name="Hub_Error_MessageTooLong" xml:space="preserve">
     <value>Die Nachricht ist zu lang.</value>
   </data>
+  <data name="Hub_Error_CreateRoomFailed" xml:space="preserve">
+    <value>Raum konnte nicht erstellt werden.</value>
+  </data>
+  <data name="Hub_Error_StartBotFailed" xml:space="preserve">
+    <value>Bot-Spiel konnte nicht gestartet werden.</value>
+  </data>
+  <data name="Hub_Error_JoinRoomFailed" xml:space="preserve">
+    <value>Beitritt zum Raum fehlgeschlagen.</value>
+  </data>
 </root>

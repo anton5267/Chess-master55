@@ -1278,4 +1278,13 @@
   <data name="Hub_Error_MessageTooLong" xml:space="preserve">
     <value>Wiadomość jest za długa.</value>
   </data>
+  <data name="Hub_Error_CreateRoomFailed" xml:space="preserve">
+    <value>Nie udało się utworzyć pokoju.</value>
+  </data>
+  <data name="Hub_Error_StartBotFailed" xml:space="preserve">
+    <value>Nie udało się rozpocząć gry z botem.</value>
+  </data>
+  <data name="Hub_Error_JoinRoomFailed" xml:space="preserve">
+    <value>Nie udało się dołączyć do pokoju.</value>
+  </data>
 </root>
