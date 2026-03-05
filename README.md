@@ -105,6 +105,13 @@ What it starts:
 - `dotnet watch run --project Chess.Web.csproj` (upstream: `https://localhost:5001`)
 - `ngrok` tunnel with fixed domain
 
+If HTTPS certificate is not trusted locally, use HTTP upstream remote mode:
+
+```bash
+cd src/Web/Chess.Web
+npm run dev:remote:http
+```
+
 Verify tunnel status:
 
 ```bash
@@ -138,7 +145,7 @@ npm run dev:remote
    - restart `npm run dev:remote`.
 2. `NET::ERR_CERT_AUTHORITY_INVALID` on localhost upstream:
    - run `dotnet dev-certs https --trust`;
-   - or switch to HTTP mode (`npm run dev:http` + `ngrok http http://localhost:5000`).
+   - or switch to HTTP remote mode (`npm run dev:remote:http`).
 3. Port is already in use:
    - stop old `dotnet`/`ngrok` processes and rerun.
 
