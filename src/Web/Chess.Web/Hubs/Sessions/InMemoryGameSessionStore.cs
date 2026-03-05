@@ -46,6 +46,7 @@ namespace Chess.Web.Hubs.Sessions
             {
                 this.RemoveStaleWaitingSessionsByUserId(userId, connectionId);
                 this.CleanupFinishedGamesByUserId(userId);
+                this.CleanupStaleDisconnectedSessionsByUserId(userId);
 
                 if (this.players.TryGetValue(connectionId, out var existingSession))
                 {
@@ -92,6 +93,7 @@ namespace Chess.Web.Hubs.Sessions
             {
                 this.RemoveStaleWaitingSessionsByUserId(userId, connectionId);
                 this.CleanupFinishedGamesByUserId(userId);
+                this.CleanupStaleDisconnectedSessionsByUserId(userId);
 
                 if (waitingPlayerConnectionId.Equals(connectionId, StringComparison.OrdinalIgnoreCase))
                 {
@@ -176,6 +178,7 @@ namespace Chess.Web.Hubs.Sessions
             {
                 this.RemoveStaleWaitingSessionsByUserId(userId, connectionId);
                 this.CleanupFinishedGamesByUserId(userId);
+                this.CleanupStaleDisconnectedSessionsByUserId(userId);
 
                 if (this.TryGetActiveBotSessionByUserId(userId, out var activeBotSession))
                 {
@@ -417,29 +420,39 @@ namespace Chess.Web.Hubs.Sessions
                     return false;
                 }
 
-                var disconnectedEntry = this.players
-                    .FirstOrDefault(x =>
+                var disconnectedCandidates = this.players
+                    .Where(x =>
                         x.Value.State == PlayerSessionState.Disconnected &&
                         !string.IsNullOrWhiteSpace(x.Value.UserId) &&
-                        x.Value.UserId.Equals(userId, StringComparison.OrdinalIgnoreCase));
+                        x.Value.UserId.Equals(userId, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
 
-                if (string.IsNullOrWhiteSpace(disconnectedEntry.Key) || disconnectedEntry.Value == null)
+                foreach (var disconnectedCandidate in disconnectedCandidates)
                 {
-                    return false;
+                    if (disconnectedCandidate.Value == null || string.IsNullOrWhiteSpace(disconnectedCandidate.Key))
+                    {
+                        continue;
+                    }
+
+                    if (!this.games.TryGetValue(disconnectedCandidate.Value.GameId, out gameSession) ||
+                        gameSession.Game.GameOver != GameOver.None)
+                    {
+                        this.players.TryRemove(disconnectedCandidate.Key, out _);
+                        continue;
+                    }
+
+                    playerSession = disconnectedCandidate.Value;
+                    this.players.TryRemove(disconnectedCandidate.Key, out _);
+                    playerSession.Player.Id = connectionId;
+                    playerSession.State = PlayerSessionState.Playing;
+                    this.players[connectionId] = playerSession;
+                    return true;
                 }
 
-                if (!this.games.TryGetValue(disconnectedEntry.Value.GameId, out gameSession))
-                {
-                    this.players.TryRemove(disconnectedEntry.Key, out _);
-                    return false;
-                }
-
-                playerSession = disconnectedEntry.Value;
-                this.players.TryRemove(disconnectedEntry.Key, out _);
-                playerSession.Player.Id = connectionId;
-                playerSession.State = PlayerSessionState.Playing;
-                this.players[connectionId] = playerSession;
-                return true;
+                gameSession = null;
+                playerSession = null;
+                return false;
             }
             finally
             {
@@ -579,6 +592,32 @@ namespace Chess.Web.Hubs.Sessions
                 {
                     this.CleanupFinishedGame(gameSession);
                 }
+            }
+        }
+
+        private void CleanupStaleDisconnectedSessionsByUserId(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return;
+            }
+
+            var staleDisconnectedConnections = this.players
+                .Where(x =>
+                    x.Value.State == PlayerSessionState.Disconnected &&
+                    !string.IsNullOrWhiteSpace(x.Value.UserId) &&
+                    x.Value.UserId.Equals(userId, StringComparison.OrdinalIgnoreCase) &&
+                    (
+                        string.IsNullOrWhiteSpace(x.Value.GameId) ||
+                        !this.games.TryGetValue(x.Value.GameId, out var sessionGame) ||
+                        sessionGame.Game.GameOver != GameOver.None))
+                .Select(x => x.Key)
+                .ToList();
+
+            foreach (var staleConnectionId in staleDisconnectedConnections)
+            {
+                this.players.TryRemove(staleConnectionId, out _);
+                this.waitingConnections.Remove(staleConnectionId);
             }
         }
 

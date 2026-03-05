@@ -1,7 +1,11 @@
 namespace Chess.Web.IntegrationTests;
 
+using System.Collections.Concurrent;
+using System.Reflection;
+
 using Chess.Common.Enums;
 using Chess.Common.Time;
+using Chess.Services.Data.Models;
 using Chess.Services.Data.Services;
 using Chess.Services.Data.Services.Contracts;
 using Chess.Web.Hubs.Sessions;
@@ -430,5 +434,93 @@ public class InMemoryGameSessionStoreTests
         rejoinedGameSession.GameId.Should().NotBe(finishedGameId);
         store.TryGetGameById(finishedGameId, out _).Should().BeFalse();
         store.TryGetPlayer("white-conn", out _).Should().BeFalse();
+    }
+
+    [Fact]
+    public void TryCreateWaitingPlayer_ShouldCleanupStaleDisconnectedSession_WithMissingGame()
+    {
+        using var store = new InMemoryGameSessionStore(new SystemClock());
+        var players = GetPlayersDictionary(store);
+
+        var stalePlayer = Factory.GetPlayer("stale_user", "stale-conn", "cleanup-user");
+        stalePlayer.GameId = "missing-game";
+        players["stale-conn"] = new PlayerSession(stalePlayer, PlayerSessionState.Disconnected);
+
+        var created = store.TryCreateWaitingPlayer(
+            "fresh-conn",
+            "cleanup-user",
+            "fresh_user",
+            1200,
+            out var freshSession,
+            out var error);
+
+        created.Should().BeTrue(error);
+        freshSession.Should().NotBeNull();
+        freshSession.ConnectionId.Should().Be("fresh-conn");
+        store.TryGetPlayer("stale-conn", out _).Should().BeFalse();
+    }
+
+    [Fact]
+    public void TryReattachDisconnectedPlayer_ShouldSkipStaleCandidate_AndAttachValidSession()
+    {
+        using var store = new InMemoryGameSessionStore(new SystemClock());
+        var services = new ServiceCollection()
+            .AddTransient<INotificationService, NotificationService>()
+            .AddTransient<ICheckService, CheckService>()
+            .AddTransient<IDrawService, DrawService>()
+            .AddTransient<IUtilityService, UtilityService>()
+            .BuildServiceProvider();
+
+        store.TryCreateWaitingPlayer(
+            "valid-conn",
+            "reattach-user",
+            "valid_player",
+            1200,
+            out _,
+            out _).Should().BeTrue();
+
+        store.TryJoinRoom(
+            "opponent-conn",
+            "opponent-user",
+            "opponent_player",
+            "valid-conn",
+            1200,
+            services,
+            out _,
+            out var activeGameSession,
+            out _).Should().BeTrue();
+
+        activeGameSession.Should().NotBeNull();
+
+        store.TryMarkDisconnectedConnection("valid-conn", out var disconnectResult).Should().BeTrue();
+        disconnectResult.MarkedAsDisconnected.Should().BeTrue();
+
+        var players = GetPlayersDictionary(store);
+        var stalePlayer = Factory.GetPlayer("stale_user", "000-stale", "reattach-user");
+        stalePlayer.GameId = "missing-game";
+        players["000-stale"] = new PlayerSession(stalePlayer, PlayerSessionState.Disconnected);
+
+        var reattached = store.TryReattachDisconnectedPlayer(
+            "reattach-conn",
+            "reattach-user",
+            out var restoredGameSession,
+            out var restoredPlayerSession);
+
+        reattached.Should().BeTrue();
+        restoredGameSession.Should().NotBeNull();
+        restoredPlayerSession.Should().NotBeNull();
+        restoredPlayerSession.ConnectionId.Should().Be("reattach-conn");
+        restoredPlayerSession.State.Should().Be(PlayerSessionState.Playing);
+        store.TryGetPlayer("000-stale", out _).Should().BeFalse();
+    }
+
+    private static ConcurrentDictionary<string, PlayerSession> GetPlayersDictionary(InMemoryGameSessionStore store)
+    {
+        var field = typeof(InMemoryGameSessionStore).GetField("players", BindingFlags.Instance | BindingFlags.NonPublic);
+        field.Should().NotBeNull();
+
+        var players = field!.GetValue(store) as ConcurrentDictionary<string, PlayerSession>;
+        players.Should().NotBeNull();
+        return players!;
     }
 }
