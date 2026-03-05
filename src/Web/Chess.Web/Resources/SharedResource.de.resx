@@ -1197,4 +1197,64 @@
   <data name="Game_Hint_LegalMoves" xml:space="preserve">
     <value>Legale Züge anzeigen</value>
   </data>
+  <data name="Hub_GameOver_FivefoldDraw" xml:space="preserve">
+    <value>REMIS DURCH FÜNFFACHE STELLUNGSWIEDERHOLUNG!</value>
+  </data>
+  <data name="Hub_PlayerReconnectedFormat" xml:space="preserve">
+    <value>{0} hat die Verbindung wiederhergestellt.</value>
+  </data>
+  <data name="Hub_GameOver_Resign" xml:space="preserve">
+    <value>AUFGABE!</value>
+  </data>
+  <data name="Hub_GameOver_FiftyMoveDraw" xml:space="preserve">
+    <value>REMIS NACH 50 ZÜGEN!</value>
+  </data>
+  <data name="Hub_GameResignedFormat" xml:space="preserve">
+    <value>{0} hat aufgegeben!</value>
+  </data>
+  <data name="Hub_GameStartedByJoinFormat" xml:space="preserve">
+    <value>{0} ist beigetreten. Das Spiel hat begonnen!</value>
+  </data>
+  <data name="Hub_PlayerLeftYouWinFormat" xml:space="preserve">
+    <value>{0} hat das Spiel verlassen. Du gewinnst!</value>
+  </data>
+  <data name="Hub_GameDrawRejectedFormat" xml:space="preserve">
+    <value>{0} hat das Angebot abgelehnt!</value>
+  </data>
+  <data name="Hub_GameCheckAnnouncedByFormat" xml:space="preserve">
+    <value>Schach von {0} angesagt!</value>
+  </data>
+  <data name="Hub_GameThreefoldDeclaredFormat" xml:space="preserve">
+    <value>{0} hat Remis durch dreifache Stellungswiederholung erklärt!</value>
+  </data>
+  <data name="Hub_GameDrawAcceptedFormat" xml:space="preserve">
+    <value>{0} hat das Angebot angenommen. Remis!</value>
+  </data>
+  <data name="Hub_GameOver_ThreefoldDraw" xml:space="preserve">
+    <value>REMIS DURCH DREIFACHE STELLUNGSWIEDERHOLUNG!</value>
+  </data>
+  <data name="Hub_LobbyRoomCreatedFormat" xml:space="preserve">
+    <value>{0} hat einen Raum erstellt.</value>
+  </data>
+  <data name="Hub_LobbyJoinedFormat" xml:space="preserve">
+    <value>{0} ist der Lobby beigetreten.</value>
+  </data>
+  <data name="Hub_GameOver_Stalemate" xml:space="preserve">
+    <value>PAT!</value>
+  </data>
+  <data name="Hub_GameDrawRequestedFormat" xml:space="preserve">
+    <value>{0} hat Remis angeboten!</value>
+  </data>
+  <data name="Hub_GameOver_Draw" xml:space="preserve">
+    <value>REMIS!</value>
+  </data>
+  <data name="Hub_GameOver_Checkmate" xml:space="preserve">
+    <value>SCHACHMATT!</value>
+  </data>
+  <data name="Hub_PlayerDisconnectedWaitingFormat" xml:space="preserve">
+    <value>{0} hat die Verbindung verloren. Warte auf Wiederverbindung...</value>
+  </data>
+  <data name="Hub_GameOver_Disconnected" xml:space="preserve">
+    <value>VERBINDUNG GETRENNT!</value>
+  </data>
 </root>

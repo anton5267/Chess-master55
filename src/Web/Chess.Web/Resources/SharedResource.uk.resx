@@ -1197,4 +1197,64 @@
   <data name="Game_Hint_LegalMoves" xml:space="preserve">
     <value>Показувати легальні ходи</value>
   </data>
+  <data name="Hub_GameOver_FivefoldDraw" xml:space="preserve">
+    <value>НІЧИЯ ЗА П'ЯТИРАЗОВИМ ПОВТОРЕННЯМ!</value>
+  </data>
+  <data name="Hub_PlayerReconnectedFormat" xml:space="preserve">
+    <value>{0} перепідключився.</value>
+  </data>
+  <data name="Hub_GameOver_Resign" xml:space="preserve">
+    <value>ЗДАЧА!</value>
+  </data>
+  <data name="Hub_GameOver_FiftyMoveDraw" xml:space="preserve">
+    <value>НІЧИЯ ЗА П'ЯТДЕСЯТ ХОДІВ!</value>
+  </data>
+  <data name="Hub_GameResignedFormat" xml:space="preserve">
+    <value>{0} здався!</value>
+  </data>
+  <data name="Hub_GameStartedByJoinFormat" xml:space="preserve">
+    <value>{0} приєднався. Гру розпочато!</value>
+  </data>
+  <data name="Hub_PlayerLeftYouWinFormat" xml:space="preserve">
+    <value>{0} вийшов. Ви перемогли!</value>
+  </data>
+  <data name="Hub_GameDrawRejectedFormat" xml:space="preserve">
+    <value>{0} відхилив пропозицію!</value>
+  </data>
+  <data name="Hub_GameCheckAnnouncedByFormat" xml:space="preserve">
+    <value>Шах оголошено гравцем {0}!</value>
+  </data>
+  <data name="Hub_GameThreefoldDeclaredFormat" xml:space="preserve">
+    <value>{0} оголосив нічию за триразовим повторенням!</value>
+  </data>
+  <data name="Hub_GameDrawAcceptedFormat" xml:space="preserve">
+    <value>{0} прийняв пропозицію. Нічия!</value>
+  </data>
+  <data name="Hub_GameOver_ThreefoldDraw" xml:space="preserve">
+    <value>НІЧИЯ ЗА ТРИРАЗОВИМ ПОВТОРЕННЯМ!</value>
+  </data>
+  <data name="Hub_LobbyRoomCreatedFormat" xml:space="preserve">
+    <value>{0} створив кімнату.</value>
+  </data>
+  <data name="Hub_LobbyJoinedFormat" xml:space="preserve">
+    <value>{0} приєднався до лобі.</value>
+  </data>
+  <data name="Hub_GameOver_Stalemate" xml:space="preserve">
+    <value>ПАТ!</value>
+  </data>
+  <data name="Hub_GameDrawRequestedFormat" xml:space="preserve">
+    <value>{0} запропонував нічию!</value>
+  </data>
+  <data name="Hub_GameOver_Draw" xml:space="preserve">
+    <value>НІЧИЯ!</value>
+  </data>
+  <data name="Hub_GameOver_Checkmate" xml:space="preserve">
+    <value>ШАХ І МАТ!</value>
+  </data>
+  <data name="Hub_PlayerDisconnectedWaitingFormat" xml:space="preserve">
+    <value>{0} відключився. Очікуємо перепідключення...</value>
+  </data>
+  <data name="Hub_GameOver_Disconnected" xml:space="preserve">
+    <value>ВІДКЛЮЧЕННЯ!</value>
+  </data>
 </root>

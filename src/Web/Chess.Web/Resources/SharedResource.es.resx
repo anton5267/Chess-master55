@@ -1197,4 +1197,64 @@
   <data name="Game_Hint_LegalMoves" xml:space="preserve">
     <value>Mostrar movimientos legales</value>
   </data>
+  <data name="Hub_GameOver_FivefoldDraw" xml:space="preserve">
+    <value>¡TABLAS POR QUÍNTUPLE REPETICIÓN!</value>
+  </data>
+  <data name="Hub_PlayerReconnectedFormat" xml:space="preserve">
+    <value>{0} se reconectó.</value>
+  </data>
+  <data name="Hub_GameOver_Resign" xml:space="preserve">
+    <value>¡RENDICIÓN!</value>
+  </data>
+  <data name="Hub_GameOver_FiftyMoveDraw" xml:space="preserve">
+    <value>¡TABLAS POR REGLA DE 50 MOVIMIENTOS!</value>
+  </data>
+  <data name="Hub_GameResignedFormat" xml:space="preserve">
+    <value>{0} se rindió.</value>
+  </data>
+  <data name="Hub_GameStartedByJoinFormat" xml:space="preserve">
+    <value>{0} se unió. ¡La partida comenzó!</value>
+  </data>
+  <data name="Hub_PlayerLeftYouWinFormat" xml:space="preserve">
+    <value>{0} se fue. ¡Ganaste!</value>
+  </data>
+  <data name="Hub_GameDrawRejectedFormat" xml:space="preserve">
+    <value>¡{0} rechazó la oferta!</value>
+  </data>
+  <data name="Hub_GameCheckAnnouncedByFormat" xml:space="preserve">
+    <value>¡Jaque anunciado por {0}!</value>
+  </data>
+  <data name="Hub_GameThreefoldDeclaredFormat" xml:space="preserve">
+    <value>¡{0} declaró tablas por triple repetición!</value>
+  </data>
+  <data name="Hub_GameDrawAcceptedFormat" xml:space="preserve">
+    <value>¡{0} aceptó la oferta. Tablas!</value>
+  </data>
+  <data name="Hub_GameOver_ThreefoldDraw" xml:space="preserve">
+    <value>¡TABLAS POR TRIPLE REPETICIÓN!</value>
+  </data>
+  <data name="Hub_LobbyRoomCreatedFormat" xml:space="preserve">
+    <value>{0} creó una sala.</value>
+  </data>
+  <data name="Hub_LobbyJoinedFormat" xml:space="preserve">
+    <value>{0} se unió al lobby.</value>
+  </data>
+  <data name="Hub_GameOver_Stalemate" xml:space="preserve">
+    <value>¡AHOGADO!</value>
+  </data>
+  <data name="Hub_GameDrawRequestedFormat" xml:space="preserve">
+    <value>¡{0} solicitó tablas!</value>
+  </data>
+  <data name="Hub_GameOver_Draw" xml:space="preserve">
+    <value>¡TABLAS!</value>
+  </data>
+  <data name="Hub_GameOver_Checkmate" xml:space="preserve">
+    <value>¡JAQUE MATE!</value>
+  </data>
+  <data name="Hub_PlayerDisconnectedWaitingFormat" xml:space="preserve">
+    <value>{0} se desconectó. Esperando reconexión...</value>
+  </data>
+  <data name="Hub_GameOver_Disconnected" xml:space="preserve">
+    <value>¡DESCONEXIÓN!</value>
+  </data>
 </root>

@@ -90,7 +90,7 @@ namespace Chess.Web.Hubs
                 await this.Clients.Group(game.Id).SendAsync("UpdateStatus", game.MovingPlayer.Id, game.MovingPlayer.Name);
                 await this.Clients.Group(game.Id).SendAsync(
                     "UpdateGameChatInternalMessage",
-                    $"{restoredPlayerSession.Name} reconnected.");
+                    this.localizer["Hub_PlayerReconnectedFormat", restoredPlayerSession.Name]);
 
                 this.logger.LogInformation(
                     "PlayerReattached GameId={GameId} UserId={UserId} ConnectionId={ConnectionId}",
@@ -124,7 +124,9 @@ namespace Chess.Web.Hubs
                 {
                     var game = removalResult.GameSession.Game;
                     await this.Clients.Group(game.Id)
-                        .SendAsync("UpdateGameChatInternalMessage", $"{leavingPlayer.Name} disconnected. Waiting for reconnect...");
+                        .SendAsync(
+                            "UpdateGameChatInternalMessage",
+                            this.localizer["Hub_PlayerDisconnectedWaitingFormat", leavingPlayer.Name]);
 
                     _ = this.FinalizeDisconnectedGameAfterGracePeriodAsync(this.Context.ConnectionId, game.Id);
                 }
@@ -161,7 +163,9 @@ namespace Chess.Web.Hubs
 
                 await this.hubContext.Clients.Group(game.Id).SendAsync("GameOver", leavingPlayer, GameOver.Disconnected);
                 await this.hubContext.Clients.Group(game.Id)
-                    .SendAsync("UpdateGameChatInternalMessage", $"{leavingPlayer.Name} left. You win!");
+                    .SendAsync(
+                        "UpdateGameChatInternalMessage",
+                        this.localizer["Hub_PlayerLeftYouWinFormat", leavingPlayer.Name]);
 
                 if (game.Turn > 30)
                 {

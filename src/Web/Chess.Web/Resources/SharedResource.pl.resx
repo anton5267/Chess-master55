@@ -1197,4 +1197,64 @@
   <data name="Game_Hint_LegalMoves" xml:space="preserve">
     <value>Pokazuj legalne ruchy</value>
   </data>
+  <data name="Hub_GameOver_FivefoldDraw" xml:space="preserve">
+    <value>REMIS PRZEZ PIĘCIOKROTNE POWTÓRZENIE POZYCJI!</value>
+  </data>
+  <data name="Hub_PlayerReconnectedFormat" xml:space="preserve">
+    <value>{0} połączył się ponownie.</value>
+  </data>
+  <data name="Hub_GameOver_Resign" xml:space="preserve">
+    <value>PODDANIE!</value>
+  </data>
+  <data name="Hub_GameOver_FiftyMoveDraw" xml:space="preserve">
+    <value>REMIS PO 50 POSUNIĘCIACH!</value>
+  </data>
+  <data name="Hub_GameResignedFormat" xml:space="preserve">
+    <value>{0} poddał się!</value>
+  </data>
+  <data name="Hub_GameStartedByJoinFormat" xml:space="preserve">
+    <value>{0} dołączył. Gra rozpoczęta!</value>
+  </data>
+  <data name="Hub_PlayerLeftYouWinFormat" xml:space="preserve">
+    <value>{0} opuścił grę. Wygrywasz!</value>
+  </data>
+  <data name="Hub_GameDrawRejectedFormat" xml:space="preserve">
+    <value>{0} odrzucił propozycję!</value>
+  </data>
+  <data name="Hub_GameCheckAnnouncedByFormat" xml:space="preserve">
+    <value>Szach ogłoszony przez {0}!</value>
+  </data>
+  <data name="Hub_GameThreefoldDeclaredFormat" xml:space="preserve">
+    <value>{0} ogłosił remis przez trzykrotne powtórzenie pozycji!</value>
+  </data>
+  <data name="Hub_GameDrawAcceptedFormat" xml:space="preserve">
+    <value>{0} zaakceptował propozycję. Remis!</value>
+  </data>
+  <data name="Hub_GameOver_ThreefoldDraw" xml:space="preserve">
+    <value>REMIS PRZEZ TRZYKROTNE POWTÓRZENIE POZYCJI!</value>
+  </data>
+  <data name="Hub_LobbyRoomCreatedFormat" xml:space="preserve">
+    <value>{0} utworzył pokój.</value>
+  </data>
+  <data name="Hub_LobbyJoinedFormat" xml:space="preserve">
+    <value>{0} dołączył do lobby.</value>
+  </data>
+  <data name="Hub_GameOver_Stalemate" xml:space="preserve">
+    <value>PAT!</value>
+  </data>
+  <data name="Hub_GameDrawRequestedFormat" xml:space="preserve">
+    <value>{0} zaproponował remis!</value>
+  </data>
+  <data name="Hub_GameOver_Draw" xml:space="preserve">
+    <value>REMIS!</value>
+  </data>
+  <data name="Hub_GameOver_Checkmate" xml:space="preserve">
+    <value>MAT!</value>
+  </data>
+  <data name="Hub_PlayerDisconnectedWaitingFormat" xml:space="preserve">
+    <value>{0} rozłączył się. Oczekiwanie na ponowne połączenie...</value>
+  </data>
+  <data name="Hub_GameOver_Disconnected" xml:space="preserve">
+    <value>ROZŁĄCZENIE!</value>
+  </data>
 </root>

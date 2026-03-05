@@ -1,8 +1,10 @@
 namespace Chess.Web.Hubs
 {
+    using System;
     using System.Runtime.CompilerServices;
     using System.Threading.Tasks;
 
+    using Chess.Common.Enums;
     using Microsoft.AspNetCore.SignalR;
 
     public partial class GameHub
@@ -31,10 +33,10 @@ namespace Chess.Web.Hubs
             switch (caller)
             {
                 case nameof(this.OnConnectedAsync):
-                    message = $"{name} joined the lobby";
+                    message = this.localizer["Hub_LobbyJoinedFormat", name];
                     break;
                 case nameof(this.CreateRoom):
-                    message = $"{name} created a room";
+                    message = this.localizer["Hub_LobbyRoomCreatedFormat", name];
                     break;
             }
 
@@ -50,36 +52,37 @@ namespace Chess.Web.Hubs
             switch (caller)
             {
                 case nameof(this.HandleMoveEvent):
-                    message = $"Check announced by {name}!";
+                    message = this.localizer["Hub_GameCheckAnnouncedByFormat", name];
                     break;
                 case nameof(this.StartGame):
-                    message = $"{name} joined. The game started!";
+                    message = this.localizer["Hub_GameStartedByJoinFormat", name];
                     break;
                 case nameof(this.HandleGameOverEventAsync):
-                    message = $"{gameOver}!";
+                    message = this.LocalizeGameOverMessage(gameOver);
                     break;
                 case nameof(this.Resign):
-                    message = $"{name} resigned!";
+                    message = this.localizer["Hub_GameResignedFormat", name];
                     break;
                 case nameof(this.OfferDrawRequest):
-                    message = $"{name} requested a draw!";
+                    message = this.localizer["Hub_GameDrawRequestedFormat", name];
                     break;
                 case nameof(this.OfferDrawAnswer):
-                    if (gameOver == "Draw")
+                    if (Enum.TryParse<GameOver>(gameOver, ignoreCase: true, out var drawOfferResult) &&
+                        drawOfferResult == GameOver.Draw)
                     {
-                        message = $"{name} accepted the offer. Draw!";
+                        message = this.localizer["Hub_GameDrawAcceptedFormat", name];
                     }
                     else
                     {
-                        message = $"{name} rejected the offer!";
+                        message = this.localizer["Hub_GameDrawRejectedFormat", name];
                     }
 
                     break;
                 case nameof(this.OnDisconnectedAsync):
-                    message = $"{name} left. You win!";
+                    message = this.localizer["Hub_PlayerLeftYouWinFormat", name];
                     break;
                 case nameof(this.ThreefoldDraw):
-                    message = $"{name} declared threefold draw!";
+                    message = this.localizer["Hub_GameThreefoldDeclaredFormat", name];
                     break;
             }
 
@@ -87,6 +90,27 @@ namespace Chess.Web.Hubs
             {
                 await this.Clients.Group(gameId).SendAsync("UpdateGameChatInternalMessage", message);
             }
+        }
+
+        private string LocalizeGameOverMessage(string gameOver)
+        {
+            if (!Enum.TryParse<GameOver>(gameOver, ignoreCase: true, out var parsedGameOver))
+            {
+                return gameOver;
+            }
+
+            return parsedGameOver switch
+            {
+                GameOver.Checkmate => this.localizer["Hub_GameOver_Checkmate"],
+                GameOver.Stalemate => this.localizer["Hub_GameOver_Stalemate"],
+                GameOver.Draw => this.localizer["Hub_GameOver_Draw"],
+                GameOver.ThreefoldDraw => this.localizer["Hub_GameOver_ThreefoldDraw"],
+                GameOver.FivefoldDraw => this.localizer["Hub_GameOver_FivefoldDraw"],
+                GameOver.Resign => this.localizer["Hub_GameOver_Resign"],
+                GameOver.Disconnected => this.localizer["Hub_GameOver_Disconnected"],
+                GameOver.FiftyMoveDraw => this.localizer["Hub_GameOver_FiftyMoveDraw"],
+                _ => gameOver,
+            };
         }
     }
 }

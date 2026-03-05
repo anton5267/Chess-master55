@@ -1197,4 +1197,64 @@
   <data name="Game_Hint_LegalMoves" xml:space="preserve">
     <value>Show legal move hints</value>
   </data>
+  <data name="Hub_GameOver_FivefoldDraw" xml:space="preserve">
+    <value>FIVEFOLD REPETITION DRAW!</value>
+  </data>
+  <data name="Hub_PlayerReconnectedFormat" xml:space="preserve">
+    <value>{0} reconnected.</value>
+  </data>
+  <data name="Hub_GameOver_Resign" xml:space="preserve">
+    <value>RESIGN!</value>
+  </data>
+  <data name="Hub_GameOver_FiftyMoveDraw" xml:space="preserve">
+    <value>FIFTY-MOVE DRAW!</value>
+  </data>
+  <data name="Hub_GameResignedFormat" xml:space="preserve">
+    <value>{0} resigned!</value>
+  </data>
+  <data name="Hub_GameStartedByJoinFormat" xml:space="preserve">
+    <value>{0} joined. The game started!</value>
+  </data>
+  <data name="Hub_PlayerLeftYouWinFormat" xml:space="preserve">
+    <value>{0} left. You win!</value>
+  </data>
+  <data name="Hub_GameDrawRejectedFormat" xml:space="preserve">
+    <value>{0} rejected the offer!</value>
+  </data>
+  <data name="Hub_GameCheckAnnouncedByFormat" xml:space="preserve">
+    <value>Check announced by {0}!</value>
+  </data>
+  <data name="Hub_GameThreefoldDeclaredFormat" xml:space="preserve">
+    <value>{0} declared threefold draw!</value>
+  </data>
+  <data name="Hub_GameDrawAcceptedFormat" xml:space="preserve">
+    <value>{0} accepted the offer. Draw!</value>
+  </data>
+  <data name="Hub_GameOver_ThreefoldDraw" xml:space="preserve">
+    <value>THREEFOLD REPETITION DRAW!</value>
+  </data>
+  <data name="Hub_LobbyRoomCreatedFormat" xml:space="preserve">
+    <value>{0} created a room.</value>
+  </data>
+  <data name="Hub_LobbyJoinedFormat" xml:space="preserve">
+    <value>{0} joined the lobby.</value>
+  </data>
+  <data name="Hub_GameOver_Stalemate" xml:space="preserve">
+    <value>STALEMATE!</value>
+  </data>
+  <data name="Hub_GameDrawRequestedFormat" xml:space="preserve">
+    <value>{0} requested a draw!</value>
+  </data>
+  <data name="Hub_GameOver_Draw" xml:space="preserve">
+    <value>DRAW!</value>
+  </data>
+  <data name="Hub_GameOver_Checkmate" xml:space="preserve">
+    <value>CHECKMATE!</value>
+  </data>
+  <data name="Hub_PlayerDisconnectedWaitingFormat" xml:space="preserve">
+    <value>{0} disconnected. Waiting for reconnect...</value>
+  </data>
+  <data name="Hub_GameOver_Disconnected" xml:space="preserve">
+    <value>DISCONNECTED!</value>
+  </data>
 </root>
