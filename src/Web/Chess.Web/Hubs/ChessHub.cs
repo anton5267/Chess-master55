@@ -199,12 +199,16 @@ namespace Chess.Web.Hubs
         public LegalMoveDto[] GetLegalMoves()
         {
             var player = this.GetPlayer();
-            if (!player.HasToMove)
+            var game = this.GetGame();
+            if (game.GameOver != GameOver.None)
             {
                 return Array.Empty<LegalMoveDto>();
             }
 
-            var game = this.GetGame();
+            if (!player.HasToMove)
+            {
+                return Array.Empty<LegalMoveDto>();
+            }
 
             return game.GetLegalMoves()
                 .Select(x => new LegalMoveDto

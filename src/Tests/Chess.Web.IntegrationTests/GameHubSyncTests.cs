@@ -991,6 +991,7 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
 
         ClearQueueAndSignal(syncQueue, syncSignal);
         ClearQueueAndSignal(gameOverQueue, gameOverSignal);
+        Interlocked.Exchange(ref boardMoveCount, 0);
 
         await connection.InvokeAsync("MoveSelected", "a2", "a3", terminalSnapshot.Fen, null);
         var secondSync = await WaitNextSync(syncQueue, syncSignal, timeoutMs: 5000);
@@ -1000,6 +1001,36 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         secondSync.Fen.Should().Be(terminalSnapshot.Fen);
         secondSync.TurnNumber.Should().Be(terminalSnapshot.TurnNumber);
         boardMoveCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task BotGame_GetLegalMoves_AfterTerminalState_ShouldReturnEmpty()
+    {
+        await this.SeedUserAsync("bot-user-terminal-7", "bot-terminal-7@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-terminal-7", "bot-terminal-7@example.com");
+
+        var startTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var gameOverTcs = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        connection.On<JsonElement>("Start", payload => startTcs.TrySetResult(payload));
+        connection.On<JsonElement, int>("GameOver", (_, gameOver) => gameOverTcs.TrySetResult(gameOver));
+
+        await connection.StartAsync();
+        await connection.InvokeAsync<JsonElement>("StartVsBot", "human_bot_terminal_7");
+
+        var startPayload = await WaitWithTimeout(startTcs.Task);
+        var gameId = startPayload.GetProperty("game").GetProperty("id").GetString();
+        gameId.Should().NotBeNullOrWhiteSpace();
+
+        this.ConfigureBotTerminalPosition(gameId!, checkmate: true);
+        await connection.InvokeAsync("RequestSync");
+
+        var gameOver = await WaitWithTimeout(gameOverTcs.Task, timeoutMs: 15000);
+        gameOver.Should().Be((int)GameOver.Checkmate);
+
+        var legalMoves = await connection.InvokeAsync<JsonElement[]>("GetLegalMoves");
+        legalMoves.Should().NotBeNull();
+        legalMoves.Should().BeEmpty();
     }
 
     [Fact]
