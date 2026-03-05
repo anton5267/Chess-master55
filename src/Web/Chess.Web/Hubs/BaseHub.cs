@@ -1,6 +1,7 @@
 namespace Chess.Web.Hubs
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Security.Claims;
@@ -28,8 +29,10 @@ namespace Chess.Web.Hubs
         private const int MinPlayerNameLength = 3;
         private const int MaxPlayerNameLength = 20;
         private const int MaxChatMessageLength = 300;
+        private static readonly TimeSpan ChatMessageRateLimitWindow = TimeSpan.FromSeconds(1);
         private static readonly TimeSpan DisconnectGracePeriod = TimeSpan.FromSeconds(10);
         private static readonly Regex ValidNameRegex = new (@"^[A-Za-z0-9_]+$", RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
+        private static readonly ConcurrentDictionary<string, DateTime> LastChatMessageByConnection = new ();
 
         private readonly IServiceProvider serviceProvider;
         private readonly IGameSessionStore gameSessionStore;
@@ -109,6 +112,11 @@ namespace Chess.Web.Hubs
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
+            if (!string.IsNullOrWhiteSpace(this.Context.ConnectionId))
+            {
+                LastChatMessageByConnection.TryRemove(this.Context.ConnectionId, out _);
+            }
+
             if (this.gameSessionStore.TryMarkDisconnectedConnection(this.Context.ConnectionId, out var removalResult) &&
                 removalResult.Success &&
                 removalResult.Player?.Player != null)
@@ -196,7 +204,7 @@ namespace Chess.Web.Hubs
         {
             if (!this.gameSessionStore.TryGetPlayer(this.Context.ConnectionId, out var playerSession))
             {
-                throw new HubException("Player session not found.");
+                throw new HubException(this.localizer["Hub_Error_PlayerSessionNotFound"]);
             }
 
             return playerSession.Player;
@@ -211,7 +219,7 @@ namespace Chess.Web.Hubs
         {
             if (!this.gameSessionStore.TryGetGameByConnection(this.Context.ConnectionId, out var gameSession, out _))
             {
-                throw new HubException("Game session not found.");
+                throw new HubException(this.localizer["Hub_Error_GameSessionNotFound"]);
             }
 
             return gameSession.Game;
@@ -221,7 +229,7 @@ namespace Chess.Web.Hubs
         {
             if (!this.gameSessionStore.TryGetGameByConnection(this.Context.ConnectionId, out var gameSession, out _))
             {
-                throw new HubException("Game session not found.");
+                throw new HubException(this.localizer["Hub_Error_GameSessionNotFound"]);
             }
 
             return gameSession;
@@ -296,7 +304,7 @@ namespace Chess.Web.Hubs
         {
             if (!this.TryGetValidatedUserContext(out _, out _, out _))
             {
-                throw new HubException("Unauthorized user context.");
+                throw new HubException(this.localizer["Hub_Error_UnauthorizedUserContext"]);
             }
         }
 
@@ -319,7 +327,7 @@ namespace Chess.Web.Hubs
                 normalized.Length > MaxPlayerNameLength ||
                 !ValidNameRegex.IsMatch(normalized))
             {
-                throw new HubException("Name must be 3-20 chars and contain only letters, numbers, and underscores.");
+                throw new HubException(this.localizer["Hub_Error_NameInvalid"]);
             }
 
             return normalized;
@@ -331,15 +339,49 @@ namespace Chess.Web.Hubs
 
             if (string.IsNullOrWhiteSpace(normalized))
             {
-                throw new HubException("Message cannot be empty.");
+                throw new HubException(this.localizer["Hub_Error_MessageEmpty"]);
             }
 
             if (normalized.Length > MaxChatMessageLength)
             {
-                throw new HubException("Message is too long.");
+                throw new HubException(this.localizer["Hub_Error_MessageTooLong"]);
             }
 
+            this.EnsureChatRateLimit();
             return normalized;
+        }
+
+        private void EnsureChatRateLimit()
+        {
+            var connectionId = this.Context.ConnectionId;
+            if (string.IsNullOrWhiteSpace(connectionId))
+            {
+                return;
+            }
+
+            while (true)
+            {
+                var now = this.clock.UtcNow;
+                if (!LastChatMessageByConnection.TryGetValue(connectionId, out var previousTimestamp))
+                {
+                    if (LastChatMessageByConnection.TryAdd(connectionId, now))
+                    {
+                        return;
+                    }
+
+                    continue;
+                }
+
+                if (now - previousTimestamp < ChatMessageRateLimitWindow)
+                {
+                    throw new HubException(this.localizer["Hub_Error_MessageRateLimited"]);
+                }
+
+                if (LastChatMessageByConnection.TryUpdate(connectionId, now, previousTimestamp))
+                {
+                    return;
+                }
+            }
         }
 
         private string GetTimestamp()

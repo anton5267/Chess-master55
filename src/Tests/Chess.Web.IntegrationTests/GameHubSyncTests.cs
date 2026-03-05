@@ -13,6 +13,7 @@ using Chess.Data.Models;
 using Chess.Services.Data.Models;
 using Chess.Web.Hubs.Sessions;
 using FluentAssertions;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.EntityFrameworkCore;
@@ -920,6 +921,22 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         unexpectedGameOver.Should().NotBe(gameOverTcs.Task);
 
         await connection.InvokeAsync("RequestSync");
+    }
+
+    [Fact]
+    public async Task LobbySendMessage_WhenSentTooFast_ShouldBeRateLimited()
+    {
+        await this.SeedUserAsync("chat-rate-user-1", "chat-rate-user-1@example.com");
+        await using var connection = this.CreateHubConnection("chat-rate-user-1", "chat-rate-user-1@example.com");
+
+        await connection.StartAsync();
+        await connection.InvokeAsync("LobbySendMessage", "first");
+
+        var exception = await Assert.ThrowsAsync<HubException>(() => connection.InvokeAsync("LobbySendMessage", "second"));
+        exception.Message.Should().NotBeNullOrWhiteSpace();
+
+        await Task.Delay(1100);
+        await connection.InvokeAsync("LobbySendMessage", "third");
     }
 
     private HubConnection CreateHubConnection(string userId, string userName)

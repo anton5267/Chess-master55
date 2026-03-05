@@ -1257,4 +1257,25 @@
   <data name="Hub_GameOver_Disconnected" xml:space="preserve">
     <value>DISCONNECTED!</value>
   </data>
+  <data name="Hub_Error_MessageEmpty" xml:space="preserve">
+    <value>Message cannot be empty.</value>
+  </data>
+  <data name="Hub_Error_GameSessionNotFound" xml:space="preserve">
+    <value>Game session not found.</value>
+  </data>
+  <data name="Hub_Error_MessageRateLimited" xml:space="preserve">
+    <value>You are sending messages too fast. Please wait a moment.</value>
+  </data>
+  <data name="Hub_Error_NameInvalid" xml:space="preserve">
+    <value>Name must be 3-20 chars and contain only letters, numbers, and underscores.</value>
+  </data>
+  <data name="Hub_Error_UnauthorizedUserContext" xml:space="preserve">
+    <value>Unauthorized user context.</value>
+  </data>
+  <data name="Hub_Error_PlayerSessionNotFound" xml:space="preserve">
+    <value>Player session not found.</value>
+  </data>
+  <data name="Hub_Error_MessageTooLong" xml:space="preserve">
+    <value>Message is too long.</value>
+  </data>
 </root>

@@ -1257,4 +1257,25 @@
   <data name="Hub_GameOver_Disconnected" xml:space="preserve">
     <value>ВІДКЛЮЧЕННЯ!</value>
   </data>
+  <data name="Hub_Error_MessageEmpty" xml:space="preserve">
+    <value>Повідомлення не може бути порожнім.</value>
+  </data>
+  <data name="Hub_Error_GameSessionNotFound" xml:space="preserve">
+    <value>Сесію гри не знайдено.</value>
+  </data>
+  <data name="Hub_Error_MessageRateLimited" xml:space="preserve">
+    <value>Ви надсилаєте повідомлення занадто швидко. Зачекайте трохи.</value>
+  </data>
+  <data name="Hub_Error_NameInvalid" xml:space="preserve">
+    <value>Ім'я має містити 3-20 символів і лише літери, цифри та підкреслення.</value>
+  </data>
+  <data name="Hub_Error_UnauthorizedUserContext" xml:space="preserve">
+    <value>Неавторизований контекст користувача.</value>
+  </data>
+  <data name="Hub_Error_PlayerSessionNotFound" xml:space="preserve">
+    <value>Сесію гравця не знайдено.</value>
+  </data>
+  <data name="Hub_Error_MessageTooLong" xml:space="preserve">
+    <value>Повідомлення занадто довге.</value>
+  </data>
 </root>

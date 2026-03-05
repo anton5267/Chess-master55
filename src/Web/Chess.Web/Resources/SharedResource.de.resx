@@ -1257,4 +1257,25 @@
   <data name="Hub_GameOver_Disconnected" xml:space="preserve">
     <value>VERBINDUNG GETRENNT!</value>
   </data>
+  <data name="Hub_Error_MessageEmpty" xml:space="preserve">
+    <value>Die Nachricht darf nicht leer sein.</value>
+  </data>
+  <data name="Hub_Error_GameSessionNotFound" xml:space="preserve">
+    <value>Spielsitzung wurde nicht gefunden.</value>
+  </data>
+  <data name="Hub_Error_MessageRateLimited" xml:space="preserve">
+    <value>Sie senden Nachrichten zu schnell. Bitte warten Sie einen Moment.</value>
+  </data>
+  <data name="Hub_Error_NameInvalid" xml:space="preserve">
+    <value>Der Name muss 3-20 Zeichen lang sein und darf nur Buchstaben, Zahlen und Unterstriche enthalten.</value>
+  </data>
+  <data name="Hub_Error_UnauthorizedUserContext" xml:space="preserve">
+    <value>Nicht autorisierter Benutzerkontext.</value>
+  </data>
+  <data name="Hub_Error_PlayerSessionNotFound" xml:space="preserve">
+    <value>Spielersitzung wurde nicht gefunden.</value>
+  </data>
+  <data name="Hub_Error_MessageTooLong" xml:space="preserve">
+    <value>Die Nachricht ist zu lang.</value>
+  </data>
 </root>
