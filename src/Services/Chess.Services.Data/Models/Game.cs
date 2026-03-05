@@ -428,7 +428,7 @@
             if (this.drawService.IsThreefoldRepetionDraw(targetFen))
             {
                 this.Opponent.IsThreefoldDrawAvailable = true;
-                this.notificationService.SendThreefoldDrawAvailability(this.MovingPlayer, true);
+                this.notificationService.SendThreefoldDrawAvailability(this.Opponent, true);
             }
 
             if (this.drawService.IsFivefoldRepetitionDraw(targetFen))

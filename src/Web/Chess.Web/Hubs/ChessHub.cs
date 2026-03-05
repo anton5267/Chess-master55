@@ -46,12 +46,12 @@ namespace Chess.Web.Hubs
 
             EventHandler onAvailableThreefoldDraw = (sender, eventArgs) =>
             {
-                if (!this.IsEventForGame(sender, game.Id, out _) || eventArgs is not ThreefoldDrawEventArgs args)
+                if (!this.IsEventForGame(sender, game.Id, out var eventPlayer) || eventArgs is not ThreefoldDrawEventArgs args)
                 {
                     return;
                 }
 
-                this.HandleThreefoldAvailabilityEvent(game, args);
+                _ = this.HandleThreefoldAvailabilityEventAsync(game, eventPlayer, args);
             };
 
             EventHandler onMoveEvent = (sender, eventArgs) =>
@@ -377,10 +377,13 @@ namespace Chess.Web.Hubs
             _ = this.Clients.Group(game.Id).SendAsync("UpdateTakenFigures", player, args.PieceName, args.Points);
         }
 
-        private void HandleThreefoldAvailabilityEvent(Game game, ThreefoldDrawEventArgs args)
+        private async Task HandleThreefoldAvailabilityEventAsync(Game game, Player player, ThreefoldDrawEventArgs args)
         {
-            _ = this.Clients.Caller.SendAsync("ThreefoldAvailable", false);
-            _ = this.Clients.GroupExcept(game.Id, new[] { this.Context.ConnectionId }).SendAsync("ThreefoldAvailable", args.IsAvailable);
+            await this.Clients.Group(game.Id).SendAsync("ThreefoldAvailable", false);
+            if (!string.IsNullOrWhiteSpace(player?.Id))
+            {
+                await this.Clients.Client(player.Id).SendAsync("ThreefoldAvailable", args.IsAvailable);
+            }
         }
 
         private async Task TryExecuteBotTurnIfNeededAsync(GameSession gameSession, string trigger)
