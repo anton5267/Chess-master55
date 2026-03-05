@@ -51,7 +51,7 @@
     <script src="~/lib/chessboard-js/chessboard-1.0.0.min.js" asp-append-version="true"></script>
 </environment>
 
-<main class="main container-fluid text-center">
+<main class="main container-fluid text-center game-shell">
     <article class="main-playground row">
         <section class="main-playground-white player-stats column left">
             <div class="player-name-container">
@@ -86,7 +86,7 @@
         </section>
 
         <section class="main-playground-board-container column middle">
-            <div class="board-settings-container">
+            <div class="board-settings-container game-toolbar">
                 <label class="board-settings-label" for="board-theme-select">@Localizer["Game_BoardLabel"]</label>
                 <select class="board-settings-select" id="board-theme-select">
                     <option value="classic">@Localizer["Game_BoardTheme_Classic"]</option>
@@ -114,7 +114,7 @@
             <div class="game-result-banner game-result-hidden" role="status" aria-live="polite"></div>
             <h6 class="status-bar-container"><i class="fas fa-arrow-alt-circle-right"></i> <span class="status-bar-text"></span> <span class="status-bar-check-notification"></span></h6>
             <div id="board"></div>
-            <div class="game-btn-container">
+            <div class="game-btn-container game-control-row">
                 <button type="submit" class="threefold-draw-btn option-btn game-btn btn" disabled><i class="fas fa-equals"></i> @Localizer["Game_DeclareThreefold"]</button>
                 <button type="submit" class="offer-draw-btn option-btn game-btn btn"><i class="far fa-handshake"></i> @Localizer["Game_OfferDraw"]</button>
                 <button type="submit" class="resign-btn option-btn game-btn btn"><i class="far fa-flag"></i> @Localizer["Game_Resign"]</button>
@@ -164,7 +164,7 @@
         </section>
     </article>
 
-    <article class="game-lobby">
+    <article class="game-lobby game-lobby-shell">
         <section class="game-lobby-input-container form">
             <input type="text" class="game-lobby-input-name" placeholder="@Localizer["Game_EnterName"]" autofocus />
             <button type="submit" class="game-lobby-input-create-btn game-btn">@Localizer["Game_CreateRoom"]</button>

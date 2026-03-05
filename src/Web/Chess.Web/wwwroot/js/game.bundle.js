@@ -274,6 +274,7 @@
     }
     elements.gameResultBanner.textContent = "";
     elements.gameResultBanner.classList.add("game-result-hidden");
+    elements.gameResultBanner.classList.remove("is-terminal");
     elements.gameResultBanner.classList.remove(...gameResultToneClasses);
   }
   function setGameResultBanner(elements, message, tone = "draw") {
@@ -284,6 +285,7 @@
     elements.gameResultBanner.textContent = message || "";
     elements.gameResultBanner.classList.remove(...gameResultToneClasses);
     elements.gameResultBanner.classList.add(`game-result-${normalizedTone}`);
+    elements.gameResultBanner.classList.add("is-terminal");
     elements.gameResultBanner.classList.remove("game-result-hidden");
   }
   function resetGameUi(elements, state) {
@@ -1232,10 +1234,14 @@
   // wwwroot/js/src/lobby.js
   function setLobbyButtonsDisabled(elements, isDisabled) {
     elements.lobbyInputCreateBtn.disabled = isDisabled;
+    elements.lobbyInputCreateBtn.classList.toggle("is-disabled", isDisabled);
+    elements.lobbyInputCreateBtn.classList.toggle("is-loading", isDisabled);
     if (elements.lobbyInputVsBotBtn) {
       elements.lobbyInputVsBotBtn.disabled = isDisabled;
+      elements.lobbyInputVsBotBtn.classList.toggle("is-disabled", isDisabled);
+      elements.lobbyInputVsBotBtn.classList.toggle("is-loading", isDisabled);
     }
-    $(".game-lobby-room-join-btn").prop("disabled", isDisabled);
+    $(".game-lobby-room-join-btn").prop("disabled", isDisabled).toggleClass("is-disabled", isDisabled).toggleClass("is-loading", isDisabled);
   }
   function tryGetLobbyName(elements) {
     const name = (elements.lobbyInputName.value || "").trim();
@@ -1250,9 +1256,11 @@
       return;
     }
     state.lobbyActionInFlight = true;
+    elements.lobbyContainer.classList.add("is-loading");
     setLobbyButtonsDisabled(elements, true);
     action().catch((err) => reportClientError(elements, err, elements.lobbyInputName)).finally(() => {
       state.lobbyActionInFlight = false;
+      elements.lobbyContainer.classList.remove("is-loading");
       setLobbyButtonsDisabled(elements, false);
     });
   }

@@ -128,6 +128,7 @@ export function clearGameResultBanner(elements) {
 
     elements.gameResultBanner.textContent = '';
     elements.gameResultBanner.classList.add('game-result-hidden');
+    elements.gameResultBanner.classList.remove('is-terminal');
     elements.gameResultBanner.classList.remove(...gameResultToneClasses);
 }
 
@@ -141,6 +142,7 @@ export function setGameResultBanner(elements, message, tone = 'draw') {
     elements.gameResultBanner.textContent = message || '';
     elements.gameResultBanner.classList.remove(...gameResultToneClasses);
     elements.gameResultBanner.classList.add(`game-result-${normalizedTone}`);
+    elements.gameResultBanner.classList.add('is-terminal');
     elements.gameResultBanner.classList.remove('game-result-hidden');
 }
 

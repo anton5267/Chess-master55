@@ -3,11 +3,19 @@ import { storageKeys, storeValue } from './state.js';
 
 function setLobbyButtonsDisabled(elements, isDisabled) {
     elements.lobbyInputCreateBtn.disabled = isDisabled;
+    elements.lobbyInputCreateBtn.classList.toggle('is-disabled', isDisabled);
+    elements.lobbyInputCreateBtn.classList.toggle('is-loading', isDisabled);
+
     if (elements.lobbyInputVsBotBtn) {
         elements.lobbyInputVsBotBtn.disabled = isDisabled;
+        elements.lobbyInputVsBotBtn.classList.toggle('is-disabled', isDisabled);
+        elements.lobbyInputVsBotBtn.classList.toggle('is-loading', isDisabled);
     }
 
-    $('.game-lobby-room-join-btn').prop('disabled', isDisabled);
+    $('.game-lobby-room-join-btn')
+        .prop('disabled', isDisabled)
+        .toggleClass('is-disabled', isDisabled)
+        .toggleClass('is-loading', isDisabled);
 }
 
 function tryGetLobbyName(elements) {
@@ -26,12 +34,14 @@ function runLobbyAction(elements, state, action) {
     }
 
     state.lobbyActionInFlight = true;
+    elements.lobbyContainer.classList.add('is-loading');
     setLobbyButtonsDisabled(elements, true);
 
     action()
         .catch((err) => reportClientError(elements, err, elements.lobbyInputName))
         .finally(() => {
             state.lobbyActionInFlight = false;
+            elements.lobbyContainer.classList.remove('is-loading');
             setLobbyButtonsDisabled(elements, false);
         });
 }
