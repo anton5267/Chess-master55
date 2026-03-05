@@ -352,24 +352,13 @@ namespace Chess.Web.Hubs.Sessions
 
                 if (gameSession.IsBotGame)
                 {
-                    this.players.TryRemove(connectionId, out _);
-                    if (opponent != null)
-                    {
-                        this.players.TryRemove(opponent.ConnectionId, out _);
-                    }
-
-                    this.games.TryRemove(gameSession.GameId, out _);
-                    this.ResetPlayerToIdle(leavingPlayer);
-                    if (opponent != null)
-                    {
-                        this.ResetPlayerToIdle(opponent);
-                    }
+                    leavingPlayer.State = PlayerSessionState.Disconnected;
 
                     removalResult = new ConnectionRemovalResult
                     {
                         Success = true,
                         RemovedFromWaiting = removedFromWaiting,
-                        FinalizedDisconnectedGame = true,
+                        MarkedAsDisconnected = true,
                         Player = leavingPlayer,
                         Opponent = opponent,
                         GameSession = gameSession,

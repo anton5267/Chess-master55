@@ -333,6 +333,58 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
+    public async Task BotDisconnectWithinGracePeriod_ShouldReattachAndRestoreGame()
+    {
+        await this.SeedUserAsync("bot-user-reconnect-1", "bot-reconnect-1@example.com");
+
+        var initialConnection = this.CreateHubConnection("bot-user-reconnect-1", "bot-reconnect-1@example.com");
+        await using var reconnectedConnection = this.CreateHubConnection("bot-user-reconnect-1", "bot-reconnect-1@example.com");
+
+        try
+        {
+            var initialStartTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+            initialConnection.On<JsonElement>("Start", payload => initialStartTcs.TrySetResult(payload));
+
+            await initialConnection.StartAsync();
+            await initialConnection.InvokeAsync<JsonElement>("StartVsBot", "bot_reconnect_player");
+            var initialStart = await WaitWithTimeout(initialStartTcs.Task);
+            var gameId = initialStart.GetProperty("game").GetProperty("id").GetString();
+            gameId.Should().NotBeNullOrWhiteSpace();
+
+            await initialConnection.StopAsync();
+            await Task.Delay(350);
+
+            var reconnectStartTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var reconnectSyncTcs = new TaskCompletionSource<SyncMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var reconnectGameOverTcs = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            reconnectedConnection.On<JsonElement>("Start", payload => reconnectStartTcs.TrySetResult(payload));
+            reconnectedConnection.On<string, string, long, string>("SyncPosition", (fen, movingPlayerName, turnNumber, movingPlayerId) =>
+            {
+                reconnectSyncTcs.TrySetResult(new SyncMessage(fen, movingPlayerName, turnNumber, movingPlayerId));
+            });
+            reconnectedConnection.On<JsonElement, int>("GameOver", (_, gameOver) => reconnectGameOverTcs.TrySetResult(gameOver));
+
+            await reconnectedConnection.StartAsync();
+
+            var reconnectStart = await WaitWithTimeout(reconnectStartTcs.Task);
+            reconnectStart.GetProperty("isBotGame").GetBoolean().Should().BeTrue();
+            reconnectStart.GetProperty("game").GetProperty("id").GetString().Should().Be(gameId);
+
+            var reconnectSync = await WaitWithTimeout(reconnectSyncTcs.Task);
+            reconnectSync.Fen.Should().NotBeNullOrWhiteSpace();
+
+            await reconnectedConnection.InvokeAsync("RequestSync");
+            var unexpectedGameOver = await Task.WhenAny(reconnectGameOverTcs.Task, Task.Delay(1500));
+            unexpectedGameOver.Should().NotBe(reconnectGameOverTcs.Task);
+        }
+        finally
+        {
+            await initialConnection.DisposeAsync();
+        }
+    }
+
+    [Fact]
     public async Task CreateRoom_AfterFinishedPvpGame_ShouldSucceedWithoutReconnect()
     {
         await this.SeedUserAsync("white-user-replay-1", "white-replay-1@example.com");

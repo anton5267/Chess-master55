@@ -188,12 +188,53 @@ public class InMemoryGameSessionStoreTests
 
         store.TryMarkDisconnectedConnection("human-conn", out var removalResult).Should().BeTrue();
         removalResult.Success.Should().BeTrue();
-        removalResult.FinalizedDisconnectedGame.Should().BeTrue();
-        removalResult.MarkedAsDisconnected.Should().BeFalse();
+        removalResult.MarkedAsDisconnected.Should().BeTrue();
+        removalResult.FinalizedDisconnectedGame.Should().BeFalse();
         removalResult.GameSession.Should().NotBeNull();
 
-        store.TryGetGameByConnection("human-conn", out _, out _).Should().BeFalse();
+        store.TryGetGameByConnection("human-conn", out _, out var disconnectedHumanSession).Should().BeTrue();
+        disconnectedHumanSession.Should().NotBeNull();
+        disconnectedHumanSession.State.Should().Be(PlayerSessionState.Disconnected);
+        store.TryGetGameById(gameSession.GameId, out _).Should().BeTrue();
+    }
+
+    [Fact]
+    public void TryFinalizeDisconnectedConnection_ShouldCleanupBotGame_AfterGraceWindow()
+    {
+        using var store = new InMemoryGameSessionStore(new SystemClock());
+        var services = new ServiceCollection()
+            .AddTransient<INotificationService, NotificationService>()
+            .AddTransient<ICheckService, CheckService>()
+            .AddTransient<IDrawService, DrawService>()
+            .AddTransient<IUtilityService, UtilityService>()
+            .BuildServiceProvider();
+
+        store.TryCreateBotGame(
+            "human-conn",
+            "human-user",
+            "human_player",
+            1280,
+            services,
+            out _,
+            out var gameSession,
+            out var createError).Should().BeTrue(createError);
+
+        gameSession.Should().NotBeNull();
+        var botConnectionId = gameSession.Player1.IsBot
+            ? gameSession.Player1.ConnectionId
+            : gameSession.Player2.ConnectionId;
+
+        store.TryMarkDisconnectedConnection("human-conn", out var removalResult).Should().BeTrue();
+        removalResult.MarkedAsDisconnected.Should().BeTrue();
+
+        store.TryFinalizeDisconnectedConnection("human-conn", out var finalizeResult).Should().BeTrue();
+        finalizeResult.Success.Should().BeTrue();
+        finalizeResult.FinalizedDisconnectedGame.Should().BeTrue();
+        finalizeResult.GameSession.Should().NotBeNull();
+
         store.TryGetGameById(gameSession.GameId, out _).Should().BeFalse();
+        store.TryGetPlayer("human-conn", out _).Should().BeFalse();
+        store.TryGetPlayer(botConnectionId, out _).Should().BeFalse();
     }
 
     [Fact]
