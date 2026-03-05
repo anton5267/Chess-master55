@@ -61,6 +61,13 @@ dotnet build src/Chess.sln
 dotnet test src/Chess.sln
 ```
 
+One-command full quality check (assets + backend tests):
+
+```bash
+cd src/Web/Chess.Web
+npm run check:full
+```
+
 ## Local Development
 
 ```bash

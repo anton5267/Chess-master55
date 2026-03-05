@@ -21,6 +21,7 @@
     "tunnel:up": "ngrok http https://localhost:5001 --domain=nonhostilely-unhampered-noah.ngrok-free.dev --host-header=rewrite",
     "dev": "concurrently -k -n assets,web \"npm run watch:assets\" \"npm run dev:web\"",
     "dev:http": "concurrently -k -n assets,web \"npm run watch:assets\" \"npm run dev:web:http\"",
-    "dev:remote": "concurrently -k -n assets,web,tunnel \"npm run watch:assets\" \"npm run dev:web\" \"npm run tunnel:up\""
+    "dev:remote": "concurrently -k -n assets,web,tunnel \"npm run watch:assets\" \"npm run dev:web\" \"npm run tunnel:up\"",
+    "check:full": "npm run build:assets && dotnet test ../../Chess.sln --nologo"
   }
 }
