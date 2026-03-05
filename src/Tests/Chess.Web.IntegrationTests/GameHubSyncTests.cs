@@ -915,7 +915,9 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         await connection.InvokeAsync("MoveSelected", "z9", "z9", "invalid_fen_payload", null);
 
         var snapbackFen = await WaitWithTimeout(snapbackTcs.Task, timeoutMs: 5000);
-        snapbackFen.Should().Be("invalid_fen_payload");
+        snapbackFen.Should().NotBeNullOrWhiteSpace();
+        snapbackFen.Should().NotBe("invalid_fen_payload");
+        snapbackFen.Should().Contain("/");
 
         var unexpectedGameOver = await Task.WhenAny(gameOverTcs.Task, Task.Delay(1000));
         unexpectedGameOver.Should().NotBe(gameOverTcs.Task);

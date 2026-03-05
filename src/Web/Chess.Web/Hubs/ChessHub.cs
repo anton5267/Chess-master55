@@ -19,19 +19,19 @@ namespace Chess.Web.Hubs
     {
         public async Task MoveSelected(string source, string target, string sourceFen, string targetFen)
         {
+            var gameSession = this.GetGameSession();
+            var player = this.GetPlayer();
+            var game = gameSession.Game;
+            var isBotGame = gameSession.IsBotGame;
+
             source = source?.Trim().ToLowerInvariant();
             target = target?.Trim().ToLowerInvariant();
 
             if (!this.IsValidSquareName(source) || !this.IsValidSquareName(target) || source == target)
             {
-                await this.Snapback(sourceFen);
+                await this.SnapbackToServerPosition(game);
                 return;
             }
-
-            var gameSession = this.GetGameSession();
-            var player = this.GetPlayer();
-            var game = gameSession.Game;
-            var isBotGame = gameSession.IsBotGame;
 
             EventHandler onGameOver = (sender, eventArgs) =>
             {
@@ -108,7 +108,7 @@ namespace Chess.Web.Hubs
                 }
                 else
                 {
-                    await this.Snapback(sourceFen);
+                    await this.SnapbackToServerPosition(game);
                 }
             }
             catch (Exception ex)
@@ -347,9 +347,10 @@ namespace Chess.Web.Hubs
             await this.Clients.Caller.SendAsync("GameOver", winner, game.GameOver);
         }
 
-        private async Task Snapback(string sourceFen)
+        private async Task SnapbackToServerPosition(Game game)
         {
-            await this.Clients.Caller.SendAsync("BoardSnapback", sourceFen);
+            var fen = this.boardFenSerializer.Serialize(game.ChessBoard);
+            await this.Clients.Caller.SendAsync("BoardSnapback", fen);
         }
 
         private bool IsValidSquareName(string square)
