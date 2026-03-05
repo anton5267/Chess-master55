@@ -188,6 +188,7 @@ export function resetGameUi(elements, state) {
     state.legalMoves = [];
     state.legalMovesRequestId += 1;
     state.syncRequestInFlight = false;
+    state.lobbyActionInFlight = false;
 
     if (state.pendingSyncTimeoutId) {
         clearTimeout(state.pendingSyncTimeoutId);

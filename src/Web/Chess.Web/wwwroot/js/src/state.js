@@ -96,6 +96,7 @@ export function createState() {
         selectedPieceTheme: getStoredValue(storageKeys.pieceTheme, "wikipedia", pieceThemes),
         hintsEnabled: getStoredBoolean(storageKeys.checkHints, true),
         legalHintsEnabled: getStoredBoolean(storageKeys.legalMoveHints, true),
+        lobbyActionInFlight: false,
     };
 }
 
