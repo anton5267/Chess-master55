@@ -11,6 +11,7 @@ using Chess.Common.Enums;
 using Chess.Data;
 using Chess.Data.Models;
 using Chess.Services.Data.Models;
+using Chess.Services.Data.Services.Contracts;
 using Chess.Web.Hubs.Sessions;
 using FluentAssertions;
 using Microsoft.AspNetCore.SignalR;
@@ -894,6 +895,70 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
+    public async Task BotGame_MoveSelected_AfterTerminalState_ShouldNotMutatePosition_AndReplayTerminalState()
+    {
+        await this.SeedUserAsync("bot-user-terminal-6", "bot-terminal-6@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-terminal-6", "bot-terminal-6@example.com");
+
+        var startTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var gameOverQueue = new Queue<(JsonElement Player, int GameOver)>();
+        var syncQueue = new Queue<SyncMessage>();
+        using var gameOverSignal = new SemaphoreSlim(0, int.MaxValue);
+        using var syncSignal = new SemaphoreSlim(0, int.MaxValue);
+
+        connection.On<JsonElement>("Start", payload => startTcs.TrySetResult(payload));
+        connection.On<JsonElement, int>("GameOver", (player, gameOver) =>
+        {
+            lock (gameOverQueue)
+            {
+                gameOverQueue.Enqueue((player, gameOver));
+            }
+
+            gameOverSignal.Release();
+        });
+        connection.On<string, string, long, string>("SyncPosition", (fen, movingPlayerName, turnNumber, movingPlayerId) =>
+        {
+            lock (syncQueue)
+            {
+                syncQueue.Enqueue(new SyncMessage(fen, movingPlayerName, turnNumber, movingPlayerId));
+            }
+
+            syncSignal.Release();
+        });
+
+        await connection.StartAsync();
+        await connection.InvokeAsync<JsonElement>("StartVsBot", "human_bot_terminal_6");
+
+        var startPayload = await WaitWithTimeout(startTcs.Task);
+        var gameId = startPayload.GetProperty("game").GetProperty("id").GetString();
+        gameId.Should().NotBeNullOrWhiteSpace();
+
+        this.ConfigureBotTerminalPosition(gameId!, checkmate: true);
+        ClearQueueAndSignal(syncQueue, syncSignal);
+        ClearQueueAndSignal(gameOverQueue, gameOverSignal);
+
+        await connection.InvokeAsync("RequestSync");
+        var firstGameOver = await WaitNextGameOver(gameOverQueue, gameOverSignal, timeoutMs: 15000);
+        firstGameOver.GameOver.Should().Be((int)GameOver.Checkmate);
+        var firstSync = await WaitNextSync(syncQueue, syncSignal, timeoutMs: 15000);
+
+        var terminalSnapshot = this.GetGameSnapshot(gameId!);
+        firstSync.Fen.Should().Be(terminalSnapshot.Fen);
+        firstSync.TurnNumber.Should().Be(terminalSnapshot.TurnNumber);
+
+        ClearQueueAndSignal(syncQueue, syncSignal);
+        ClearQueueAndSignal(gameOverQueue, gameOverSignal);
+
+        await connection.InvokeAsync("MoveSelected", "a2", "a3", terminalSnapshot.Fen, null);
+        var secondSync = await WaitNextSync(syncQueue, syncSignal, timeoutMs: 5000);
+        var secondGameOver = await WaitNextGameOver(gameOverQueue, gameOverSignal, timeoutMs: 5000);
+
+        secondGameOver.GameOver.Should().Be((int)GameOver.Checkmate);
+        secondSync.Fen.Should().Be(terminalSnapshot.Fen);
+        secondSync.TurnNumber.Should().Be(terminalSnapshot.TurnNumber);
+    }
+
+    [Fact]
     public async Task BotGame_RequestSync_ShouldResolveTerminalState_WhenHumanHasNoLegalMoves()
     {
         await this.SeedUserAsync("bot-user-terminal-4", "bot-terminal-4@example.com");
@@ -1086,6 +1151,18 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         }
     }
 
+    private static void ClearQueueAndSignal<T>(Queue<T> queue, SemaphoreSlim signal)
+    {
+        lock (queue)
+        {
+            queue.Clear();
+        }
+
+        while (signal.Wait(0))
+        {
+        }
+    }
+
     private async Task SeedUserAsync(string id, string email)
     {
         using var scope = this.factory.Services.CreateScope();
@@ -1216,6 +1293,17 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         {
             gameSession.BotTurnLock.Release();
         }
+    }
+
+    private (string Fen, long TurnNumber) GetGameSnapshot(string gameId)
+    {
+        using var scope = this.factory.Services.CreateScope();
+        var store = scope.ServiceProvider.GetRequiredService<IGameSessionStore>();
+        var serializer = scope.ServiceProvider.GetRequiredService<IBoardFenSerializer>();
+        store.TryGetGameById(gameId, out var gameSession).Should().BeTrue();
+
+        var fen = serializer.Serialize(gameSession.Game.ChessBoard);
+        return (fen, gameSession.Game.Turn);
     }
 
     private (string Source, string Target) ConfigureHumanMateInOnePosition(string gameId)
