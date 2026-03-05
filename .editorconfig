@@ -6,3 +6,11 @@ insert_final_newline = true
 
 [*.cs]
 dotnet_diagnostic.SA1412.severity = none
+
+[src/Data/Chess.Data/Migrations/*.cs]
+generated_code = true
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.severity = none
+
+[src/Web/Chess.Web/Areas/Identity/Pages/**/*.cs]
+generated_code = true
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.severity = none
