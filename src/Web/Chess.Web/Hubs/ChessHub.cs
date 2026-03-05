@@ -313,7 +313,7 @@ namespace Chess.Web.Hubs
 
         private async Task UpdateStatus(Game game)
         {
-            if (game.GameOver.ToString() == GameOver.None.ToString())
+            if (game.GameOver == GameOver.None)
             {
                 await this.Clients.Group(game.Id).SendAsync("UpdateStatus", game.MovingPlayer.Id, game.MovingPlayer.Name);
             }

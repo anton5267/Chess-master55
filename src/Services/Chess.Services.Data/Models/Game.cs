@@ -451,7 +451,7 @@
                 this.GameOver = GameOver.Stalemate;
             }
 
-            if (this.GameOver.ToString() != GameOver.None.ToString())
+            if (this.GameOver != GameOver.None)
             {
                 this.notificationService.SendGameOver(this.MovingPlayer, this.GameOver);
             }
