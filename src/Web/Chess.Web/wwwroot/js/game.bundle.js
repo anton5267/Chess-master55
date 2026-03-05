@@ -637,9 +637,9 @@
     } else {
       clearBotRecoveryWatchdog(state);
     }
-    if (state.isGameStarted && state.connectionState !== "reconnecting") {
+    if (state.isGameStarted && state.connectionState !== "reconnecting" && state.connectionState !== "disconnected" && state.isYourTurn) {
       elements.board.style.pointerEvents = "auto";
-    } else if (!state.isGameStarted || state.connectionState === "reconnecting" || state.connectionState === "disconnected") {
+    } else {
       elements.board.style.pointerEvents = "none";
     }
   }
