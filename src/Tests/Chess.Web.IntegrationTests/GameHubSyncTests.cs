@@ -903,10 +903,12 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         var startTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
         var gameOverQueue = new Queue<(JsonElement Player, int GameOver)>();
         var syncQueue = new Queue<SyncMessage>();
+        var boardMoveCount = 0;
         using var gameOverSignal = new SemaphoreSlim(0, int.MaxValue);
         using var syncSignal = new SemaphoreSlim(0, int.MaxValue);
 
         connection.On<JsonElement>("Start", payload => startTcs.TrySetResult(payload));
+        connection.On<string, string>("BoardMove", (_, _) => Interlocked.Increment(ref boardMoveCount));
         connection.On<JsonElement, int>("GameOver", (player, gameOver) =>
         {
             lock (gameOverQueue)
@@ -956,6 +958,7 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         secondGameOver.GameOver.Should().Be((int)GameOver.Checkmate);
         secondSync.Fen.Should().Be(terminalSnapshot.Fen);
         secondSync.TurnNumber.Should().Be(terminalSnapshot.TurnNumber);
+        boardMoveCount.Should().Be(0);
     }
 
     [Fact]
