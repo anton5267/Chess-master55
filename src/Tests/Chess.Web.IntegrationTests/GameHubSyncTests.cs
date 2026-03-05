@@ -128,6 +128,93 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
+    public async Task MoveSelected_ConcurrentRequests_ShouldAdvanceOnlySingleTurn()
+    {
+        await this.SeedUserAsync("white-user-concurrent-1", "white-concurrent-1@example.com");
+        await this.SeedUserAsync("black-user-concurrent-1", "black-concurrent-1@example.com");
+
+        await using var whiteConnection = this.CreateHubConnection("white-user-concurrent-1", "white-concurrent-1@example.com");
+        await using var blackConnection = this.CreateHubConnection("black-user-concurrent-1", "black-concurrent-1@example.com");
+
+        var whiteStartTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var blackStartTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var movingSyncQueue = new Queue<SyncMessage>();
+        using var movingSyncSignal = new SemaphoreSlim(0, int.MaxValue);
+
+        whiteConnection.On<JsonElement>("Start", payload => whiteStartTcs.TrySetResult(payload));
+        blackConnection.On<JsonElement>("Start", payload => blackStartTcs.TrySetResult(payload));
+
+        await whiteConnection.StartAsync();
+        await blackConnection.StartAsync();
+
+        var creator = await whiteConnection.InvokeAsync<JsonElement>("CreateRoom", "white_concurrent_1");
+        var roomId = creator.GetProperty("id").GetString();
+        roomId.Should().NotBeNullOrWhiteSpace();
+
+        await blackConnection.InvokeAsync<JsonElement>("JoinRoom", "black_concurrent_1", roomId);
+
+        var whiteStartPayload = await WaitWithTimeout(whiteStartTcs.Task);
+        var blackStartPayload = await WaitWithTimeout(blackStartTcs.Task);
+        var movingPlayerName = whiteStartPayload.GetProperty("movingPlayerName").GetString();
+
+        var movingConnection = string.Equals(movingPlayerName, "white_concurrent_1", StringComparison.Ordinal)
+            ? whiteConnection
+            : blackConnection;
+
+        movingConnection.On<string, string, long, string>("SyncPosition", (fen, currentMovingPlayerName, turnNumber, movingPlayerId) =>
+        {
+            lock (movingSyncQueue)
+            {
+                movingSyncQueue.Enqueue(new SyncMessage(fen, currentMovingPlayerName, turnNumber, movingPlayerId));
+            }
+
+            movingSyncSignal.Release();
+        });
+
+        await movingConnection.InvokeAsync("RequestSync");
+        var currentSync = await WaitNextSync(movingSyncQueue, movingSyncSignal, timeoutMs: 15000);
+        currentSync.TurnNumber.Should().Be(1);
+        ClearQueueAndSignal(movingSyncQueue, movingSyncSignal);
+
+        var legalMoves = await movingConnection.InvokeAsync<JsonElement[]>("GetLegalMoves");
+        legalMoves.Should().NotBeNull();
+        legalMoves.Length.Should().BeGreaterThan(1);
+
+        var firstMove = legalMoves[0];
+        var secondMove = legalMoves[1];
+        var firstSource = firstMove.GetProperty("source").GetString();
+        var firstTarget = firstMove.GetProperty("target").GetString();
+        var secondSource = secondMove.GetProperty("source").GetString();
+        var secondTarget = secondMove.GetProperty("target").GetString();
+        firstSource.Should().NotBeNullOrWhiteSpace();
+        firstTarget.Should().NotBeNullOrWhiteSpace();
+        secondSource.Should().NotBeNullOrWhiteSpace();
+        secondTarget.Should().NotBeNullOrWhiteSpace();
+
+        await Task.WhenAll(
+            movingConnection.InvokeAsync("MoveSelected", firstSource!, firstTarget!, currentSync.Fen, null),
+            movingConnection.InvokeAsync("MoveSelected", secondSource!, secondTarget!, currentSync.Fen, null));
+
+        await movingConnection.InvokeAsync("RequestSync");
+        var finalSync = await WaitNextSync(movingSyncQueue, movingSyncSignal, timeoutMs: 15000);
+        for (var i = 0; i < 5; i++)
+        {
+            if (movingSyncSignal.CurrentCount <= 0)
+            {
+                break;
+            }
+
+            finalSync = await WaitNextSync(movingSyncQueue, movingSyncSignal, timeoutMs: 2000);
+        }
+
+        finalSync.TurnNumber.Should().Be(2);
+
+        var legalMovesAfter = await movingConnection.InvokeAsync<JsonElement[]>("GetLegalMoves");
+        legalMovesAfter.Should().NotBeNull();
+        legalMovesAfter.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task GetLegalMoves_ShouldReturnCaptureAndNonCaptureOptions_WhenCaptureIsAvailable()
     {
         await this.SeedUserAsync("white-user-2", "white2@example.com");

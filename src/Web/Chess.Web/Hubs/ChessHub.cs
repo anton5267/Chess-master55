@@ -24,124 +24,132 @@ namespace Chess.Web.Hubs
             var game = gameSession.Game;
             var isBotGame = gameSession.IsBotGame;
 
-            if (game.GameOver != GameOver.None)
-            {
-                await this.SyncPositionToCaller(game);
-                await this.SyncTerminalStateToCallerIfNeeded(game);
-                return;
-            }
-
-            source = source?.Trim().ToLowerInvariant();
-            target = target?.Trim().ToLowerInvariant();
-
-            if (!this.IsValidSquareName(source) || !this.IsValidSquareName(target) || source == target)
-            {
-                await this.SnapbackToServerPosition(game);
-                return;
-            }
-
-            EventHandler onGameOver = (sender, eventArgs) =>
-            {
-                if (!this.IsEventForGame(sender, game.Id, out var eventPlayer) || eventArgs is not GameOverEventArgs args)
-                {
-                    return;
-                }
-
-                _ = this.HandleGameOverEventAsync(game, eventPlayer, args.GameOver, isBotGame);
-            };
-
-            EventHandler onTakePiece = (sender, eventArgs) =>
-            {
-                if (!this.IsEventForGame(sender, game.Id, out var eventPlayer) || eventArgs is not TakePieceEventArgs args)
-                {
-                    return;
-                }
-
-                this.HandleTakePieceEvent(game, eventPlayer, args);
-            };
-
-            EventHandler onAvailableThreefoldDraw = (sender, eventArgs) =>
-            {
-                if (!this.IsEventForGame(sender, game.Id, out var eventPlayer) || eventArgs is not ThreefoldDrawEventArgs args)
-                {
-                    return;
-                }
-
-                _ = this.HandleThreefoldAvailabilityEventAsync(game, eventPlayer, args);
-            };
-
-            EventHandler onMoveEvent = (sender, eventArgs) =>
-            {
-                if (!this.IsEventForGame(sender, game.Id, out var eventPlayer) || eventArgs is not MoveArgs args)
-                {
-                    return;
-                }
-
-                this.HandleMoveEvent(game, eventPlayer, args);
-            };
-
-            EventHandler onCompleteMove = (sender, eventArgs) =>
-            {
-                if (!this.IsEventForGame(sender, game.Id, out var eventPlayer) || eventArgs is not HistoryUpdateArgs args)
-                {
-                    return;
-                }
-
-                this.HandleCompleteMoveEvent(game, eventPlayer, args);
-            };
-
-            this.notificationService.OnGameOver += onGameOver;
-            this.notificationService.OnTakePiece += onTakePiece;
-            this.notificationService.OnAvailableThreefoldDraw += onAvailableThreefoldDraw;
-            this.notificationService.OnMoveEvent += onMoveEvent;
-            this.notificationService.OnCompleteMove += onCompleteMove;
-
+            await gameSession.MoveLock.WaitAsync();
             try
             {
-                if (player.HasToMove && await game.MakeMoveAsync(source, target, targetFen, persistHistory: !isBotGame))
+                if (game.GameOver != GameOver.None)
                 {
-                    await this.OpponentBoardMove(source, target, game);
-                    await this.HighlightMove(source, target, game);
-                    await this.IsSpecialMove(target, game);
-                    await this.SyncPosition(game);
+                    await this.SyncPositionToCaller(game);
+                    await this.SyncTerminalStateToCallerIfNeeded(game);
+                    return;
+                }
 
-                    if (isBotGame && await this.TryResolveTerminalBotStateAsync(gameSession, "human_move_postsync"))
+                source = source?.Trim().ToLowerInvariant();
+                target = target?.Trim().ToLowerInvariant();
+
+                if (!this.IsValidSquareName(source) || !this.IsValidSquareName(target) || source == target)
+                {
+                    await this.SnapbackToServerPosition(game);
+                    return;
+                }
+
+                EventHandler onGameOver = (sender, eventArgs) =>
+                {
+                    if (!this.IsEventForGame(sender, game.Id, out var eventPlayer) || eventArgs is not GameOverEventArgs args)
                     {
                         return;
                     }
 
-                    await this.UpdateStatus(game);
-                    await this.TryExecuteBotTurnIfNeededAsync(gameSession, trigger: "human_move");
-                }
-                else
-                {
-                    await this.SnapbackToServerPosition(game);
-                }
-            }
-            catch (Exception ex)
-            {
-                using var scope = this.serviceProvider.CreateScope();
-                var errorLogRepository = scope.ServiceProvider.GetRequiredService<IRepository<ErrorLogEntity>>();
+                    _ = this.HandleGameOverEventAsync(game, eventPlayer, args.GameOver, isBotGame);
+                };
 
-                await errorLogRepository.AddAsync(new ErrorLogEntity
+                EventHandler onTakePiece = (sender, eventArgs) =>
                 {
-                    GameId = game.Id,
-                    Source = source,
-                    Target = target,
-                    FenString = sourceFen,
-                    ExceptionMessage = ex.Message,
-                    CreatedOn = this.clock.UtcNow,
-                });
+                    if (!this.IsEventForGame(sender, game.Id, out var eventPlayer) || eventArgs is not TakePieceEventArgs args)
+                    {
+                        return;
+                    }
 
-                await errorLogRepository.SaveChangesAsync();
+                    this.HandleTakePieceEvent(game, eventPlayer, args);
+                };
+
+                EventHandler onAvailableThreefoldDraw = (sender, eventArgs) =>
+                {
+                    if (!this.IsEventForGame(sender, game.Id, out var eventPlayer) || eventArgs is not ThreefoldDrawEventArgs args)
+                    {
+                        return;
+                    }
+
+                    _ = this.HandleThreefoldAvailabilityEventAsync(game, eventPlayer, args);
+                };
+
+                EventHandler onMoveEvent = (sender, eventArgs) =>
+                {
+                    if (!this.IsEventForGame(sender, game.Id, out var eventPlayer) || eventArgs is not MoveArgs args)
+                    {
+                        return;
+                    }
+
+                    this.HandleMoveEvent(game, eventPlayer, args);
+                };
+
+                EventHandler onCompleteMove = (sender, eventArgs) =>
+                {
+                    if (!this.IsEventForGame(sender, game.Id, out var eventPlayer) || eventArgs is not HistoryUpdateArgs args)
+                    {
+                        return;
+                    }
+
+                    this.HandleCompleteMoveEvent(game, eventPlayer, args);
+                };
+
+                this.notificationService.OnGameOver += onGameOver;
+                this.notificationService.OnTakePiece += onTakePiece;
+                this.notificationService.OnAvailableThreefoldDraw += onAvailableThreefoldDraw;
+                this.notificationService.OnMoveEvent += onMoveEvent;
+                this.notificationService.OnCompleteMove += onCompleteMove;
+
+                try
+                {
+                    if (player.HasToMove && await game.MakeMoveAsync(source, target, targetFen, persistHistory: !isBotGame))
+                    {
+                        await this.OpponentBoardMove(source, target, game);
+                        await this.HighlightMove(source, target, game);
+                        await this.IsSpecialMove(target, game);
+                        await this.SyncPosition(game);
+
+                        if (isBotGame && await this.TryResolveTerminalBotStateAsync(gameSession, "human_move_postsync"))
+                        {
+                            return;
+                        }
+
+                        await this.UpdateStatus(game);
+                        await this.TryExecuteBotTurnIfNeededAsync(gameSession, trigger: "human_move");
+                    }
+                    else
+                    {
+                        await this.SnapbackToServerPosition(game);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    using var scope = this.serviceProvider.CreateScope();
+                    var errorLogRepository = scope.ServiceProvider.GetRequiredService<IRepository<ErrorLogEntity>>();
+
+                    await errorLogRepository.AddAsync(new ErrorLogEntity
+                    {
+                        GameId = game.Id,
+                        Source = source,
+                        Target = target,
+                        FenString = sourceFen,
+                        ExceptionMessage = ex.Message,
+                        CreatedOn = this.clock.UtcNow,
+                    });
+
+                    await errorLogRepository.SaveChangesAsync();
+                }
+                finally
+                {
+                    this.notificationService.OnGameOver -= onGameOver;
+                    this.notificationService.OnTakePiece -= onTakePiece;
+                    this.notificationService.OnAvailableThreefoldDraw -= onAvailableThreefoldDraw;
+                    this.notificationService.OnMoveEvent -= onMoveEvent;
+                    this.notificationService.OnCompleteMove -= onCompleteMove;
+                }
             }
             finally
             {
-                this.notificationService.OnGameOver -= onGameOver;
-                this.notificationService.OnTakePiece -= onTakePiece;
-                this.notificationService.OnAvailableThreefoldDraw -= onAvailableThreefoldDraw;
-                this.notificationService.OnMoveEvent -= onMoveEvent;
-                this.notificationService.OnCompleteMove -= onCompleteMove;
+                gameSession.MoveLock.Release();
             }
         }
 

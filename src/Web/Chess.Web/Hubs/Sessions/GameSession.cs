@@ -21,6 +21,8 @@ namespace Chess.Web.Hubs.Sessions
 
         public bool IsBotGame => this.Mode == GameMode.HumanVsBot;
 
+        public SemaphoreSlim MoveLock { get; } = new (1, 1);
+
         public SemaphoreSlim BotTurnLock { get; } = new (1, 1);
     }
 }
