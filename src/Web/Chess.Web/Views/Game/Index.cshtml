@@ -35,6 +35,10 @@
         ["gameResultWin"] = Localizer["Js_GameResult_Win"],
         ["gameResultLoss"] = Localizer["Js_GameResult_Loss"],
         ["gameResultDraw"] = Localizer["Js_GameResult_Draw"],
+        ["replayLive"] = Localizer["Js_ReplayLive"],
+        ["replayModeFormat"] = Localizer["Js_ReplayModeFormat"],
+        ["pgnDownloaded"] = Localizer["Js_PgnDownloaded"],
+        ["pgnDownloadFailed"] = Localizer["Js_PgnDownloadFailed"],
     };
 }
 
@@ -111,6 +115,11 @@
                     <span>@Localizer["Game_Hint_LegalMoves"]</span>
                 </label>
             </div>
+            <div class="game-mobile-tabs" role="tablist" aria-label="@Localizer["Game_MobileTabsAriaLabel"]">
+                <button type="button" class="game-mobile-tab-btn is-active" data-mobile-panel="board">@Localizer["Game_MobileTab_Board"]</button>
+                <button type="button" class="game-mobile-tab-btn" data-mobile-panel="history">@Localizer["Game_MobileTab_History"]</button>
+                <button type="button" class="game-mobile-tab-btn" data-mobile-panel="chat">@Localizer["Game_MobileTab_Chat"]</button>
+            </div>
             <div class="game-result-banner game-result-hidden" role="status" aria-live="polite"></div>
             <h6 class="status-bar-container"><i class="fas fa-arrow-alt-circle-right"></i> <span class="status-bar-text"></span> <span class="status-bar-check-notification"></span></h6>
             <div id="board"></div>
@@ -119,6 +128,14 @@
                 <button type="submit" class="offer-draw-btn option-btn game-btn btn"><i class="far fa-handshake"></i> @Localizer["Game_OfferDraw"]</button>
                 <button type="submit" class="resign-btn option-btn game-btn btn"><i class="far fa-flag"></i> @Localizer["Game_Resign"]</button>
                 <button type="button" class="game-play-again-btn game-btn btn"><i class="fas fa-rotate-right"></i> @Localizer["Game_PlayAgainVsBot"]</button>
+            </div>
+            <div class="game-replay-toolbar">
+                <button type="button" class="game-replay-start-btn game-btn btn"><i class="fas fa-backward-fast"></i> @Localizer["Game_ReplayStart"]</button>
+                <button type="button" class="game-replay-prev-btn game-btn btn"><i class="fas fa-chevron-left"></i> @Localizer["Game_ReplayPrev"]</button>
+                <button type="button" class="game-replay-next-btn game-btn btn"><i class="fas fa-chevron-right"></i> @Localizer["Game_ReplayNext"]</button>
+                <button type="button" class="game-replay-live-btn game-btn btn"><i class="fas fa-bolt"></i> @Localizer["Game_ReplayLive"]</button>
+                <button type="button" class="game-export-pgn-btn game-btn btn"><i class="fas fa-file-export"></i> @Localizer["Game_ExportPgn"]</button>
+                <span class="game-replay-indicator">@Localizer["Game_ReplayIndicatorLive"]</span>
             </div>
             <div class="game-chat-container chat-container">
                 <div class="game-chat-window-wrapper chat-window-wrapper">

@@ -77,7 +77,7 @@ export function highlightAllLegalMoves(state) {
 
 export function createOnDragStartHandler(state) {
     return function onDragStart(source, piece) {
-        if (!state.isGameStarted || !state.isYourTurn) {
+        if (!state.isGameStarted || !state.isYourTurn || state.isReplayMode) {
             return false;
         }
 
@@ -111,7 +111,7 @@ export function createOnDropHandler(state, connection) {
     return function onDrop(source, target, piece, newPos, oldPos) {
         clearHintSquares();
 
-        if (!state.isGameStarted || !state.isYourTurn) {
+        if (!state.isGameStarted || !state.isYourTurn || state.isReplayMode) {
             return 'snapback';
         }
 
@@ -129,9 +129,11 @@ export function createOnDropHandler(state, connection) {
 
         // Guard against stale local board state. If local fen diverges from the
         // latest authoritative server fen, rollback and resync before move submit.
-        if (state.currentFen && sourceFen !== state.currentFen) {
+        const liveFen = state.liveFen || state.currentFen;
+        if (liveFen && sourceFen !== liveFen) {
             if (state.board) {
-                state.board.position(state.currentFen, false);
+                state.board.position(liveFen, false);
+                state.displayFen = liveFen;
             }
 
             connection.invoke('RequestSync').catch((err) => console.error(err));
@@ -150,6 +152,8 @@ export function createOnDropHandler(state, connection) {
                 if (state.board) {
                     state.board.position(sourceFen, false);
                     state.currentFen = sourceFen;
+                    state.liveFen = sourceFen;
+                    state.displayFen = sourceFen;
                 }
             });
 
@@ -162,9 +166,15 @@ export function syncBoardState(state) {
         return;
     }
 
+    const fenToDisplay = state.displayFen || state.liveFen || state.currentFen || 'start';
     state.board.orientation(getOrientation(state));
-    state.board.position(state.currentFen || 'start', false);
-    state.currentFen = state.board.fen();
+    state.board.position(fenToDisplay, false);
+    state.displayFen = state.board.fen();
+    if (!state.liveFen) {
+        state.liveFen = state.displayFen;
+    }
+
+    state.currentFen = state.liveFen;
 }
 
 export function safeResizeBoard(state) {
@@ -178,8 +188,14 @@ export function safeResizeBoard(state) {
         }
 
         state.board.resize();
-        state.board.position(state.currentFen || 'start', false);
-        state.currentFen = state.board.fen();
+        const fenToDisplay = state.displayFen || state.liveFen || state.currentFen || 'start';
+        state.board.position(fenToDisplay, false);
+        state.displayFen = state.board.fen();
+        if (!state.liveFen) {
+            state.liveFen = state.displayFen;
+        }
+
+        state.currentFen = state.liveFen;
     });
 }
 
@@ -206,7 +222,7 @@ export function ensureBoardInitialized(state, pieceThemes, onDrop, onDragStart) 
 }
 
 export function rebuildBoard(state, pieceThemes, onDrop, onDragStart) {
-    const position = state.currentFen || (state.board ? state.board.fen() : 'start');
+    const position = state.displayFen || state.liveFen || state.currentFen || (state.board ? state.board.fen() : 'start');
     const orientation = getOrientation(state);
 
     if (state.board) {
@@ -215,12 +231,21 @@ export function rebuildBoard(state, pieceThemes, onDrop, onDragStart) {
 
     state.board = null;
     state.boardInitialized = false;
-    state.currentFen = position;
+    state.displayFen = position;
+    if (!state.liveFen) {
+        state.liveFen = position;
+    }
+    state.currentFen = state.liveFen;
 
     ensureBoardInitialized(state, pieceThemes, onDrop, onDragStart);
     if (state.board) {
         state.board.orientation(orientation);
         state.board.position(position, false);
-        state.currentFen = state.board.fen();
+        state.displayFen = state.board.fen();
+        if (!state.liveFen) {
+            state.liveFen = state.displayFen;
+        }
+
+        state.currentFen = state.liveFen;
     }
 }

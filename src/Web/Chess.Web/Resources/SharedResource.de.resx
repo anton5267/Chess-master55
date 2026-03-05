@@ -1308,4 +1308,47 @@
   <data name="Hub_Error_JoinRoomFailed" xml:space="preserve">
     <value>Beitritt zum Raum fehlgeschlagen.</value>
   </data>
+  <data name="Game_MobileTabsAriaLabel" xml:space="preserve">
+    <value>Mobile Spielbereiche</value>
+  </data>
+  <data name="Game_MobileTab_Board" xml:space="preserve">
+    <value>Brett</value>
+  </data>
+  <data name="Game_MobileTab_History" xml:space="preserve">
+    <value>Verlauf</value>
+  </data>
+  <data name="Game_MobileTab_Chat" xml:space="preserve">
+    <value>Chat</value>
+  </data>
+  <data name="Game_ReplayStart" xml:space="preserve">
+    <value>Replay: Anfang</value>
+  </data>
+  <data name="Game_ReplayPrev" xml:space="preserve">
+    <value>Replay: Zurück</value>
+  </data>
+  <data name="Game_ReplayNext" xml:space="preserve">
+    <value>Replay: Weiter</value>
+  </data>
+  <data name="Game_ReplayLive" xml:space="preserve">
+    <value>Zur Live-Partie</value>
+  </data>
+  <data name="Game_ExportPgn" xml:space="preserve">
+    <value>PGN exportieren</value>
+  </data>
+  <data name="Game_ReplayIndicatorLive" xml:space="preserve">
+    <value>Live-Position</value>
+  </data>
+  <data name="Js_ReplayLive" xml:space="preserve">
+    <value>Live-Position</value>
+  </data>
+  <data name="Js_ReplayModeFormat" xml:space="preserve">
+    <value>Replay {current}/{total}</value>
+  </data>
+  <data name="Js_PgnDownloaded" xml:space="preserve">
+    <value>PGN wurde heruntergeladen.</value>
+  </data>
+  <data name="Js_PgnDownloadFailed" xml:space="preserve">
+    <value>PGN-Export fehlgeschlagen.</value>
+  </data>
 </root>
+

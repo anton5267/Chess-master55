@@ -40,6 +40,25 @@
         <div class="stats-hero-value">@Model.UserStats.Rating</div>
     </header>
 
+    <section class="stats-personal-grid" aria-label="@Localizer["Stats_EloRating"]">
+        <article class="stats-personal-card">
+            <span class="stats-personal-title">@Localizer["Stats_Games"]</span>
+            <span class="stats-personal-value">@Model.UserStats.Games</span>
+        </article>
+        <article class="stats-personal-card">
+            <span class="stats-personal-title">@Localizer["Stats_Wins"]</span>
+            <span class="stats-personal-value">@Model.UserStats.Wins</span>
+        </article>
+        <article class="stats-personal-card">
+            <span class="stats-personal-title">@Localizer["Stats_Draws"]</span>
+            <span class="stats-personal-value">@Model.UserStats.Draws</span>
+        </article>
+        <article class="stats-personal-card">
+            <span class="stats-personal-title">@Localizer["Stats_Losses"]</span>
+            <span class="stats-personal-value">@Model.UserStats.Losses</span>
+        </article>
+    </section>
+
     <section class="stats-kpi-grid" aria-label="@Localizer["Stats_AllUsers"]">
         <article class="stats-kpi-card">
             <span class="stats-kpi-title">@Localizer["Stats_TotalUsers"]</span>
@@ -64,6 +83,7 @@
     </section>
 
     <section class="stats-chart-card">
+        <p class="stats-chart-title">@Localizer["Stats_ChartTitle", Model.UserStats.Games]</p>
         <canvas id="stats-pie-chart" role="img" aria-label="@Localizer["Stats_ChartTitle", Model.UserStats.Games]"></canvas>
         <p id="stats-chart-empty" class="stats-chart-empty" hidden>@Localizer["Stats_NoGamesYet"]</p>
     </section>

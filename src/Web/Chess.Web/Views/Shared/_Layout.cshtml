@@ -1,4 +1,14 @@
-﻿@using Chess.Common.Constants
+@using System
+@using Chess.Common.Constants
+
+@{
+    var currentController = this.ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = this.ViewContext.RouteData.Values["action"]?.ToString();
+
+    bool IsCurrent(string controller, string action = "") =>
+        string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase)
+        && (string.IsNullOrEmpty(action) || string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase));
+}
 
 <!DOCTYPE html>
 <html>
@@ -31,18 +41,42 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse align-items-sm-center">
                     <partial name="_LoginPartial" />
                     <partial name="_CultureSwitcher" />
-                    <ul class="navbar-nav flex-grow-1 align-items-sm-center">
+                    <ul class="navbar-nav site-navbar-main-nav flex-grow-1 align-items-sm-center">
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">@Localizer["Nav_Home"]</a>
+                            <a class="nav-link @(IsCurrent("Home") ? "is-current" : string.Empty)"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="Index"
+                               aria-current="@(IsCurrent("Home") ? "page" : null)">
+                                @Localizer["Nav_Home"]
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Game" asp-action="Index">@Localizer["Nav_Play"]</a>
+                            <a class="nav-link @(IsCurrent("Game") ? "is-current" : string.Empty)"
+                               asp-area=""
+                               asp-controller="Game"
+                               asp-action="Index"
+                               aria-current="@(IsCurrent("Game") ? "page" : null)">
+                                @Localizer["Nav_Play"]
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Stats" asp-action="Index">@Localizer["Nav_Stats"]</a>
+                            <a class="nav-link @(IsCurrent("Stats") ? "is-current" : string.Empty)"
+                               asp-area=""
+                               asp-controller="Stats"
+                               asp-action="Index"
+                               aria-current="@(IsCurrent("Stats") ? "page" : null)">
+                                @Localizer["Nav_Stats"]
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="About" asp-action="Index">@Localizer["Nav_About"]</a>
+                            <a class="nav-link @(IsCurrent("About") ? "is-current" : string.Empty)"
+                               asp-area=""
+                               asp-controller="About"
+                               asp-action="Index"
+                               aria-current="@(IsCurrent("About") ? "page" : null)">
+                                @Localizer["Nav_About"]
+                            </a>
                         </li>
                     </ul>
                 </div>

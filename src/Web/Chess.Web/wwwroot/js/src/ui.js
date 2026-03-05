@@ -118,6 +118,74 @@ export function setPlayAgainVsBotVisibility(elements, isVisible) {
     elements.playAgainVsBotBtn.style.display = isVisible ? 'inline-flex' : 'none';
 }
 
+export function updateReplayControls(elements, state) {
+    const hasTimeline = Array.isArray(state.fenTimeline) && state.fenTimeline.length > 0;
+    const maxIndex = hasTimeline ? state.fenTimeline.length - 1 : 0;
+    const currentIndex = Math.max(0, Math.min(state.replayIndex || 0, maxIndex));
+    const hasPastMoves = maxIndex > 0;
+    const isReplayMode = !!state.isReplayMode;
+
+    if (elements.replayStartBtn) {
+        elements.replayStartBtn.disabled = !hasPastMoves;
+    }
+
+    if (elements.replayPrevBtn) {
+        elements.replayPrevBtn.disabled = !hasPastMoves || !isReplayMode || currentIndex <= 0;
+    }
+
+    if (elements.replayNextBtn) {
+        elements.replayNextBtn.disabled = !hasPastMoves || !isReplayMode || currentIndex >= maxIndex;
+    }
+
+    if (elements.replayLiveBtn) {
+        elements.replayLiveBtn.disabled = !isReplayMode;
+    }
+
+    if (elements.exportPgnBtn) {
+        elements.exportPgnBtn.disabled = !state.whiteMoves?.length && !state.blackMoves?.length;
+    }
+
+    const shouldLockInteractiveActions = !!state.isReplayMode || !!state.hasGameEnded || !state.isGameStarted;
+    const actionBusy = !!state.gameActionInFlight;
+
+    if (elements.offerDrawBtn) {
+        elements.offerDrawBtn.disabled = shouldLockInteractiveActions || actionBusy;
+    }
+
+    if (elements.resignBtn) {
+        elements.resignBtn.disabled = shouldLockInteractiveActions || actionBusy;
+    }
+
+    if (elements.threefoldDrawBtn && (shouldLockInteractiveActions || actionBusy)) {
+        // Threefold availability is server-driven. Keep it disabled when replay/terminal/busy.
+        elements.threefoldDrawBtn.disabled = true;
+    }
+
+    if (elements.playAgainVsBotBtn) {
+        const canReplayBotGame = state.isBotGame && state.hasGameEnded && !state.isReplayMode && !actionBusy;
+        elements.playAgainVsBotBtn.disabled = !canReplayBotGame;
+    }
+
+    if (!elements.replayIndicator) {
+        return;
+    }
+
+    if (!hasPastMoves) {
+        elements.replayIndicator.textContent = t('replayLive');
+        return;
+    }
+
+    if (isReplayMode) {
+        elements.replayIndicator.textContent = t('replayModeFormat', {
+            current: String(currentIndex),
+            total: String(maxIndex),
+        });
+        return;
+    }
+
+    elements.replayIndicator.textContent = t('replayLive');
+}
+
 const gameResultTones = new Set(['win', 'loss', 'draw']);
 const gameResultToneClasses = ['game-result-win', 'game-result-loss', 'game-result-draw'];
 
@@ -179,6 +247,8 @@ export function resetGameUi(elements, state) {
     state.gameOverCode = null;
     state.gameOverWinnerName = null;
     state.currentFen = 'start';
+    state.liveFen = 'start';
+    state.displayFen = 'start';
     state.turnNumber = 1;
     state.activeMovingPlayerId = null;
     state.activeMovingPlayerName = null;
@@ -191,6 +261,13 @@ export function resetGameUi(elements, state) {
     state.legalMovesRequestId += 1;
     state.syncRequestInFlight = false;
     state.lobbyActionInFlight = false;
+    state.gameActionInFlight = false;
+    state.isReplayMode = false;
+    state.replayIndex = 0;
+    state.fenTimeline = ['start'];
+    state.whiteMoves = [];
+    state.blackMoves = [];
+    state.mobilePanel = 'board';
 
     if (state.pendingSyncTimeoutId) {
         clearTimeout(state.pendingSyncTimeoutId);
@@ -207,6 +284,7 @@ export function resetGameUi(elements, state) {
     }
 
     setPlayAgainVsBotVisibility(elements, false);
+    updateReplayControls(elements, state);
 }
 
 function getTakenValue(takenFigures, key) {

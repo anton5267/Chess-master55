@@ -20,6 +20,7 @@ import {
     storeBoolean,
     storeValue,
 } from './state.js';
+import { updateReplayControls } from './ui.js';
 
 function syncTakenPiecesTheme(state) {
     const themeTemplate = pieceThemes[state.selectedPieceTheme] || pieceThemes.wikipedia;
@@ -33,6 +34,47 @@ function syncTakenPiecesTheme(state) {
 
         image.src = themeTemplate.replace('{piece}', pieceCode);
     });
+}
+
+function bindMobileTabs(elements, state) {
+    if (!elements.mobileTabs || !Array.isArray(elements.mobileTabButtons) || elements.mobileTabButtons.length === 0) {
+        return;
+    }
+
+    const mobileQuery = window.matchMedia('(max-width: 992px)');
+    const applyPanel = (panel) => {
+        const normalizedPanel = panel === 'history' || panel === 'chat'
+            ? panel
+            : 'board';
+        state.mobilePanel = normalizedPanel;
+        elements.playground.dataset.mobilePanel = normalizedPanel;
+        elements.mobileTabButtons.forEach((button) => {
+            button.classList.toggle('is-active', button.dataset.mobilePanel === normalizedPanel);
+        });
+    };
+
+    const applyResponsiveState = () => {
+        if (mobileQuery.matches) {
+            elements.mobileTabs.classList.add('is-visible');
+            applyPanel(state.mobilePanel || 'board');
+            safeResizeBoard(state);
+            return;
+        }
+
+        elements.mobileTabs.classList.remove('is-visible');
+        elements.playground.removeAttribute('data-mobile-panel');
+        elements.mobileTabButtons.forEach((button) => button.classList.remove('is-active'));
+        safeResizeBoard(state);
+    };
+
+    elements.mobileTabButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            applyPanel(button.dataset.mobilePanel);
+        });
+    });
+
+    window.addEventListener('resize', applyResponsiveState);
+    applyResponsiveState();
 }
 
 $(function bootstrapGameLobby() {
@@ -107,6 +149,8 @@ $(function bootstrapGameLobby() {
     syncTakenPiecesTheme(state);
     ensureBoardInitialized(state, pieceThemes, onDrop, onDragStart);
     safeResizeBoard(state);
+    updateReplayControls(elements, state);
+    bindMobileTabs(elements, state);
 
     bindLobbyHandlers(connection, elements, state);
     bindChatHandlers(connection, elements);

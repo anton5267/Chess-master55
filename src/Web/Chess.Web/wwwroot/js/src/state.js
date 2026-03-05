@@ -27,6 +27,8 @@ export function getElements() {
     return {
         playground: document.querySelector('.main-playground'),
         board: document.querySelector('#board'),
+        mobileTabs: document.querySelector('.game-mobile-tabs'),
+        mobileTabButtons: Array.from(document.querySelectorAll('.game-mobile-tab-btn')),
         gameResultBanner: document.querySelector('.game-result-banner'),
         statusText: document.querySelector('.status-bar-text'),
         statusCheck: document.querySelector('.status-bar-check-notification'),
@@ -68,6 +70,12 @@ export function getElements() {
         legalMovesToggle: document.querySelector('#legal-moves-toggle'),
         lobbyContainer: document.querySelector('.game-lobby'),
         playAgainVsBotBtn: document.querySelector('.game-play-again-btn'),
+        replayStartBtn: document.querySelector('.game-replay-start-btn'),
+        replayPrevBtn: document.querySelector('.game-replay-prev-btn'),
+        replayNextBtn: document.querySelector('.game-replay-next-btn'),
+        replayLiveBtn: document.querySelector('.game-replay-live-btn'),
+        exportPgnBtn: document.querySelector('.game-export-pgn-btn'),
+        replayIndicator: document.querySelector('.game-replay-indicator'),
     };
 }
 
@@ -81,12 +89,20 @@ export function createState() {
         isBotGame: false,
         botPlayerId: null,
         botPlayerName: null,
+        liveFen: 'start',
+        displayFen: 'start',
         board: null,
         currentFen: 'start',
         isGameStarted: false,
         hasGameEnded: false,
         gameOverCode: null,
         gameOverWinnerName: null,
+        isReplayMode: false,
+        replayIndex: 0,
+        fenTimeline: ['start'],
+        whiteMoves: [],
+        blackMoves: [],
+        mobilePanel: 'board',
         connectionState: 'disconnected',
         turnNumber: 1,
         activeMovingPlayerId: null,
@@ -105,6 +121,7 @@ export function createState() {
         legalHintsEnabled: getStoredBoolean(storageKeys.legalMoveHints, true),
         botDifficulty: getStoredValue(storageKeys.botDifficulty, "normal", botDifficulties),
         lobbyActionInFlight: false,
+        gameActionInFlight: false,
     };
 }
 

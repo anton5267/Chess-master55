@@ -14,6 +14,7 @@ import {
     setPlayAgainVsBotVisibility,
     sleep,
     updateChat,
+    updateReplayControls,
     updateStatus,
 } from './ui.js';
 import { t } from './i18n.js';
@@ -188,19 +189,34 @@ function scheduleBotRecoveryWatchdog(connection, state) {
 }
 
 function applySyncPosition(state, elements, fen, movingPlayerId, movingPlayerName) {
-    if (!state.board || !fen) {
+    if (!fen) {
         return;
     }
 
-    if (state.board.fen() !== fen) {
+    if (!Array.isArray(state.fenTimeline) || state.fenTimeline.length === 0) {
+        state.fenTimeline = ['start'];
+    }
+
+    state.liveFen = fen;
+    state.currentFen = fen;
+    const lastTimelineFen = state.fenTimeline[state.fenTimeline.length - 1];
+    if (lastTimelineFen !== fen) {
+        state.fenTimeline.push(fen);
+    }
+
+    if (state.board && !state.isReplayMode && state.board.fen() !== fen) {
         state.board.position(fen, false);
     }
 
-    state.currentFen = fen;
+    if (!state.isReplayMode) {
+        state.displayFen = fen;
+    }
 
-    if (!state.hasGameEnded && (movingPlayerId || movingPlayerName)) {
+    if (!state.hasGameEnded && !state.isReplayMode && (movingPlayerId || movingPlayerName)) {
         updateStatus(elements, state, movingPlayerId, movingPlayerName);
     }
+
+    updateReplayControls(elements, state);
 }
 
 function refreshLegalMoves(connection, state, onCompleted) {
@@ -249,6 +265,17 @@ function syncTurnDependentState(connection, elements, state, movingPlayerId, mov
         state.legalMoves = [];
         state.legalMovesRequestId += 1;
         elements.board.style.pointerEvents = 'none';
+        updateReplayControls(elements, state);
+        return;
+    }
+
+    if (state.isReplayMode) {
+        clearBotRecoveryWatchdog(state);
+        state.isYourTurn = false;
+        state.legalMoves = [];
+        state.legalMovesRequestId += 1;
+        elements.board.style.pointerEvents = 'none';
+        updateReplayControls(elements, state);
         return;
     }
 
@@ -268,6 +295,8 @@ function syncTurnDependentState(connection, elements, state, movingPlayerId, mov
     } else {
         elements.board.style.pointerEvents = 'none';
     }
+
+    updateReplayControls(elements, state);
 }
 
 function resolveGameResultTone(state, player, gameOver) {
@@ -364,6 +393,13 @@ export function registerConnectionHandlers(connection, elements, state) {
         }
 
         state.currentFen = normalizedPayload.startFen || 'start';
+        state.liveFen = state.currentFen;
+        state.displayFen = state.currentFen;
+        state.fenTimeline = [state.currentFen];
+        state.replayIndex = 0;
+        state.isReplayMode = false;
+        state.whiteMoves = [];
+        state.blackMoves = [];
         state.isGameStarted = true;
         state.connectionState = 'in-game';
         state.turnNumber = normalizedPayload.turnNumber;
@@ -373,6 +409,17 @@ export function registerConnectionHandlers(connection, elements, state) {
         state.gameOverWinnerName = null;
         clearGameResultBanner(elements);
         setPlayAgainVsBotVisibility(elements, false);
+        updateReplayControls(elements, state);
+        state.mobilePanel = 'board';
+        if (elements.playground) {
+            elements.playground.dataset.mobilePanel = 'board';
+        }
+
+        if (Array.isArray(elements.mobileTabButtons)) {
+            elements.mobileTabButtons.forEach((button) => {
+                button.classList.toggle('is-active', button.dataset.mobilePanel === 'board');
+            });
+        }
 
         elements.whiteName.textContent = state.playerOneName;
         elements.blackName.textContent = state.playerTwoName;
@@ -404,9 +451,14 @@ export function registerConnectionHandlers(connection, elements, state) {
             return;
         }
 
+        if (state.isReplayMode) {
+            scheduleSyncWatchdog(connection, state);
+            return;
+        }
+
         clearHintSquares();
         state.board.move(`${source}-${target}`);
-        state.currentFen = state.board.fen();
+        state.displayFen = state.board.fen();
         scheduleSyncWatchdog(connection, state);
     });
 
@@ -415,9 +467,24 @@ export function registerConnectionHandlers(connection, elements, state) {
             return;
         }
 
+        if (state.isReplayMode) {
+            state.liveFen = fen;
+            state.currentFen = fen;
+            const lastTimelineFen = state.fenTimeline[state.fenTimeline.length - 1];
+            if (lastTimelineFen !== fen) {
+                state.fenTimeline.push(fen);
+            }
+
+            updateReplayControls(elements, state);
+            return;
+        }
+
         clearHintSquares();
         state.board.position(fen, false);
-        state.currentFen = state.board.fen();
+        state.displayFen = state.board.fen();
+        state.liveFen = state.displayFen;
+        state.currentFen = state.liveFen;
+        updateReplayControls(elements, state);
     });
 
     connection.on('BoardSetPosition', function onBoardSetPosition(fen) {
@@ -425,9 +492,24 @@ export function registerConnectionHandlers(connection, elements, state) {
             return;
         }
 
+        if (state.isReplayMode) {
+            state.liveFen = fen;
+            state.currentFen = fen;
+            const lastTimelineFen = state.fenTimeline[state.fenTimeline.length - 1];
+            if (lastTimelineFen !== fen) {
+                state.fenTimeline.push(fen);
+            }
+
+            updateReplayControls(elements, state);
+            return;
+        }
+
         clearHintSquares();
         state.board.position(fen, false);
-        state.currentFen = state.board.fen();
+        state.displayFen = state.board.fen();
+        state.liveFen = state.displayFen;
+        state.currentFen = state.liveFen;
+        updateReplayControls(elements, state);
     });
 
     connection.on('EnPassantTake', function onEnPassantTake(pawnPosition, target) {
@@ -435,9 +517,14 @@ export function registerConnectionHandlers(connection, elements, state) {
             return;
         }
 
+        if (state.isReplayMode) {
+            scheduleSyncWatchdog(connection, state);
+            return;
+        }
+
         clearHintSquares();
         state.board.move(`${target}-${pawnPosition}`, `${pawnPosition}-${target}`);
-        state.currentFen = state.board.fen();
+        state.displayFen = state.board.fen();
         scheduleSyncWatchdog(connection, state);
     });
 
@@ -448,9 +535,11 @@ export function registerConnectionHandlers(connection, elements, state) {
         state.turnNumber = turnNumber;
         applySyncPosition(state, elements, fen, movingPlayerId, movingPlayerName);
 
-        if (!state.hasGameEnded) {
+        if (!state.hasGameEnded && !state.isReplayMode) {
             syncTurnDependentState(connection, elements, state, movingPlayerId, movingPlayerName);
         }
+
+        updateReplayControls(elements, state);
     });
 
     connection.on('GameOver', function onGameOver(player, gameOver) {
@@ -532,6 +621,7 @@ export function registerConnectionHandlers(connection, elements, state) {
 
         $('.option-btn').prop('disabled', true);
         setPlayAgainVsBotVisibility(elements, state.isBotGame);
+        updateReplayControls(elements, state);
     });
 
     connection.on('ThreefoldAvailable', function onThreefoldAvailable(isAvailable) {
@@ -559,7 +649,7 @@ export function registerConnectionHandlers(connection, elements, state) {
     });
 
     connection.on('InvalidMove', function onInvalidMove(type) {
-        if (state.hasGameEnded) {
+        if (state.hasGameEnded || state.isReplayMode) {
             return;
         }
 
@@ -620,25 +710,38 @@ export function registerConnectionHandlers(connection, elements, state) {
 
         yesButton.addEventListener('click', function onAcceptDraw() {
             connection.invoke('OfferDrawAnswer', true);
-            elements.statusText.innerText = oldText;
-            elements.statusText.style.color = oldColor;
+            if (!state.hasGameEnded) {
+                elements.statusText.innerText = oldText;
+                elements.statusText.style.color = oldColor;
+            }
         });
 
         noButton.addEventListener('click', function onRejectDraw() {
             connection.invoke('OfferDrawAnswer', false);
-            elements.statusText.innerText = oldText;
-            elements.statusText.style.color = oldColor;
+            if (!state.hasGameEnded) {
+                elements.statusText.innerText = oldText;
+                elements.statusText.style.color = oldColor;
+            }
         });
     });
 
     connection.on('DrawOfferRejected', function onDrawOfferRejected(player) {
         const oldText = elements.statusText.innerText;
         const oldColor = elements.statusText.style.color;
+        const rejectedText = t('drawOfferRejectedFormat', { name: player.name });
 
         elements.statusText.style.color = 'black';
-        elements.statusText.innerText = t('drawOfferRejectedFormat', { name: player.name });
+        elements.statusText.innerText = rejectedText;
 
         sleep(1500).then(() => {
+            if (state.hasGameEnded || state.isReplayMode) {
+                return;
+            }
+
+            if (elements.statusText.innerText !== rejectedText) {
+                return;
+            }
+
             elements.statusText.style.color = oldColor;
             elements.statusText.innerText = oldText;
         });
@@ -696,16 +799,20 @@ export function registerConnectionHandlers(connection, elements, state) {
         li.innerText = moveNotation;
 
         if (movingPlayer.name === state.playerOneName) {
+            state.whiteMoves.push(moveNotation);
             elements.whiteMoveHistory.appendChild(li);
             if (elements.whiteMoveHistory.getElementsByTagName('li').length > 40) {
                 elements.whiteMoveHistory.removeChild(elements.whiteMoveHistory.childNodes[0]);
             }
         } else {
+            state.blackMoves.push(moveNotation);
             elements.blackMoveHistory.appendChild(li);
             if (elements.blackMoveHistory.getElementsByTagName('li').length > 40) {
                 elements.blackMoveHistory.removeChild(elements.blackMoveHistory.childNodes[0]);
             }
         }
+
+        updateReplayControls(elements, state);
     });
 
     connection.on('UpdateStatus', function onUpdateStatus(movingPlayerIdOrName, movingPlayerNameMaybe) {

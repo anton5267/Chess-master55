@@ -149,6 +149,32 @@
     margin-bottom: 0.85rem;
 }
 
+.auth-panel-primary hr,
+.auth-panel-external hr {
+    margin-top: 0.7rem;
+    margin-bottom: 1rem;
+}
+
+.auth-panel-external p {
+    color: #445f82;
+    line-height: 1.6;
+}
+
+.auth-links-list {
+    margin-top: 0.9rem;
+    display: grid;
+    gap: 0.4rem;
+}
+
+.auth-links-list p {
+    margin: 0;
+}
+
+.auth-links-list a {
+    display: inline-flex;
+    align-items: center;
+}
+
 @media (max-width: 1200px) {
     .manage-shell-title {
         font-size: 1.35rem;

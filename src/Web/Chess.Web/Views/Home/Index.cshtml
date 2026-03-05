@@ -31,6 +31,27 @@
     </aside>
 </section>
 
+<section class="home-summary-strip" aria-label="@Localizer["Home_Title"]">
+    <article class="home-summary-card">
+        <div class="home-summary-icon" aria-hidden="true"><i class="fas fa-play"></i></div>
+        <h2 class="home-summary-title">@Localizer["Home_CardPlayTitle"]</h2>
+        <p class="home-summary-text">@Localizer["Home_CardPlayDescription"]</p>
+        <a class="home-summary-link" asp-controller="Game" asp-action="Index">@Localizer["Nav_Play"]</a>
+    </article>
+    <article class="home-summary-card">
+        <div class="home-summary-icon" aria-hidden="true"><i class="fas fa-chart-bar"></i></div>
+        <h2 class="home-summary-title">@Localizer["Home_CardStatsTitle"]</h2>
+        <p class="home-summary-text">@Localizer["Home_CardStatsDescription"]</p>
+        <a class="home-summary-link" asp-controller="Stats" asp-action="Index">@Localizer["Nav_Stats"]</a>
+    </article>
+    <article class="home-summary-card">
+        <div class="home-summary-icon" aria-hidden="true"><i class="fas fa-circle-info"></i></div>
+        <h2 class="home-summary-title">@Localizer["Home_CardAboutTitle"]</h2>
+        <p class="home-summary-text">@Localizer["Home_CardAboutDescription"]</p>
+        <a class="home-summary-link" asp-controller="About" asp-action="Index">@Localizer["Nav_About"]</a>
+    </article>
+</section>
+
 <section class="home-feature-grid">
     <article class="home-feature-card">
         <div class="home-feature-image-wrap">

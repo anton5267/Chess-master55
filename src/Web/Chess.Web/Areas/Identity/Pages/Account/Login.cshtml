@@ -11,7 +11,7 @@
     </header>
 <div class="row auth-shell-row auth-shell-content">
     <div class="col-lg-6 col-md-6">
-        <section class="auth-panel">
+        <section class="auth-panel auth-panel-primary">
             <form id="account" method="post">
                 <h2>@Localizer["Id_LoginSubtitle"]</h2>
                 <hr />
@@ -35,7 +35,7 @@
                 <div>
                     <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">@Localizer["Id_LoginButton"]</button>
                 </div>
-                <div>
+                <div class="auth-links-list">
                     <p>
                         <a id="forgot-password" asp-page="./ForgotPassword">@Localizer["Id_ForgotPassword"]</a>
                     </p>
@@ -50,7 +50,7 @@
         </section>
     </div>
     <div class="col-lg-6 col-md-6">
-        <section class="auth-panel auth-panel-muted">
+        <section class="auth-panel auth-panel-muted auth-panel-external">
             <h3>@Localizer["Id_LoginExternalTitle"]</h3>
             <hr />
             @{

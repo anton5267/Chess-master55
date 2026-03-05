@@ -242,7 +242,7 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
-    public async Task Game_ShouldRenderHintToggles_ForAuthenticatedUser()
+    public async Task Game_ShouldRenderHintAndReplayUx_ForAuthenticatedUser()
     {
         await this.SeedAuthenticatedUserAsync();
 
@@ -260,6 +260,11 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         decodedHtml.Should().Contain("bot-difficulty-select");
         decodedHtml.Should().Contain("game-play-again-btn");
         decodedHtml.Should().Contain("game-result-banner");
+        decodedHtml.Should().Contain("game-mobile-tabs");
+        decodedHtml.Should().Contain("game-replay-toolbar");
+        decodedHtml.Should().Contain("game-replay-start-btn");
+        decodedHtml.Should().Contain("game-replay-live-btn");
+        decodedHtml.Should().Contain("game-export-pgn-btn");
         html.Should().Contain("game-shell");
         html.Should().Contain("game-control-row");
     }
@@ -274,6 +279,9 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         script.Should().Contain("hasGameEnded");
         script.Should().Contain("gameOverCode");
         script.Should().Contain("gameOverWinnerName");
+        script.Should().Contain("isReplayMode");
+        script.Should().Contain("fenTimeline");
+        script.Should().Contain("mobilePanel");
         script.Should().NotContain("alert(");
     }
 
