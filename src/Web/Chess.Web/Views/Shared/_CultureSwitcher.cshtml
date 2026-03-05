@@ -7,7 +7,7 @@
     var returnUrl = $"{this.Context.Request.PathBase}{this.Context.Request.Path}{this.Context.Request.QueryString}";
 }
 
-<form asp-controller="Localization" asp-action="SetLanguage" method="post" class="form-inline nav-item culture-switcher-form">
+<form asp-controller="Localization" asp-action="SetLanguage" method="post" class="form-inline culture-switcher-form">
     @Html.AntiForgeryToken()
     <input type="hidden" name="returnUrl" value="@returnUrl" />
     <select class="form-control form-control-sm culture-switcher-select" name="culture" aria-label="@Localizer["Language"]" onchange="this.form.submit()">

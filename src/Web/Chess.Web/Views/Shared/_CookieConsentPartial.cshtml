@@ -10,13 +10,17 @@
 {
     <div id="cookieConsent" class="alert alert-info alert-dismissible fade show" role="alert">
         @Localizer["Cookie_BannerText"] <a asp-area="" asp-controller="Home" asp-action="Index">@Localizer["Cookie_LearnMore"]</a>.
-        <button type="button" class="accept-policy close" data-dismiss="alert" aria-label="@Localizer["Cookie_Close"]" data-cookie-string="@cookieString">
-            <span aria-hidden="true">@Localizer["Cookie_Accept"]</span>
+        <button type="button" class="accept-policy" data-dismiss="alert" aria-label="@Localizer["Cookie_Close"]" data-cookie-string="@cookieString">
+            @Localizer["Cookie_Accept"]
         </button>
     </div>
     <script>
         (function () {
             var button = document.querySelector("#cookieConsent button[data-cookie-string]");
+            if (!button) {
+                return;
+            }
+
             button.addEventListener("click", function () {
                 document.cookie = button.dataset.cookieString;
             }, false);

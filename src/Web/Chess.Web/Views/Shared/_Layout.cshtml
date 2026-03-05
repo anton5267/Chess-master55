@@ -19,7 +19,7 @@
 </head>
 <body data-show-password-text="@Localizer["PasswordToggle_Show"]" data-hide-password-text="@Localizer["PasswordToggle_Hide"]">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-light bg-white box-shadow">
+        <nav class="navbar navbar-expand-sm navbar-light site-navbar">
             <div class="container">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="fas fa-chess-knight chess-brand-icon" aria-hidden="true"></i>
@@ -28,10 +28,10 @@
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
+                <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse align-items-sm-center">
                     <partial name="_LoginPartial" />
                     <partial name="_CultureSwitcher" />
-                    <ul class="navbar-nav flex-grow-1">
+                    <ul class="navbar-nav flex-grow-1 align-items-sm-center">
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">@Localizer["Nav_Home"]</a>
                         </li>
@@ -52,13 +52,13 @@
 
     <div class="body-renderer container">
         <partial name="_CookieConsentPartial" />
-        <main role="main" class="pb-3">
+        <main role="main" class="app-main pb-3">
             @this.RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
+    <footer class="site-footer text-muted">
+        <div class="site-footer-inner">
             &copy; @DateTime.UtcNow.Year - @CommonConstants.SystemName - <i class="fab fa-github"></i> <a href="https://github.com/anton5267/Chess-master55" target="_blank">@Localizer["Footer_GitHubProject"]</a>
         </div>
     </footer>
