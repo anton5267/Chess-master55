@@ -127,6 +127,14 @@ namespace Chess.Web.Hubs
                 }
                 catch (Exception ex)
                 {
+                    this.logger.LogError(
+                        ex,
+                        "MoveSelectedFailed GameId={GameId} ConnectionId={ConnectionId} Source={Source} Target={Target}",
+                        game.Id,
+                        this.Context.ConnectionId,
+                        source,
+                        target);
+
                     using var scope = this.serviceProvider.CreateScope();
                     var errorLogRepository = scope.ServiceProvider.GetRequiredService<IRepository<ErrorLogEntity>>();
 
@@ -141,6 +149,11 @@ namespace Chess.Web.Hubs
                     });
 
                     await errorLogRepository.SaveChangesAsync();
+
+                    // Keep caller UI recoverable even if move pipeline throws.
+                    await this.SnapbackToServerPosition(game);
+                    await this.SyncPositionToCaller(game);
+                    await this.SyncTerminalStateToCallerIfNeeded(game);
                 }
                 finally
                 {
@@ -588,6 +601,13 @@ namespace Chess.Web.Hubs
             {
                 this.logger.LogWarning(ex, "BotTurnFailed GameId={GameId} Trigger={Trigger}", gameSession.GameId, trigger);
                 await this.SyncPosition(game);
+
+                if (game.GameOver != GameOver.None)
+                {
+                    await this.PublishBotGameOverAsync(game, this.ResolveWinnerForBotTurnResult(botSession, game.GameOver), game.GameOver);
+                    return;
+                }
+
                 if (game.GameOver == GameOver.None)
                 {
                     await this.UpdateStatus(game);
