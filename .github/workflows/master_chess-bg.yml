@@ -103,7 +103,8 @@ jobs:
           name: webapp-publish
           path: ./publish
 
-      - name: Validate OIDC Secrets
+      - name: Detect OIDC Secrets
+        id: detect_oidc
         shell: bash
         env:
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -111,11 +112,14 @@ jobs:
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         run: |
           if [ -z "${AZURE_CLIENT_ID}" ] || [ -z "${AZURE_TENANT_ID}" ] || [ -z "${AZURE_SUBSCRIPTION_ID}" ]; then
-            echo "::error::Missing OIDC secrets. Configure AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID."
-            exit 1
+            echo "configured=false" >> "${GITHUB_OUTPUT}"
+            echo "::warning::OIDC secrets are missing. Deployment step will be skipped. Configure AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID to enable Azure deploy."
+          else
+            echo "configured=true" >> "${GITHUB_OUTPUT}"
           fi
 
       - name: Azure Login (OIDC)
+        if: ${{ steps.detect_oidc.outputs.configured == 'true' }}
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -123,6 +127,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy to Azure Web App
+        if: ${{ steps.detect_oidc.outputs.configured == 'true' }}
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
@@ -130,6 +135,7 @@ jobs:
           package: ./publish
 
       - name: Post-Deploy Health Check
+        if: ${{ steps.detect_oidc.outputs.configured == 'true' }}
         shell: bash
         env:
           AZURE_WEBAPP_URL: ${{ secrets.AZURE_WEBAPP_URL }}
@@ -164,6 +170,12 @@ jobs:
             exit 1
           fi
 
+      - name: Skip Deploy (Missing OIDC Secrets)
+        if: ${{ steps.detect_oidc.outputs.configured != 'true' }}
+        shell: bash
+        run: |
+          echo "Azure deploy skipped: required OIDC secrets are not configured."
+
       - name: Deployment Summary
         if: always()
         shell: bash
@@ -171,10 +183,18 @@ jobs:
           AZURE_WEBAPP_URL: ${{ secrets.AZURE_WEBAPP_URL }}
         run: |
           resolved_url="${AZURE_WEBAPP_URL:-https://${AZURE_WEBAPP_NAME}.azurewebsites.net}"
+          if [ "${{ steps.detect_oidc.outputs.configured }}" = "true" ]; then
+            mode="OIDC"
+            status="deploy_executed"
+          else
+            mode="OIDC"
+            status="deploy_skipped_missing_secrets"
+          fi
           {
             echo "## Deployment Summary"
             echo ""
-            echo "- Mode: \`OIDC\`"
+            echo "- Mode: \`${mode}\`"
+            echo "- Status: \`${status}\`"
             echo "- App Service: \`${AZURE_WEBAPP_NAME}\`"
             echo "- Slot: \`${AZURE_WEBAPP_SLOT}\`"
             echo "- Base URL: \`${resolved_url}\`"
