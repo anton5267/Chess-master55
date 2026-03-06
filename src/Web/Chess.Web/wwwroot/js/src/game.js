@@ -21,6 +21,7 @@ import {
     storeValue,
 } from './state.js';
 import {
+    purgeLegacyReplayUi,
     updateBotDifficultyBadge,
     updateReplayControls,
 } from './ui.js';
@@ -122,74 +123,12 @@ function bindMobileTabs(elements, state) {
     applyResponsiveState();
 }
 
-function bindReplayShortcuts(elements, state) {
-    document.addEventListener('keydown', (event) => {
-        if (event.altKey || event.ctrlKey || event.metaKey) {
-            return;
-        }
-
-        if (!state.isGameStarted && !state.hasGameEnded) {
-            return;
-        }
-
-        const target = event.target;
-        const tag = target && target.tagName ? target.tagName.toLowerCase() : '';
-        if (tag === 'input' || tag === 'textarea' || tag === 'select' || (target && target.isContentEditable)) {
-            return;
-        }
-
-        switch (event.key) {
-            case 'ArrowLeft':
-                if (!state.isBotGame) {
-                    return;
-                }
-
-                event.preventDefault();
-                if (state.isReplayMode) {
-                    elements.replayPrevBtn?.click();
-                } else {
-                    elements.replayStartBtn?.click();
-                }
-                break;
-            case 'ArrowRight':
-                if (!state.isBotGame) {
-                    return;
-                }
-
-                event.preventDefault();
-                elements.replayNextBtn?.click();
-                break;
-            case 'Home':
-                if (!state.isBotGame) {
-                    return;
-                }
-
-                event.preventDefault();
-                elements.replayStartBtn?.click();
-                break;
-            case 'End':
-                if (!state.isBotGame) {
-                    return;
-                }
-
-                event.preventDefault();
-                elements.replayLiveBtn?.click();
-                break;
-            case 'p':
-            case 'P':
-                event.preventDefault();
-                elements.exportPgnBtn?.click();
-                break;
-            default:
-                break;
-        }
-    });
-}
-
 $(function bootstrapGameLobby() {
     const connection = createConnection();
     const elements = getElements();
     const state = createState();
+
+    purgeLegacyReplayUi();
 
     registerConnectionHandlers(connection, elements, state);
 
@@ -262,7 +201,20 @@ $(function bootstrapGameLobby() {
     updateBotDifficultyBadge(elements, state);
     updateReplayControls(elements, state);
     bindMobileTabs(elements, state);
-    bindReplayShortcuts(elements, state);
+
+    // Defensively clean up legacy replay controls that may be injected late by cached scripts.
+    [150, 450, 1000].forEach((delayMs) => {
+        setTimeout(() => purgeLegacyReplayUi(), delayMs);
+    });
+    let replayWatchdogTicks = 0;
+    const replayWatchdog = setInterval(() => {
+        replayWatchdogTicks += 1;
+        purgeLegacyReplayUi();
+
+        if (replayWatchdogTicks >= 20) {
+            clearInterval(replayWatchdog);
+        }
+    }, 1500);
 
     bindLobbyHandlers(connection, elements, state);
     bindChatHandlers(connection, elements);

@@ -6,43 +6,12 @@
     <div class="home-hero-content">
         <p class="home-hero-kicker">@Localizer["Home_Title"]</p>
         <h1 id="home-hero-title" class="home-hero-title">Chess</h1>
-        <p class="home-hero-subtitle">@Localizer["Home_HistoryParagraph1"]</p>
+        <p class="home-hero-subtitle">@Localizer["Home_CardPlayDescription"]</p>
         <div class="home-hero-actions">
             <a class="btn btn-primary home-hero-btn" asp-controller="Game" asp-action="Index">@Localizer["Home_CardPlayTitle"]</a>
             <a class="btn btn-outline-primary home-hero-btn" asp-controller="Stats" asp-action="Index">@Localizer["Home_CardStatsTitle"]</a>
         </div>
     </div>
-    <aside class="home-hero-meta">
-        <h2 class="home-hero-meta-title">@Localizer["Home_CardAboutTitle"]</h2>
-        <ul class="home-hero-meta-list">
-            <li>
-                <i class="fas fa-bolt" aria-hidden="true"></i>
-                <span>@Localizer["Home_CardPlayDescription"]</span>
-            </li>
-            <li>
-                <i class="fas fa-chart-line" aria-hidden="true"></i>
-                <span>@Localizer["Home_CardStatsDescription"]</span>
-            </li>
-            <li>
-                <i class="fas fa-circle-info" aria-hidden="true"></i>
-                <span>@Localizer["Home_CardAboutDescription"]</span>
-            </li>
-        </ul>
-        <div class="home-hero-mini-grid">
-            <div class="home-hero-mini-card">
-                <span class="home-hero-mini-label">@Localizer["Nav_Play"]</span>
-                <strong class="home-hero-mini-value">SignalR</strong>
-            </div>
-            <div class="home-hero-mini-card">
-                <span class="home-hero-mini-label">@Localizer["Nav_Stats"]</span>
-                <strong class="home-hero-mini-value">ELO</strong>
-            </div>
-            <div class="home-hero-mini-card">
-                <span class="home-hero-mini-label">@Localizer["Nav_About"]</span>
-                <strong class="home-hero-mini-value">MVC</strong>
-            </div>
-        </div>
-    </aside>
 </section>
 
 <section class="home-feature-grid" aria-labelledby="home-features-heading">
@@ -89,3 +58,26 @@
     <p class="home-history-text">@Localizer["Home_HistoryParagraph1"]</p>
     <p class="home-history-text">@Localizer["Home_HistoryParagraph2"]</p>
 </section>
+
+@section Scripts {
+    <script>
+        (function removeLegacyDuplicateHomeCards() {
+            const grids = document.querySelectorAll('.home-feature-grid');
+            grids.forEach((grid) => {
+                const cards = Array.from(grid.querySelectorAll('.home-feature-card'));
+                if (cards.length === 0) {
+                    return;
+                }
+
+                const imageCards = cards.filter((card) => !!card.querySelector('.home-feature-image-wrap img'));
+                if (imageCards.length === 0) {
+                    return;
+                }
+
+                cards
+                    .filter((card) => !card.querySelector('.home-feature-image-wrap img'))
+                    .forEach((card) => card.remove());
+            });
+        })();
+    </script>
+}

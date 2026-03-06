@@ -3,6 +3,7 @@ import {
     safeResizeBoard,
     syncBoardState,
 } from './board.js';
+import { storageKeys, storeValue } from './state.js';
 import {
     applyGameStats,
     clearGameResultBanner,
@@ -51,6 +52,13 @@ function normalizeStartPayload(payload) {
         botPlayerName,
         botDifficulty: payload && payload.botDifficulty ? payload.botDifficulty : 'normal',
     };
+}
+
+function getLobbyStorageKey(elements) {
+    const dataKey = elements.lobbyInputName
+        ? (elements.lobbyInputName.dataset.storageKey || '').trim()
+        : '';
+    return dataKey || storageKeys.lobbyName;
 }
 
 function resolveSelfPlayer(game, state, normalizedPayload) {
@@ -147,7 +155,6 @@ function isBotToMove(state) {
 function shouldAttemptSyncRecovery(state) {
     return state.isGameStarted
         && !state.hasGameEnded
-        && !state.isReplayMode
         && state.connectionState !== 'offline'
         && state.connectionState !== 'disconnected';
 }
@@ -294,28 +301,14 @@ function applySyncPosition(state, elements, fen, movingPlayerId, movingPlayerNam
         return;
     }
 
-    if (!Array.isArray(state.fenTimeline) || state.fenTimeline.length === 0) {
-        state.fenTimeline = ['start'];
-    }
-
     state.liveFen = fen;
     state.currentFen = fen;
-    const lastTimelineFen = state.fenTimeline[state.fenTimeline.length - 1];
-    if (lastTimelineFen !== fen) {
-        state.fenTimeline.push(fen);
-    }
 
-    if (state.board && !state.isReplayMode && state.board.fen() !== fen) {
+    if (state.board && state.board.fen() !== fen) {
         state.board.position(fen, false);
     }
 
-    if (!state.isReplayMode) {
-        state.displayFen = fen;
-    }
-
-    if (!state.hasGameEnded && !state.isReplayMode && (movingPlayerId || movingPlayerName)) {
-        updateStatus(elements, state, movingPlayerId, movingPlayerName);
-    }
+    state.displayFen = fen;
 
     updateReplayControls(elements, state);
 }
@@ -362,16 +355,6 @@ function syncTurnDependentState(connection, elements, state, movingPlayerId, mov
     clearHighlightTimer(state);
 
     if (state.hasGameEnded) {
-        clearBotRecoveryWatchdog(state);
-        state.isYourTurn = false;
-        state.legalMoves = [];
-        state.legalMovesRequestId += 1;
-        elements.board.style.pointerEvents = 'none';
-        updateReplayControls(elements, state);
-        return;
-    }
-
-    if (state.isReplayMode) {
         clearBotRecoveryWatchdog(state);
         state.isYourTurn = false;
         state.legalMoves = [];
@@ -466,7 +449,7 @@ export function registerConnectionHandlers(connection, elements, state) {
         elements.board.style.pointerEvents = 'none';
         setConnectionStatus(elements, 'reconnecting', t('connectionReconnecting'));
 
-        if (!state.hasGameEnded && !state.isReplayMode) {
+        if (!state.hasGameEnded) {
             elements.statusText.style.color = '#b36b00';
             elements.statusText.innerText = t('connectionReconnecting');
         }
@@ -576,14 +559,18 @@ export function registerConnectionHandlers(connection, elements, state) {
             elements.botDifficultySelect.value = state.botDifficulty;
         }
 
+        if (elements.lobbyInputName && state.playerName) {
+            elements.lobbyInputName.value = state.playerName;
+            const lobbyStorageKey = getLobbyStorageKey(elements);
+            storeValue(lobbyStorageKey, state.playerName);
+            if (lobbyStorageKey !== storageKeys.lobbyName) {
+                storeValue(storageKeys.lobbyName, state.playerName);
+            }
+        }
+
         state.currentFen = normalizedPayload.startFen || 'start';
         state.liveFen = state.currentFen;
         state.displayFen = state.currentFen;
-        state.fenTimeline = [state.currentFen];
-        state.replayIndex = 0;
-        state.isReplayMode = false;
-        state.whiteMoves = [];
-        state.blackMoves = [];
         state.isGameStarted = true;
         state.connectionState = 'in-game';
         state.turnNumber = normalizedPayload.turnNumber;
@@ -646,11 +633,6 @@ export function registerConnectionHandlers(connection, elements, state) {
             return;
         }
 
-        if (state.isReplayMode) {
-            scheduleSyncWatchdog(connection, state);
-            return;
-        }
-
         clearHintSquares();
         state.board.move(`${source}-${target}`);
         state.displayFen = state.board.fen();
@@ -659,18 +641,6 @@ export function registerConnectionHandlers(connection, elements, state) {
 
     connection.on('BoardSnapback', function onBoardSnapback(fen) {
         if (!state.board) {
-            return;
-        }
-
-        if (state.isReplayMode) {
-            state.liveFen = fen;
-            state.currentFen = fen;
-            const lastTimelineFen = state.fenTimeline[state.fenTimeline.length - 1];
-            if (lastTimelineFen !== fen) {
-                state.fenTimeline.push(fen);
-            }
-
-            updateReplayControls(elements, state);
             return;
         }
 
@@ -687,18 +657,6 @@ export function registerConnectionHandlers(connection, elements, state) {
             return;
         }
 
-        if (state.isReplayMode) {
-            state.liveFen = fen;
-            state.currentFen = fen;
-            const lastTimelineFen = state.fenTimeline[state.fenTimeline.length - 1];
-            if (lastTimelineFen !== fen) {
-                state.fenTimeline.push(fen);
-            }
-
-            updateReplayControls(elements, state);
-            return;
-        }
-
         clearHintSquares();
         state.board.position(fen, false);
         state.displayFen = state.board.fen();
@@ -709,11 +667,6 @@ export function registerConnectionHandlers(connection, elements, state) {
 
     connection.on('EnPassantTake', function onEnPassantTake(pawnPosition, target) {
         if (!state.board) {
-            return;
-        }
-
-        if (state.isReplayMode) {
-            scheduleSyncWatchdog(connection, state);
             return;
         }
 
@@ -730,7 +683,7 @@ export function registerConnectionHandlers(connection, elements, state) {
         state.turnNumber = turnNumber;
         applySyncPosition(state, elements, fen, movingPlayerId, movingPlayerName);
 
-        if (!state.hasGameEnded && !state.isReplayMode) {
+        if (!state.hasGameEnded) {
             syncTurnDependentState(connection, elements, state, movingPlayerId, movingPlayerName);
         }
 
@@ -850,7 +803,7 @@ export function registerConnectionHandlers(connection, elements, state) {
     });
 
     connection.on('InvalidMove', function onInvalidMove(type) {
-        if (state.hasGameEnded || state.isReplayMode) {
+        if (state.hasGameEnded) {
             return;
         }
 
@@ -935,7 +888,7 @@ export function registerConnectionHandlers(connection, elements, state) {
         elements.statusText.innerText = rejectedText;
 
         sleep(1500).then(() => {
-            if (state.hasGameEnded || state.isReplayMode) {
+            if (state.hasGameEnded) {
                 return;
             }
 
@@ -1000,13 +953,11 @@ export function registerConnectionHandlers(connection, elements, state) {
         li.innerText = moveNotation;
 
         if (movingPlayer.name === state.playerOneName) {
-            state.whiteMoves.push(moveNotation);
             elements.whiteMoveHistory.appendChild(li);
             if (elements.whiteMoveHistory.getElementsByTagName('li').length > 40) {
                 elements.whiteMoveHistory.removeChild(elements.whiteMoveHistory.childNodes[0]);
             }
         } else {
-            state.blackMoves.push(moveNotation);
             elements.blackMoveHistory.appendChild(li);
             if (elements.blackMoveHistory.getElementsByTagName('li').length > 40) {
                 elements.blackMoveHistory.removeChild(elements.blackMoveHistory.childNodes[0]);

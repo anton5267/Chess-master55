@@ -339,6 +339,18 @@
   <data name="Stats_EloRating" xml:space="preserve">
     <value>YOUR ELO RATING</value>
   </data>
+  <data name="Stats_EloInfo_Title" xml:space="preserve">
+    <value>How ELO works</value>
+  </data>
+  <data name="Stats_EloInfo_Body" xml:space="preserve">
+    <value>New accounts start at 1200. Rating changes only after finished PvP games against real players. Bot matches do not affect ELO.</value>
+  </data>
+  <data name="Stats_EloInitialHint" xml:space="preserve">
+    <value>New players start at 1200 ELO.</value>
+  </data>
+  <data name="Stats_EloFreshAccountHint" xml:space="preserve">
+    <value>You have no rated PvP games yet, so your rating is still the initial 1200.</value>
+  </data>
   <data name="Stats_AllUsers" xml:space="preserve">
     <value>ALL USERS</value>
   </data>
@@ -421,7 +433,7 @@
     <value>Leipzig</value>
   </data>
   <data name="Game_DeclareThreefold" xml:space="preserve">
-    <value>Declare 3F Draw</value>
+    <value>Claim Threefold Draw</value>
   </data>
   <data name="Game_OfferDraw" xml:space="preserve">
     <value>Offer Draw</value>
@@ -452,6 +464,9 @@
   </data>
   <data name="Game_BotDifficulty_Normal" xml:space="preserve">
     <value>Normal</value>
+  </data>
+  <data name="Game_BotEloNotice" xml:space="preserve">
+    <value>Bot matches do not affect your PvP ELO or statistics.</value>
   </data>
   <data name="Game_RoomsTitle" xml:space="preserve">
     <value>GAME ROOMS</value>

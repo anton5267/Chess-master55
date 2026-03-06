@@ -93,6 +93,18 @@
   <data name="Stats_EloRating" xml:space="preserve">
     <value>TWOJA OCENA ELO</value>
   </data>
+  <data name="Stats_EloInfo_Title" xml:space="preserve">
+    <value>Jak działa ELO</value>
+  </data>
+  <data name="Stats_EloInfo_Body" xml:space="preserve">
+    <value>Nowe konta startują od 1200. Ranking zmienia się tylko po zakończonych meczach PvP przeciwko prawdziwym graczom. Mecze z botem nie wpływają na ELO.</value>
+  </data>
+  <data name="Stats_EloInitialHint" xml:space="preserve">
+    <value>Nowi gracze zaczynają od 1200 ELO.</value>
+  </data>
+  <data name="Stats_EloFreshAccountHint" xml:space="preserve">
+    <value>Nie masz jeszcze żadnych rankingowych partii PvP, dlatego Twój ranking nadal wynosi początkowe 1200.</value>
+  </data>
   <data name="Stats_AllUsers" xml:space="preserve">
     <value>WSZYSCY UŻYTKOWNICY</value>
   </data>
@@ -142,10 +154,10 @@
     <value>Sztuki</value>
   </data>
   <data name="Game_DeclareThreefold" xml:space="preserve">
-    <value>Ogłoś remis 3F</value>
+    <value>Zgłoś remis (3x powtórzenie)</value>
   </data>
   <data name="Game_OfferDraw" xml:space="preserve">
-    <value>Losowanie ofert</value>
+    <value>Zaproponuj remis</value>
   </data>
   <data name="Game_Resign" xml:space="preserve">
     <value>Rezygnować</value>
@@ -173,6 +185,9 @@
   </data>
   <data name="Game_BotDifficulty_Normal" xml:space="preserve">
     <value>Normalny</value>
+  </data>
+  <data name="Game_BotEloNotice" xml:space="preserve">
+    <value>Mecze z botem nie wpływają na PvP ELO ani statystyki.</value>
   </data>
   <data name="Game_RoomsTitle" xml:space="preserve">
     <value>POKOJE GRY</value>
@@ -217,10 +232,10 @@
     <value>Nie dotyczy</value>
   </data>
   <data name="Js_DrawRequestSent" xml:space="preserve">
-    <value>Wysłano prośbę o losowanie!</value>
+    <value>Prośba o remis została wysłana!</value>
   </data>
   <data name="Js_CheckmateWinFormat" xml:space="preserve">
-    <value>MAT! {name} WYGRAJ!</value>
+    <value>MAT! {name} wygrywa!</value>
   </data>
   <data name="Js_Checkmate" xml:space="preserve">
     <value>MAT!</value>
@@ -235,31 +250,31 @@
     <value>Pat. Partia z botem kończy się remisem.</value>
   </data>
   <data name="Js_Draw" xml:space="preserve">
-    <value>RYSOWAĆ!</value>
+    <value>REMIS!</value>
   </data>
   <data name="Js_ThreefoldDeclaredByFormat" xml:space="preserve">
-    <value>DEKLAROWANY TRÓJKROTNY RYSOWANIE POWTÓRNE PRZEZ {name}!</value>
+    <value>ZGŁOSZONO REMIS PRZEZ TRZYKROTNE POWTÓRZENIE ({name})!</value>
   </data>
   <data name="Js_FivefoldDraw" xml:space="preserve">
-    <value>Losowanie pięciokrotne powtórzenie!</value>
+    <value>REMIS PRZEZ PIĘCIOKROTNE POWTÓRZENIE!</value>
   </data>
   <data name="Js_ResignedFormat" xml:space="preserve">
-    <value>{name} ZREzygnował!</value>
+    <value>{name} poddaje partię!</value>
   </data>
   <data name="Js_LeftYouWinFormat" xml:space="preserve">
-    <value>{name} LEWY. WYGRYWASZ!</value>
+    <value>{name} opuścił grę. Wygrywasz!</value>
   </data>
   <data name="Js_FiftyMoveDraw" xml:space="preserve">
-    <value>RYSUJ PIĘĆDZIESIĘĆ RUCHÓW!</value>
+    <value>Remis po regule 50 posunięć!</value>
   </data>
   <data name="Js_Check" xml:space="preserve">
-    <value>SPRAWDZAĆ!</value>
+    <value>SZACH!</value>
   </data>
   <data name="Js_KingInCheck" xml:space="preserve">
-    <value>Król jest pod kontrolą!</value>
+    <value>Król jest szachowany!</value>
   </data>
   <data name="Js_WillOpenCheck" xml:space="preserve">
-    <value>Otworzy czek!</value>
+    <value>To odsłoni szacha!</value>
   </data>
   <data name="Js_InvalidMove" xml:space="preserve">
     <value>Nieprawidłowy ruch!</value>
@@ -271,7 +286,7 @@
     <value>NIE</value>
   </data>
   <data name="Js_DrawRequestQuestionFormat" xml:space="preserve">
-    <value>{name} poprosił o losowanie! Czy akceptujesz?</value>
+    <value>{name} proponuje remis. Akceptujesz?</value>
   </data>
   <data name="Js_DrawOfferRejectedFormat" xml:space="preserve">
     <value>{name} odrzucił ofertę!</value>

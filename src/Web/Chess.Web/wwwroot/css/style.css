@@ -569,8 +569,8 @@ button.accept-policy:hover {
 
 .password-toggle-btn {
     position: absolute;
-    right: 0.65rem;
-    top: 50%;
+    right: 0.6rem;
+    top: 1.75rem;
     transform: translateY(-50%);
     z-index: 5;
     border: 0 !important;
@@ -590,12 +590,11 @@ button.accept-policy:hover {
 }
 
 .password-toggle-wrapper.form-floating .password-toggle-btn {
-    top: 1.75rem;
-    transform: translateY(-50%);
+    right: 0.7rem;
 }
 
 .password-toggle-btn .fas {
-    font-size: 0.95rem;
+    font-size: 0.98rem;
     line-height: 1;
 }
 
@@ -621,10 +620,18 @@ button.accept-policy:hover {
 
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
-    display: none;
+    display: none !important;
 }
 
 input[type="password"]::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    display: none !important;
+    pointer-events: none;
+}
+
+input.password-toggle-input::-webkit-contacts-auto-fill-button,
+input.password-toggle-input::-webkit-caps-lock-indicator,
+input.password-toggle-input::-webkit-clear-button {
     visibility: hidden;
     display: none !important;
     pointer-events: none;
@@ -736,6 +743,10 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     }
 
     .skip-to-content-link {
+        left: -9999px;
+    }
+
+    .skip-to-content-link:focus {
         left: 0.5rem;
     }
 }

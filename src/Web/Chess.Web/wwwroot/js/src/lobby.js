@@ -4,6 +4,22 @@ import { t } from './i18n.js';
 
 const playerNamePattern = /^[A-Za-z0-9_]{3,20}$/;
 
+function getLobbyStorageKey(elements) {
+    const dataKey = (elements.lobbyInputName.dataset.storageKey || '').trim();
+    return dataKey || storageKeys.lobbyName;
+}
+
+function storeLobbyName(lobbyStorageKey, name) {
+    if (!name || !playerNamePattern.test(name)) {
+        return;
+    }
+
+    storeValue(lobbyStorageKey, name);
+    if (lobbyStorageKey !== storageKeys.lobbyName) {
+        storeValue(storageKeys.lobbyName, name);
+    }
+}
+
 function setLobbyButtonsDisabled(elements, shouldDisable, isBusy) {
     elements.lobbyInputCreateBtn.disabled = shouldDisable;
     elements.lobbyInputCreateBtn.classList.toggle('is-disabled', shouldDisable);
@@ -41,11 +57,10 @@ function syncLobbyNameValidity(elements, state) {
         }
     }
 
+    const lobbyStorageKey = getLobbyStorageKey(elements);
     const name = (elements.lobbyInputName.value || '').trim();
-    if (name.length === 0) {
-        storeValue(storageKeys.lobbyName, '');
-    } else if (playerNamePattern.test(name)) {
-        storeValue(storageKeys.lobbyName, name);
+    if (name.length > 0 && playerNamePattern.test(name)) {
+        storeLobbyName(lobbyStorageKey, name);
     }
 }
 
@@ -63,7 +78,7 @@ function tryGetLobbyName(elements) {
         return null;
     }
 
-    storeValue(storageKeys.lobbyName, name);
+    storeLobbyName(getLobbyStorageKey(elements), name);
     return name;
 }
 
@@ -100,13 +115,54 @@ function getSelectedBotDifficulty(elements, state) {
     return normalized;
 }
 
-export function bindLobbyHandlers(connection, elements, state) {
-    const storedLobbyName = getStoredText(storageKeys.lobbyName, '').trim();
-    if (playerNamePattern.test(storedLobbyName) && !elements.lobbyInputName.value.trim()) {
-        elements.lobbyInputName.value = storedLobbyName;
+function resolvePersistedLobbyName(lobbyStorageKey, defaultLobbyName) {
+    const rememberedScopedName = getStoredText(lobbyStorageKey, '').trim();
+    if (playerNamePattern.test(rememberedScopedName)) {
+        return rememberedScopedName;
     }
 
+    const rememberedGlobalName = getStoredText(storageKeys.lobbyName, '').trim();
+    if (playerNamePattern.test(rememberedGlobalName)) {
+        return rememberedGlobalName;
+    }
+
+    if (playerNamePattern.test(defaultLobbyName)) {
+        return defaultLobbyName;
+    }
+
+    return '';
+}
+
+export function bindLobbyHandlers(connection, elements, state) {
+    const lobbyStorageKey = getLobbyStorageKey(elements);
+    const defaultLobbyName = (elements.lobbyInputName.dataset.defaultName || '').trim();
+    const persistedLobbyName = resolvePersistedLobbyName(lobbyStorageKey, defaultLobbyName);
+
+    if (!elements.lobbyInputName.value.trim() && persistedLobbyName) {
+        elements.lobbyInputName.value = persistedLobbyName;
+    }
+
+    const ensureLobbyNameIsSeeded = () => {
+        const current = (elements.lobbyInputName.value || '').trim();
+        if (playerNamePattern.test(current)) {
+            return current;
+        }
+
+        const fallbackName = resolvePersistedLobbyName(lobbyStorageKey, defaultLobbyName);
+        if (fallbackName) {
+            elements.lobbyInputName.value = fallbackName;
+            storeValue(lobbyStorageKey, fallbackName);
+            return fallbackName;
+        }
+
+        return '';
+    };
+
     elements.lobbyInputName.addEventListener('input', function onLobbyNameInput() {
+        syncLobbyNameValidity(elements, state);
+    });
+    elements.lobbyInputName.addEventListener('blur', function onLobbyNameBlur() {
+        ensureLobbyNameIsSeeded();
         syncLobbyNameValidity(elements, state);
     });
     elements.lobbyInputName.addEventListener('keydown', function onLobbyNameKeyDown(event) {
@@ -134,6 +190,7 @@ export function bindLobbyHandlers(connection, elements, state) {
 
         const roomElement = $(this).closest('.game-lobby-room-item');
         const id = roomElement.data('room-id');
+        ensureLobbyNameIsSeeded();
         const name = tryGetLobbyName(elements);
 
         if (!name || !id) {
@@ -147,6 +204,7 @@ export function bindLobbyHandlers(connection, elements, state) {
     });
 
     elements.lobbyInputCreateBtn.addEventListener('click', function onCreateRoomClick() {
+        ensureLobbyNameIsSeeded();
         const name = tryGetLobbyName(elements);
         if (!name) {
             return;
@@ -160,6 +218,7 @@ export function bindLobbyHandlers(connection, elements, state) {
 
     if (elements.lobbyInputVsBotBtn) {
         elements.lobbyInputVsBotBtn.addEventListener('click', function onStartVsBotClick() {
+            ensureLobbyNameIsSeeded();
             const name = tryGetLobbyName(elements);
             if (!name) {
                 return;
@@ -174,5 +233,6 @@ export function bindLobbyHandlers(connection, elements, state) {
         });
     }
 
+    ensureLobbyNameIsSeeded();
     syncLobbyNameValidity(elements, state);
 }

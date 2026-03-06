@@ -359,6 +359,19 @@
     color: #4c566a;
 }
 
+/* Defense-in-depth: legacy replay controls must stay hidden in modern UI. */
+.game-shell .game-replay-toolbar,
+.game-shell .game-replay-hotkeys,
+.game-shell .game-replay-indicator,
+.game-shell .game-replay-controls,
+.game-shell .replay-toolbar,
+.game-shell .replay-controls,
+.game-shell .replay-hotkeys,
+.game-shell .pgn-export-controls,
+.game-shell [aria-keyshortcuts] {
+    display: none !important;
+}
+
 #board.board-theme-midnight .black-3c85d {
     background-color: #4c566a;
     color: #d8dee9;
@@ -391,69 +404,20 @@
     gap: 0.35rem;
 }
 
-.game-replay-toolbar {
-    margin-top: 0.55rem;
-    border: 1px solid var(--line-soft);
-    border-radius: 10px;
-    background: #f8fbff;
-    padding: 0.35rem;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(90px, 1fr));
-    gap: 0.3rem;
-    align-items: center;
-}
-
-.game-replay-toolbar .game-btn {
-    min-height: 42px;
-    padding: 0.35rem 0.4rem;
-    font-size: 0.82rem;
-    white-space: nowrap;
-}
-
-.game-replay-indicator {
-    grid-column: 1 / -1;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 32px;
-    border: 1px dashed #c7d3e3;
-    border-radius: 8px;
-    background: #ffffff;
-    color: #42516a;
-    font-size: 0.82rem;
-    font-weight: 700;
-}
-
-.game-replay-hotkeys {
-    margin-top: 0.32rem;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-    color: #60728c;
-}
-
-.game-replay-hotkey {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 2.1rem;
-    min-height: 1.45rem;
-    padding: 0.05rem 0.3rem;
-    border-radius: 8px;
-    border: 1px solid #d0d9e7;
-    background: #f9fbff;
-}
-
-.game-replay-hotkey kbd {
-    font-family: var(--font-sans);
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #3e4e66;
-    background: transparent;
-    border: 0;
-    padding: 0;
-    box-shadow: none;
+/* Replay/PGN controls are intentionally disabled in current product UX. */
+.game-replay-toolbar,
+.game-replay-hotkeys,
+.game-replay-indicator,
+.replay-toolbar,
+.replay-controls,
+.replay-hotkeys,
+.pgn-export-controls,
+.main-playground-board-container [class*="replay"],
+.main-playground-board-container [id*="replay"],
+.main-playground-board-container [class*="pgn"],
+.main-playground-board-container [id*="pgn"],
+.main-playground-board-container [aria-keyshortcuts] {
+    display: none !important;
 }
 
 .game-lobby-shell {
@@ -616,14 +580,6 @@
         font-size: 1rem;
     }
 
-    .game-replay-toolbar {
-        grid-template-columns: repeat(2, minmax(90px, 1fr));
-    }
-
-    .game-replay-hotkeys {
-        justify-content: flex-start;
-    }
-
     .board-settings-container {
         justify-content: flex-start;
         gap: 0.4rem;
@@ -694,9 +650,7 @@
     .main-playground[data-mobile-panel='chat'] .board-hints-container,
     .main-playground[data-mobile-panel='chat'] .game-result-banner,
     .main-playground[data-mobile-panel='chat'] .status-bar-container,
-    .main-playground[data-mobile-panel='chat'] .game-btn-container,
-    .main-playground[data-mobile-panel='chat'] .game-replay-toolbar,
-    .main-playground[data-mobile-panel='chat'] .game-replay-hotkeys {
+    .main-playground[data-mobile-panel='chat'] .game-btn-container {
         display: none;
     }
 
@@ -713,17 +667,6 @@
 
     .status-bar-container {
         font-size: 0.9rem;
-    }
-
-    .game-replay-toolbar .game-btn {
-        min-height: 38px;
-        font-size: 0.76rem;
-        padding: 0.3rem 0.35rem;
-    }
-
-    .game-replay-indicator {
-        min-height: 28px;
-        font-size: 0.74rem;
     }
 
     .game-chat-container {

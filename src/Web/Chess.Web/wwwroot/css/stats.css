@@ -25,6 +25,9 @@
 .stats-hero-card {
     display: grid;
     grid-template-columns: 2fr 1fr;
+    grid-template-areas:
+        "label value"
+        "note note";
     border-radius: var(--radius-lg);
     overflow: hidden;
     box-shadow: var(--shadow-md);
@@ -39,14 +42,66 @@
 }
 
 .stats-hero-label {
+    grid-area: label;
     font-size: 1.75rem;
     background: linear-gradient(120deg, #21334b 0%, #335b74 100%);
 }
 
 .stats-hero-value {
+    grid-area: value;
     font-size: 2.2rem;
     text-align: center;
     background: linear-gradient(120deg, #1f6feb 0%, #2b87ff 100%);
+}
+
+.stats-hero-note {
+    grid-area: note;
+    margin: 0;
+    padding: 0.65rem 1rem 0.75rem;
+    border-top: 1px solid #d6e2f3;
+    background: #f4f8ff;
+    color: #3a5271;
+    font-size: 0.93rem;
+    font-weight: 600;
+}
+
+.stats-elo-note {
+    border: 1px solid #d5e0ef;
+    border-left: 5px solid #2f6fed;
+    border-radius: var(--radius-md);
+    background: linear-gradient(130deg, #f9fbff, #f2f7ff);
+    box-shadow: var(--shadow-sm);
+    padding: 0.8rem 1rem;
+    display: grid;
+    gap: 0.2rem;
+}
+
+.stats-elo-note-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #223d63;
+}
+
+.stats-elo-note-text {
+    margin: 0;
+    color: #486284;
+    font-size: 0.93rem;
+    line-height: 1.5;
+}
+
+.stats-elo-note-fresh {
+    margin: 0.3rem 0 0;
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    border-radius: 999px;
+    background: #e8f2ff;
+    color: #1f4c85;
+    border: 1px solid #bfd6f8;
+    font-size: 0.84rem;
+    font-weight: 700;
+    padding: 0.2rem 0.65rem;
 }
 
 .stats-personal-grid {

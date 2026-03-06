@@ -77,7 +77,7 @@ export function highlightAllLegalMoves(state) {
 
 export function createOnDragStartHandler(state) {
     return function onDragStart(source, piece) {
-        if (!state.isGameStarted || !state.isYourTurn || state.isReplayMode) {
+        if (!state.isGameStarted || !state.isYourTurn) {
             return false;
         }
 
@@ -120,7 +120,7 @@ export function createOnDropHandler(state, connection) {
     return function onDrop(source, target, piece, newPos, oldPos) {
         clearHintSquares();
 
-        if (!state.isGameStarted || !state.isYourTurn || state.isReplayMode) {
+        if (!state.isGameStarted || !state.isYourTurn) {
             return 'snapback';
         }
 

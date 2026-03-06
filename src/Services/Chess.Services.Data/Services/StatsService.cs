@@ -1,5 +1,6 @@
 namespace Chess.Services.Data.Services
 {
+    using System;
     using System.Linq;
     using System.Threading.Tasks;
 
@@ -86,6 +87,16 @@ namespace Chess.Services.Data.Services
 
         public async Task InitiateStatsAsync(string id)
         {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return;
+            }
+
+            if (this.IsStatsInitiated(id))
+            {
+                return;
+            }
+
             var stats = new StatisticEntity
             {
                 Played = 0,
@@ -97,7 +108,20 @@ namespace Chess.Services.Data.Services
             };
 
             await this.statsRepository.AddAsync(stats);
-            await this.statsRepository.SaveChangesAsync();
+            try
+            {
+                await this.statsRepository.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                // Protect against duplicate creation races when multiple requests initialize stats simultaneously.
+                if (this.IsStatsInitiated(id))
+                {
+                    return;
+                }
+
+                throw;
+            }
         }
     }
 }

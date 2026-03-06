@@ -175,7 +175,7 @@
     <value>малювати</value>
   </data>
   <data name="About_Feature_OfferDraw" xml:space="preserve">
-    <value>Пропозиція Розіграш</value>
+    <value>Пропозиція нічиєї</value>
   </data>
   <data name="About_Feature_Threefold" xml:space="preserve">
     <value>Жеребкування триразового повторення</value>
@@ -339,6 +339,18 @@
   <data name="Stats_EloRating" xml:space="preserve">
     <value>ВАШ РЕЙТИНГ ELO</value>
   </data>
+  <data name="Stats_EloInfo_Title" xml:space="preserve">
+    <value>Як працює ELO</value>
+  </data>
+  <data name="Stats_EloInfo_Body" xml:space="preserve">
+    <value>Нові акаунти стартують із 1200. Рейтинг змінюється тільки після завершених PvP-партій проти реальних гравців. Ігри з ботом на ELO не впливають.</value>
+  </data>
+  <data name="Stats_EloInitialHint" xml:space="preserve">
+    <value>Нові гравці стартують з рейтингу 1200 ELO.</value>
+  </data>
+  <data name="Stats_EloFreshAccountHint" xml:space="preserve">
+    <value>У вас ще немає рейтингових PvP-партій, тому зараз залишається стартовий рейтинг 1200.</value>
+  </data>
   <data name="Stats_AllUsers" xml:space="preserve">
     <value>УСІ КОРИСТУВАЧІ</value>
   </data>
@@ -429,6 +441,9 @@
   <data name="Game_BotDifficulty_Normal" xml:space="preserve">
     <value>Нормальна</value>
   </data>
+  <data name="Game_BotEloNotice" xml:space="preserve">
+    <value>Матчі проти бота не впливають на ваш PvP ELO та статистику.</value>
+  </data>
   <data name="Game_RoomsTitle" xml:space="preserve">
     <value>ІГРОВІ КІМНАТИ</value>
   </data>
@@ -472,7 +487,7 @@
     <value>N/A</value>
   </data>
   <data name="Js_DrawRequestSent" xml:space="preserve">
-    <value>Запит на розіграш надіслано!</value>
+    <value>Запит на нічию надіслано!</value>
   </data>
   <data name="Js_CheckmateWinFormat" xml:space="preserve">
     <value>ШАХ МАТ! {name} ПЕРЕМОГА!</value>
@@ -490,31 +505,31 @@
     <value>Пат. Партія з ботом завершилась нічиєю.</value>
   </data>
   <data name="Js_Draw" xml:space="preserve">
-    <value>РОЗІГРАТИ!</value>
+    <value>НІЧИЯ!</value>
   </data>
   <data name="Js_ThreefoldDeclaredByFormat" xml:space="preserve">
-    <value>ОГОЛОШЕНО ТРИКРАЗНЕ ПОВТОРЕННЯ ЖЕРЕБІЯ {name}!</value>
+    <value>ОГОЛОШЕНО НІЧИЮ ЗА ТРИКРАТНИМ ПОВТОРЕННЯМ ({name})!</value>
   </data>
   <data name="Js_FivefoldDraw" xml:space="preserve">
-    <value>РОЗІГРАШ П'ЯТИРАЗНОГО ПОВТОРЕННЯ!</value>
+    <value>НІЧИЯ ЗА П'ЯТИКРАТНИМ ПОВТОРЕННЯМ!</value>
   </data>
   <data name="Js_ResignedFormat" xml:space="preserve">
-    <value>{name} ВІДСТАВКА!</value>
+    <value>{name} ЗДАВСЯ!</value>
   </data>
   <data name="Js_LeftYouWinFormat" xml:space="preserve">
-    <value>{name} ВЛІВО. ВИ ПЕРЕМОГЛИ!</value>
+    <value>{name} ПОКИНУВ ГРУ. ВИ ПЕРЕМОГЛИ!</value>
   </data>
   <data name="Js_FiftyMoveDraw" xml:space="preserve">
     <value>НІЧИЯ НА П'ЯТДЕСЯТ ХОДІВ!</value>
   </data>
   <data name="Js_Check" xml:space="preserve">
-    <value>ПЕРЕВІРИТИ!</value>
+    <value>ШАХ!</value>
   </data>
   <data name="Js_KingInCheck" xml:space="preserve">
-    <value>Король під контролем!</value>
+    <value>Король під шахом!</value>
   </data>
   <data name="Js_WillOpenCheck" xml:space="preserve">
-    <value>Відкриє чек!</value>
+    <value>Це відкриє шах!</value>
   </data>
   <data name="Js_InvalidMove" xml:space="preserve">
     <value>Недійсний хід!</value>
@@ -532,7 +547,7 @@
     <value>{name} відхилив пропозицію!</value>
   </data>
   <data name="Id_LoginTitle" xml:space="preserve">
-    <value>авторизуватися</value>
+    <value>Авторизуватися</value>
   </data>
   <data name="Id_LoginSubtitle" xml:space="preserve">
     <value>Використовуйте локальний обліковий запис для входу.</value>

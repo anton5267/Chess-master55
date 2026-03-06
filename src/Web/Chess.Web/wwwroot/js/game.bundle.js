@@ -47,7 +47,7 @@
   }
   function createOnDragStartHandler(state) {
     return function onDragStart(source, piece) {
-      if (!state.isGameStarted || !state.isYourTurn || state.isReplayMode) {
+      if (!state.isGameStarted || !state.isYourTurn) {
         return false;
       }
       if (state.playerColor === 0 && piece.search(/b/) !== -1 || state.playerColor === 1 && piece.search(/w/) !== -1) {
@@ -78,7 +78,7 @@
   function createOnDropHandler(state, connection) {
     return function onDrop(source, target, piece, newPos, oldPos) {
       clearHintSquares();
-      if (!state.isGameStarted || !state.isYourTurn || state.isReplayMode) {
+      if (!state.isGameStarted || !state.isYourTurn) {
         return "snapback";
       }
       if (state.playerColor === 0 && piece.search(/b/) !== -1 || state.playerColor === 1 && piece.search(/w/) !== -1) {
@@ -224,6 +224,103 @@
     return normalized || fallback;
   }
   var connectionToneClasses = ["is-reconnecting", "is-syncing", "is-disconnected", "is-offline"];
+  var internalChatDedupWindowMs = 5e3;
+  var maxChatItems = 250;
+  var legacyReplaySelectors = [
+    ".game-replay-toolbar",
+    ".game-replay-hotkeys",
+    ".game-replay-indicator",
+    ".game-replay-controls",
+    ".replay-toolbar",
+    ".replay-controls",
+    ".replay-hotkeys",
+    ".pgn-export-controls"
+  ];
+  var legacyReplayTextTokens = [
+    "\u043F\u043E\u0432\u0442\u043E\u0440",
+    "\u043F\u043E\u0432\u0442\u043E\u0440:",
+    "replay",
+    "wiederholung",
+    "powtor",
+    "powt\xF3r",
+    "repeticion",
+    "repetici\xF3n",
+    "export pgn",
+    "\u0435\u043A\u0441\u043F\u043E\u0440\u0442 pgn",
+    "\u044D\u043A\u0441\u043F\u043E\u0440\u0442 pgn",
+    "eksport pgn",
+    "exportar pgn",
+    "pgn exportieren",
+    "\u043F\u043E\u0432\u0435\u0440\u043D\u0443\u0442\u0438\u0441\u044F \u0443 live",
+    "return to live",
+    "zur\xFCck zu live",
+    "powr\xF3t do live",
+    "volver a live",
+    "\u043F\u043E\u0442\u043E\u0447\u043D\u0430 \u043F\u043E\u0437\u0438\u0446\u0456\u044F",
+    "current position"
+  ];
+  var legacyReplayLooseButtonLabels = /* @__PURE__ */ new Set(["home", "end", "p", "\u2190", "\u2192"]);
+  var legacyReplayCleanupObserver = null;
+  var legacyReplayCleanupScheduled = false;
+  function scheduleLegacyReplayCleanup() {
+    if (legacyReplayCleanupScheduled) {
+      return;
+    }
+    legacyReplayCleanupScheduled = true;
+    requestAnimationFrame(() => {
+      legacyReplayCleanupScheduled = false;
+      removeLegacyReplayDomArtifacts(false);
+    });
+  }
+  function ensureLegacyReplayCleanupObserver(observeRoot) {
+    if (legacyReplayCleanupObserver || !observeRoot || typeof MutationObserver === "undefined") {
+      return;
+    }
+    legacyReplayCleanupObserver = new MutationObserver(() => {
+      scheduleLegacyReplayCleanup();
+    });
+    legacyReplayCleanupObserver.observe(observeRoot, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      characterData: true
+    });
+  }
+  function removeLegacyReplayDomArtifacts(ensureObserver = true) {
+    const gameShell = document.querySelector(".game-shell");
+    if (!gameShell) {
+      return;
+    }
+    const boardScope = gameShell.querySelector(".main-playground-board-container");
+    const cleanupScope = boardScope || gameShell;
+    if (ensureObserver) {
+      ensureLegacyReplayCleanupObserver(gameShell);
+    }
+    cleanupScope.querySelectorAll(legacyReplaySelectors.join(",")).forEach((node) => node.remove());
+    cleanupScope.querySelectorAll("[aria-keyshortcuts]").forEach((node) => node.remove());
+    cleanupScope.querySelectorAll('button, .btn, a.btn, [role="button"]').forEach((node) => {
+      const text = (node.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
+      if (!text) {
+        return;
+      }
+      const isLooseLegacyButtonLabel = legacyReplayLooseButtonLabels.has(text) && (node.tagName === "BUTTON" || node.classList.contains("btn"));
+      const hasLegacyReplayToken = legacyReplayTextTokens.some((token) => text.includes(token));
+      const hasReplayShortcut = typeof node.getAttribute === "function" && !!node.getAttribute("aria-keyshortcuts");
+      if (isLooseLegacyButtonLabel || hasLegacyReplayToken || hasReplayShortcut) {
+        const removableContainer = node.closest(".btn-group, .toolbar, .game-replay-toolbar, .game-replay-hotkeys, .game-replay-indicator, .game-replay-controls, .replay-toolbar, .replay-controls, .replay-hotkeys, .pgn-export-controls");
+        if (removableContainer && cleanupScope.contains(removableContainer)) {
+          removableContainer.remove();
+          return;
+        }
+        if (cleanupScope.contains(node)) {
+          node.remove();
+        }
+      }
+    });
+  }
+  function purgeLegacyReplayUi() {
+    removeLegacyReplayDomArtifacts(true);
+  }
   function createRoomElement(player) {
     const div = document.createElement("div");
     const span = document.createElement("span");
@@ -298,8 +395,25 @@
     }
   }
   function updateChat(elements, message, chat, isInternalMessage, isBlack) {
+    const normalizedMessage = `${message || ""}`.trim();
+    if (normalizedMessage.length === 0) {
+      return;
+    }
+    if (isInternalMessage) {
+      const lastEntry = chat.lastElementChild;
+      if (lastEntry && lastEntry.classList.contains("chat-internal-msg")) {
+        const lastMessage = (lastEntry.dataset.chatMessage || "").trim();
+        const lastTimestamp = Number(lastEntry.dataset.chatTimestamp || 0);
+        const now = Date.now();
+        if (lastMessage === normalizedMessage && Number.isFinite(lastTimestamp) && now - lastTimestamp <= internalChatDedupWindowMs) {
+          return;
+        }
+      }
+    }
     const li = document.createElement("li");
-    li.innerText = `${message}`;
+    li.innerText = normalizedMessage;
+    li.dataset.chatMessage = normalizedMessage;
+    li.dataset.chatTimestamp = String(Date.now());
     if (isInternalMessage) {
       li.classList.add("chat-internal-msg", "chat-msg", "flex-start");
     } else if (isBlack) {
@@ -308,6 +422,9 @@
       li.classList.add("white-chat-msg", "chat-user-msg", "chat-msg", "flex-start");
     }
     chat.appendChild(li);
+    while (chat.childElementCount > maxChatItems) {
+      chat.removeChild(chat.firstElementChild);
+    }
     chat.scrollTop = chat.scrollHeight;
   }
   function removeHighlight(color) {
@@ -360,43 +477,20 @@
     elements.botDifficultyMetaValue.textContent = resolveBotDifficultyLabel(elements, state);
   }
   function updateReplayControls(elements, state) {
-    const hasTimeline = Array.isArray(state.fenTimeline) && state.fenTimeline.length > 0;
-    const maxIndex = hasTimeline ? state.fenTimeline.length - 1 : 0;
-    const currentIndex = Math.max(0, Math.min(state.replayIndex || 0, maxIndex));
-    const hasPastMoves = maxIndex > 0;
-    const isReplayMode = !!state.isReplayMode;
-    const activeIndex = isReplayMode ? currentIndex : maxIndex;
-    const replayAllowed = !!state.isBotGame;
-    if (!replayAllowed && state.isReplayMode) {
-      state.isReplayMode = false;
-      state.replayIndex = maxIndex;
-    }
-    if (elements.replayStartBtn) {
-      elements.replayStartBtn.hidden = !replayAllowed;
-      elements.replayStartBtn.disabled = !replayAllowed || !hasPastMoves;
-    }
-    if (elements.replayPrevBtn) {
-      elements.replayPrevBtn.hidden = !replayAllowed;
-      elements.replayPrevBtn.disabled = !replayAllowed || !hasPastMoves || activeIndex <= 0;
-    }
-    if (elements.replayNextBtn) {
-      elements.replayNextBtn.hidden = !replayAllowed;
-      elements.replayNextBtn.disabled = !replayAllowed || !hasPastMoves || activeIndex >= maxIndex;
-    }
-    if (elements.replayLiveBtn) {
-      elements.replayLiveBtn.hidden = !replayAllowed;
-      elements.replayLiveBtn.disabled = !replayAllowed || !isReplayMode;
-    }
-    if (elements.replayHotkeys) {
-      elements.replayHotkeys.hidden = !replayAllowed;
-    }
-    if (elements.exportPgnBtn) {
-      elements.exportPgnBtn.disabled = !state.whiteMoves?.length && !state.blackMoves?.length;
-    }
-    const shouldLockInteractiveActions = !!state.isReplayMode || !!state.hasGameEnded || !state.isGameStarted;
+    removeLegacyReplayDomArtifacts();
+    const shouldLockInteractiveActions = !!state.hasGameEnded || !state.isGameStarted;
     const actionBusy = !!state.gameActionInFlight;
+    const isBotMode = !!state.isBotGame;
     if (elements.offerDrawBtn) {
-      elements.offerDrawBtn.disabled = shouldLockInteractiveActions || actionBusy;
+      elements.offerDrawBtn.hidden = isBotMode;
+      elements.offerDrawBtn.style.display = isBotMode ? "none" : "";
+    }
+    if (elements.threefoldDrawBtn) {
+      elements.threefoldDrawBtn.hidden = isBotMode;
+      elements.threefoldDrawBtn.style.display = isBotMode ? "none" : "";
+    }
+    if (elements.offerDrawBtn) {
+      elements.offerDrawBtn.disabled = isBotMode || shouldLockInteractiveActions || actionBusy;
     }
     if (elements.resignBtn) {
       elements.resignBtn.disabled = shouldLockInteractiveActions || actionBusy;
@@ -404,29 +498,13 @@
     if (elements.threefoldDrawBtn && (shouldLockInteractiveActions || actionBusy)) {
       elements.threefoldDrawBtn.disabled = true;
     }
+    if (elements.threefoldDrawBtn && isBotMode) {
+      elements.threefoldDrawBtn.disabled = true;
+    }
     if (elements.playAgainVsBotBtn) {
-      const canReplayBotGame = state.isBotGame && state.hasGameEnded && !state.isReplayMode && !actionBusy;
+      const canReplayBotGame = state.isBotGame && state.hasGameEnded && !actionBusy;
       elements.playAgainVsBotBtn.disabled = !canReplayBotGame;
     }
-    if (!elements.replayIndicator) {
-      return;
-    }
-    elements.replayIndicator.hidden = !replayAllowed;
-    if (!replayAllowed) {
-      return;
-    }
-    if (!hasPastMoves) {
-      elements.replayIndicator.textContent = t("replayLive");
-      return;
-    }
-    if (isReplayMode) {
-      elements.replayIndicator.textContent = t("replayModeFormat", {
-        current: String(currentIndex),
-        total: String(maxIndex)
-      });
-      return;
-    }
-    elements.replayIndicator.textContent = t("replayLive");
   }
   var gameResultTones = /* @__PURE__ */ new Set(["win", "loss", "draw"]);
   var gameResultToneClasses = ["game-result-win", "game-result-loss", "game-result-draw"];
@@ -451,6 +529,7 @@
     elements.gameResultBanner.classList.remove("game-result-hidden");
   }
   function resetGameUi(elements, state) {
+    removeLegacyReplayDomArtifacts();
     elements.statusCheck.style.display = "none";
     elements.statusCheck.textContent = "";
     clearGameResultBanner(elements);
@@ -495,11 +574,6 @@
     state.lobbyNameValid = false;
     state.lobbyActionInFlight = false;
     state.gameActionInFlight = false;
-    state.isReplayMode = false;
-    state.replayIndex = 0;
-    state.fenTimeline = ["start"];
-    state.whiteMoves = [];
-    state.blackMoves = [];
     state.mobilePanel = "board";
     if (state.pendingSyncTimeoutId) {
       clearTimeout(state.pendingSyncTimeoutId);
@@ -683,171 +757,6 @@
         updateReplayControls(elements, state);
       });
     }
-    function getReplayMaxIndex() {
-      return Math.max((state.fenTimeline?.length || 1) - 1, 0);
-    }
-    function getReplayActiveIndex() {
-      const maxIndex = getReplayMaxIndex();
-      if (!state.isReplayMode) {
-        return maxIndex;
-      }
-      return Math.min(Math.max(state.replayIndex || 0, 0), maxIndex);
-    }
-    function applyReplayPosition(index) {
-      if (!state.board || !Array.isArray(state.fenTimeline) || state.fenTimeline.length === 0) {
-        return;
-      }
-      const maxIndex = getReplayMaxIndex();
-      const nextIndex = Math.min(Math.max(index, 0), maxIndex);
-      const targetFen = state.fenTimeline[nextIndex] || state.liveFen || "start";
-      state.replayIndex = nextIndex;
-      state.displayFen = targetFen;
-      state.board.position(targetFen, false);
-      elements.board.style.pointerEvents = "none";
-      updateReplayControls(elements, state);
-    }
-    function enterReplayMode(index) {
-      if (!state.isBotGame) {
-        return;
-      }
-      if (!state.board || !Array.isArray(state.fenTimeline) || state.fenTimeline.length <= 1) {
-        return;
-      }
-      state.isReplayMode = true;
-      applyReplayPosition(index);
-    }
-    function exitReplayMode() {
-      if (!state.isBotGame) {
-        return;
-      }
-      state.isReplayMode = false;
-      state.replayIndex = getReplayMaxIndex();
-      const liveFen = state.liveFen || state.currentFen || "start";
-      state.displayFen = liveFen;
-      if (state.board) {
-        state.board.position(liveFen, false);
-      }
-      if (state.isGameStarted && !state.hasGameEnded && state.isYourTurn) {
-        elements.board.style.pointerEvents = "auto";
-      } else {
-        elements.board.style.pointerEvents = "none";
-      }
-      updateReplayControls(elements, state);
-      if (connection.state === signalR.HubConnectionState.Connected) {
-        connection.invoke("RequestSync").catch((err) => console.error(err));
-      }
-    }
-    function getPgnResultToken() {
-      const white = state.playerOneName;
-      const black = state.playerTwoName;
-      switch (state.gameOverCode) {
-        case 1:
-          if (state.gameOverWinnerName === white) {
-            return "1-0";
-          }
-          if (state.gameOverWinnerName === black) {
-            return "0-1";
-          }
-          return "*";
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-        case 8:
-          return "1/2-1/2";
-        case 6:
-        case 7:
-          if (state.gameOverWinnerName === white) {
-            return "0-1";
-          }
-          if (state.gameOverWinnerName === black) {
-            return "1-0";
-          }
-          return "*";
-        default:
-          return "*";
-      }
-    }
-    function formatPgnDate() {
-      const now = /* @__PURE__ */ new Date();
-      const year = String(now.getFullYear());
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const day = String(now.getDate()).padStart(2, "0");
-      return `${year}.${month}.${day}`;
-    }
-    function buildPgnText() {
-      const eventName = state.isBotGame ? "Chess Web Bot Match" : "Chess Web PvP Match";
-      const site = window.location?.origin || "Local";
-      const date = formatPgnDate();
-      const white = state.playerOneName || "White";
-      const black = state.playerTwoName || "Black";
-      const result = getPgnResultToken();
-      const headers = [
-        `[Event "${eventName}"]`,
-        `[Site "${site}"]`,
-        `[Date "${date}"]`,
-        `[Round "-"]`,
-        `[White "${white.replace(/"/g, "'")}"]`,
-        `[Black "${black.replace(/"/g, "'")}"]`,
-        `[Result "${result}"]`,
-        `[Mode "${state.isBotGame ? "bot" : "pvp"}"]`
-      ];
-      if (state.isBotGame) {
-        headers.push(`[BotDifficulty "${(state.botDifficulty || "normal").toLowerCase()}"]`);
-      }
-      const whiteMoves = state.whiteMoves || [];
-      const blackMoves = state.blackMoves || [];
-      const movePairs = [];
-      const maxLen = Math.max(whiteMoves.length, blackMoves.length);
-      for (let i = 0; i < maxLen; i += 1) {
-        const moveNo = i + 1;
-        const whiteMove = (whiteMoves[i] || "").trim();
-        const blackMove = (blackMoves[i] || "").trim();
-        if (!whiteMove && !blackMove) {
-          continue;
-        }
-        const pair = [`${moveNo}.`];
-        if (whiteMove) {
-          pair.push(whiteMove);
-        }
-        if (blackMove) {
-          pair.push(blackMove);
-        }
-        movePairs.push(pair.join(" "));
-      }
-      const movesSection = movePairs.join(" ");
-      return `${headers.join("\n")}
-
-${movesSection}${movesSection ? " " : ""}${result}
-`;
-    }
-    function downloadPgn() {
-      try {
-        const pgnText = buildPgnText();
-        const now = /* @__PURE__ */ new Date();
-        const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}-${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}${String(now.getSeconds()).padStart(2, "0")}`;
-        const fileName = `chess-match-${timestamp}.pgn`;
-        const blob = new Blob([pgnText], { type: "application/x-chess-pgn;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const anchor = document.createElement("a");
-        anchor.href = url;
-        anchor.download = fileName;
-        document.body.appendChild(anchor);
-        anchor.click();
-        document.body.removeChild(anchor);
-        URL.revokeObjectURL(url);
-        if (elements.replayIndicator) {
-          elements.replayIndicator.textContent = t("pgnDownloaded");
-          setTimeout(() => updateReplayControls(elements, state), 1200);
-        }
-      } catch (error) {
-        console.error(error);
-        if (elements.replayIndicator) {
-          elements.replayIndicator.textContent = t("pgnDownloadFailed");
-          setTimeout(() => updateReplayControls(elements, state), 1600);
-        }
-      }
-    }
     elements.threefoldDrawBtn.addEventListener("click", function onThreefoldClick() {
       runGameAction(() => connection.invoke("ThreefoldDraw"));
     });
@@ -858,7 +767,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
       elements.statusText.style.color = "black";
       elements.statusText.innerText = pendingText;
       sleep(1500).then(() => {
-        if (state.hasGameEnded || state.isReplayMode) {
+        if (state.hasGameEnded) {
           return;
         }
         if (elements.statusText.innerText !== pendingText) {
@@ -890,32 +799,173 @@ ${movesSection}${movesSection ? " " : ""}${result}
         }));
       });
     }
-    if (elements.replayStartBtn) {
-      elements.replayStartBtn.addEventListener("click", function onReplayStartClick() {
-        enterReplayMode(0);
-      });
-    }
-    if (elements.replayPrevBtn) {
-      elements.replayPrevBtn.addEventListener("click", function onReplayPrevClick() {
-        enterReplayMode(getReplayActiveIndex() - 1);
-      });
-    }
-    if (elements.replayNextBtn) {
-      elements.replayNextBtn.addEventListener("click", function onReplayNextClick() {
-        enterReplayMode(getReplayActiveIndex() + 1);
-      });
-    }
-    if (elements.replayLiveBtn) {
-      elements.replayLiveBtn.addEventListener("click", function onReplayLiveClick() {
-        exitReplayMode();
-      });
-    }
-    if (elements.exportPgnBtn) {
-      elements.exportPgnBtn.addEventListener("click", function onExportPgnClick() {
-        downloadPgn();
-      });
-    }
     updateReplayControls(elements, state);
+  }
+
+  // wwwroot/js/src/state.js
+  var storageKeys = {
+    boardTheme: "chess.boardTheme",
+    pieceTheme: "chess.pieceTheme",
+    checkHints: "chess.checkHints",
+    legalMoveHints: "chess.legalMoveHints",
+    botDifficulty: "chess.botDifficulty",
+    lobbyName: "chess.lobbyName"
+  };
+  var boardThemes = {
+    classic: "board-theme-classic",
+    forest: "board-theme-forest",
+    midnight: "board-theme-midnight"
+  };
+  var pieceThemes = {
+    wikipedia: "img/chesspieces/wikipedia/{piece}.png",
+    alpha: "img/chesspieces/alpha/320/{piece}.png",
+    leipzig: "img/chesspieces/leipzig/320/{piece}.png"
+  };
+  var botDifficulties = {
+    easy: "easy",
+    normal: "normal"
+  };
+  function getElements() {
+    return {
+      playground: document.querySelector(".main-playground"),
+      board: document.querySelector("#board"),
+      mobileTabs: document.querySelector(".game-mobile-tabs"),
+      mobileTabButtons: Array.from(document.querySelectorAll(".game-mobile-tab-btn")),
+      botDifficultyMeta: document.querySelector(".game-live-bot-difficulty"),
+      botDifficultyMetaValue: document.querySelector(".game-live-bot-difficulty-value"),
+      connectionPill: document.querySelector(".game-connection-pill"),
+      gameResultBanner: document.querySelector(".game-result-banner"),
+      statusText: document.querySelector(".status-bar-text"),
+      statusCheck: document.querySelector(".status-bar-check-notification"),
+      whiteName: document.querySelector(".main-playground-white-name"),
+      whitePointsValue: document.querySelector(".white-points-value"),
+      whiteRating: document.querySelector(".main-playground-white-rating"),
+      whiteMoveHistory: document.querySelector(".main-playground-white-move-history"),
+      blackPawnsTaken: document.querySelector(".taken-pieces-black-pawn-value"),
+      blackKnightsTaken: document.querySelector(".taken-pieces-black-knight-value"),
+      blackBishopsTaken: document.querySelector(".taken-pieces-black-bishop-value"),
+      blackRooksTaken: document.querySelector(".taken-pieces-black-rook-value"),
+      blackQueensTaken: document.querySelector(".taken-pieces-black-queen-value"),
+      blackName: document.querySelector(".main-playground-black-name"),
+      blackRating: document.querySelector(".main-playground-black-rating"),
+      blackPointsValue: document.querySelector(".black-points-value"),
+      blackMoveHistory: document.querySelector(".main-playground-black-move-history"),
+      whitePawnsTaken: document.querySelector(".taken-pieces-white-pawn-value"),
+      whiteKnightsTaken: document.querySelector(".taken-pieces-white-knight-value"),
+      whiteBishopsTaken: document.querySelector(".taken-pieces-white-bishop-value"),
+      whiteRooksTaken: document.querySelector(".taken-pieces-white-rook-value"),
+      whiteQueensTaken: document.querySelector(".taken-pieces-white-queen-value"),
+      gameChatWindow: document.querySelector(".game-chat-window"),
+      lobbyChatWindow: document.querySelector(".game-lobby-chat-window"),
+      rooms: document.querySelector(".game-lobby-room-container"),
+      lobbyRoomCount: document.querySelector(".game-lobby-room-count"),
+      lobbyInputName: document.querySelector(".game-lobby-input-name"),
+      lobbyInputCreateBtn: document.querySelector(".game-lobby-input-create-btn"),
+      botDifficultySelect: document.querySelector("#bot-difficulty-select"),
+      lobbyInputVsBotBtn: document.querySelector(".game-lobby-input-vs-bot-btn"),
+      lobbyChatInput: document.querySelector(".game-lobby-chat-input"),
+      lobbyChatSendBtn: document.querySelector(".game-lobby-chat-send-btn"),
+      lobbyChatCounter: document.querySelector(".game-lobby-chat-counter"),
+      gameChatInput: document.querySelector(".game-chat-input"),
+      gameChatSendBtn: document.querySelector(".game-chat-send-btn"),
+      gameChatCounter: document.querySelector(".game-chat-counter"),
+      resignBtn: document.querySelector(".resign-btn"),
+      offerDrawBtn: document.querySelector(".offer-draw-btn"),
+      threefoldDrawBtn: document.querySelector(".threefold-draw-btn"),
+      boardThemeSelect: document.querySelector("#board-theme-select"),
+      pieceThemeSelect: document.querySelector("#piece-theme-select"),
+      checkHintsToggle: document.querySelector("#check-hints-toggle"),
+      legalMovesToggle: document.querySelector("#legal-moves-toggle"),
+      lobbyContainer: document.querySelector(".game-lobby"),
+      playAgainVsBotBtn: document.querySelector(".game-play-again-btn")
+    };
+  }
+  function createState() {
+    return {
+      playerId: null,
+      playerName: null,
+      playerColor: null,
+      playerOneName: null,
+      playerTwoName: null,
+      isBotGame: false,
+      botPlayerId: null,
+      botPlayerName: null,
+      liveFen: "start",
+      displayFen: "start",
+      board: null,
+      currentFen: "start",
+      isGameStarted: false,
+      hasGameEnded: false,
+      gameOverCode: null,
+      gameOverWinnerName: null,
+      mobilePanel: "board",
+      connectionState: "disconnected",
+      turnNumber: 1,
+      activeMovingPlayerId: null,
+      activeMovingPlayerName: null,
+      isYourTurn: false,
+      isInCheck: false,
+      legalMoves: [],
+      legalMovesRequestId: 0,
+      syncRequestInFlight: false,
+      pendingSyncTimeoutId: null,
+      pendingSyncRetryTimeoutId: null,
+      syncRetryAttempt: 0,
+      pendingBotRecoveryTimeoutId: null,
+      pendingHighlightTimeoutId: null,
+      boardInitialized: false,
+      selectedBoardTheme: getStoredValue(storageKeys.boardTheme, "classic", boardThemes),
+      selectedPieceTheme: getStoredValue(storageKeys.pieceTheme, "wikipedia", pieceThemes),
+      hintsEnabled: getStoredBoolean(storageKeys.checkHints, true),
+      legalHintsEnabled: getStoredBoolean(storageKeys.legalMoveHints, true),
+      botDifficulty: getStoredValue(storageKeys.botDifficulty, "normal", botDifficulties),
+      lobbyNameValid: false,
+      lobbyActionInFlight: false,
+      gameActionInFlight: false
+    };
+  }
+  function getStoredValue(storageKey, fallbackValue, options) {
+    try {
+      const storedValue = localStorage.getItem(storageKey);
+      if (storedValue !== null && Object.prototype.hasOwnProperty.call(options, storedValue)) {
+        return storedValue;
+      }
+    } catch (error) {
+    }
+    return fallbackValue;
+  }
+  function storeValue(storageKey, value) {
+    try {
+      localStorage.setItem(storageKey, value);
+    } catch (error) {
+    }
+  }
+  function getStoredBoolean(storageKey, fallbackValue) {
+    try {
+      const storedValue = localStorage.getItem(storageKey);
+      if (storedValue === null) {
+        return fallbackValue;
+      }
+      return storedValue === "true";
+    } catch (error) {
+      return fallbackValue;
+    }
+  }
+  function storeBoolean(storageKey, value) {
+    try {
+      localStorage.setItem(storageKey, value ? "true" : "false");
+    } catch (error) {
+    }
+  }
+  function getStoredText(storageKey, fallbackValue = "") {
+    try {
+      const storedValue = localStorage.getItem(storageKey);
+      if (typeof storedValue === "string") {
+        return storedValue;
+      }
+    } catch (error) {
+    }
+    return fallbackValue;
   }
 
   // wwwroot/js/src/connection.js
@@ -941,6 +991,10 @@ ${movesSection}${movesSection ? " " : ""}${result}
       botPlayerName,
       botDifficulty: payload && payload.botDifficulty ? payload.botDifficulty : "normal"
     };
+  }
+  function getLobbyStorageKey(elements) {
+    const dataKey = elements.lobbyInputName ? (elements.lobbyInputName.dataset.storageKey || "").trim() : "";
+    return dataKey || storageKeys.lobbyName;
   }
   function resolveSelfPlayer(game, state, normalizedPayload) {
     const fallbackPlayerOne = game.player1;
@@ -1016,7 +1070,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
     return false;
   }
   function shouldAttemptSyncRecovery(state) {
-    return state.isGameStarted && !state.hasGameEnded && !state.isReplayMode && state.connectionState !== "offline" && state.connectionState !== "disconnected";
+    return state.isGameStarted && !state.hasGameEnded && state.connectionState !== "offline" && state.connectionState !== "disconnected";
   }
   function scheduleSyncRetry(connection, state) {
     if (!shouldAttemptSyncRecovery(state)) {
@@ -1126,24 +1180,12 @@ ${movesSection}${movesSection ? " " : ""}${result}
     if (!fen) {
       return;
     }
-    if (!Array.isArray(state.fenTimeline) || state.fenTimeline.length === 0) {
-      state.fenTimeline = ["start"];
-    }
     state.liveFen = fen;
     state.currentFen = fen;
-    const lastTimelineFen = state.fenTimeline[state.fenTimeline.length - 1];
-    if (lastTimelineFen !== fen) {
-      state.fenTimeline.push(fen);
-    }
-    if (state.board && !state.isReplayMode && state.board.fen() !== fen) {
+    if (state.board && state.board.fen() !== fen) {
       state.board.position(fen, false);
     }
-    if (!state.isReplayMode) {
-      state.displayFen = fen;
-    }
-    if (!state.hasGameEnded && !state.isReplayMode && (movingPlayerId || movingPlayerName)) {
-      updateStatus(elements, state, movingPlayerId, movingPlayerName);
-    }
+    state.displayFen = fen;
     updateReplayControls(elements, state);
   }
   function refreshLegalMoves(connection, state, onCompleted) {
@@ -1179,15 +1221,6 @@ ${movesSection}${movesSection ? " " : ""}${result}
     removeHighlight("black");
     clearHighlightTimer(state);
     if (state.hasGameEnded) {
-      clearBotRecoveryWatchdog(state);
-      state.isYourTurn = false;
-      state.legalMoves = [];
-      state.legalMovesRequestId += 1;
-      elements.board.style.pointerEvents = "none";
-      updateReplayControls(elements, state);
-      return;
-    }
-    if (state.isReplayMode) {
       clearBotRecoveryWatchdog(state);
       state.isYourTurn = false;
       state.legalMoves = [];
@@ -1265,7 +1298,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
       clearHighlightTimer(state);
       elements.board.style.pointerEvents = "none";
       setConnectionStatus(elements, "reconnecting", t("connectionReconnecting"));
-      if (!state.hasGameEnded && !state.isReplayMode) {
+      if (!state.hasGameEnded) {
         elements.statusText.style.color = "#b36b00";
         elements.statusText.innerText = t("connectionReconnecting");
       }
@@ -1356,14 +1389,17 @@ ${movesSection}${movesSection ? " " : ""}${result}
       if (elements.botDifficultySelect) {
         elements.botDifficultySelect.value = state.botDifficulty;
       }
+      if (elements.lobbyInputName && state.playerName) {
+        elements.lobbyInputName.value = state.playerName;
+        const lobbyStorageKey = getLobbyStorageKey(elements);
+        storeValue(lobbyStorageKey, state.playerName);
+        if (lobbyStorageKey !== storageKeys.lobbyName) {
+          storeValue(storageKeys.lobbyName, state.playerName);
+        }
+      }
       state.currentFen = normalizedPayload.startFen || "start";
       state.liveFen = state.currentFen;
       state.displayFen = state.currentFen;
-      state.fenTimeline = [state.currentFen];
-      state.replayIndex = 0;
-      state.isReplayMode = false;
-      state.whiteMoves = [];
-      state.blackMoves = [];
       state.isGameStarted = true;
       state.connectionState = "in-game";
       state.turnNumber = normalizedPayload.turnNumber;
@@ -1422,10 +1458,6 @@ ${movesSection}${movesSection ? " " : ""}${result}
       if (!state.board) {
         return;
       }
-      if (state.isReplayMode) {
-        scheduleSyncWatchdog2(connection, state);
-        return;
-      }
       clearHintSquares();
       state.board.move(`${source}-${target}`);
       state.displayFen = state.board.fen();
@@ -1433,16 +1465,6 @@ ${movesSection}${movesSection ? " " : ""}${result}
     });
     connection.on("BoardSnapback", function onBoardSnapback(fen) {
       if (!state.board) {
-        return;
-      }
-      if (state.isReplayMode) {
-        state.liveFen = fen;
-        state.currentFen = fen;
-        const lastTimelineFen = state.fenTimeline[state.fenTimeline.length - 1];
-        if (lastTimelineFen !== fen) {
-          state.fenTimeline.push(fen);
-        }
-        updateReplayControls(elements, state);
         return;
       }
       clearHintSquares();
@@ -1456,16 +1478,6 @@ ${movesSection}${movesSection ? " " : ""}${result}
       if (!state.board) {
         return;
       }
-      if (state.isReplayMode) {
-        state.liveFen = fen;
-        state.currentFen = fen;
-        const lastTimelineFen = state.fenTimeline[state.fenTimeline.length - 1];
-        if (lastTimelineFen !== fen) {
-          state.fenTimeline.push(fen);
-        }
-        updateReplayControls(elements, state);
-        return;
-      }
       clearHintSquares();
       state.board.position(fen, false);
       state.displayFen = state.board.fen();
@@ -1475,10 +1487,6 @@ ${movesSection}${movesSection ? " " : ""}${result}
     });
     connection.on("EnPassantTake", function onEnPassantTake(pawnPosition, target) {
       if (!state.board) {
-        return;
-      }
-      if (state.isReplayMode) {
-        scheduleSyncWatchdog2(connection, state);
         return;
       }
       clearHintSquares();
@@ -1492,7 +1500,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
       removeHighlight("black");
       state.turnNumber = turnNumber;
       applySyncPosition(state, elements, fen, movingPlayerId, movingPlayerName);
-      if (!state.hasGameEnded && !state.isReplayMode) {
+      if (!state.hasGameEnded) {
         syncTurnDependentState(connection, elements, state, movingPlayerId, movingPlayerName);
       }
       if (state.connectionState === "connected" || state.connectionState === "in-game") {
@@ -1596,7 +1604,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
       }
     });
     connection.on("InvalidMove", function onInvalidMove(type) {
-      if (state.hasGameEnded || state.isReplayMode) {
+      if (state.hasGameEnded) {
         return;
       }
       elements.statusText.style.color = "red";
@@ -1666,7 +1674,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
       elements.statusText.style.color = "black";
       elements.statusText.innerText = rejectedText;
       sleep(1500).then(() => {
-        if (state.hasGameEnded || state.isReplayMode) {
+        if (state.hasGameEnded) {
           return;
         }
         if (elements.statusText.innerText !== rejectedText) {
@@ -1726,13 +1734,11 @@ ${movesSection}${movesSection ? " " : ""}${result}
       li.classList.add("list-group-item");
       li.innerText = moveNotation;
       if (movingPlayer.name === state.playerOneName) {
-        state.whiteMoves.push(moveNotation);
         elements.whiteMoveHistory.appendChild(li);
         if (elements.whiteMoveHistory.getElementsByTagName("li").length > 40) {
           elements.whiteMoveHistory.removeChild(elements.whiteMoveHistory.childNodes[0]);
         }
       } else {
-        state.blackMoves.push(moveNotation);
         elements.blackMoveHistory.appendChild(li);
         if (elements.blackMoveHistory.getElementsByTagName("li").length > 40) {
           elements.blackMoveHistory.removeChild(elements.blackMoveHistory.childNodes[0]);
@@ -1781,186 +1787,21 @@ ${movesSection}${movesSection ? " " : ""}${result}
     });
   }
 
-  // wwwroot/js/src/state.js
-  var storageKeys = {
-    boardTheme: "chess.boardTheme",
-    pieceTheme: "chess.pieceTheme",
-    checkHints: "chess.checkHints",
-    legalMoveHints: "chess.legalMoveHints",
-    botDifficulty: "chess.botDifficulty",
-    lobbyName: "chess.lobbyName"
-  };
-  var boardThemes = {
-    classic: "board-theme-classic",
-    forest: "board-theme-forest",
-    midnight: "board-theme-midnight"
-  };
-  var pieceThemes = {
-    wikipedia: "img/chesspieces/wikipedia/{piece}.png",
-    alpha: "img/chesspieces/alpha/320/{piece}.png",
-    leipzig: "img/chesspieces/leipzig/320/{piece}.png"
-  };
-  var botDifficulties = {
-    easy: "easy",
-    normal: "normal"
-  };
-  function getElements() {
-    return {
-      playground: document.querySelector(".main-playground"),
-      board: document.querySelector("#board"),
-      mobileTabs: document.querySelector(".game-mobile-tabs"),
-      mobileTabButtons: Array.from(document.querySelectorAll(".game-mobile-tab-btn")),
-      botDifficultyMeta: document.querySelector(".game-live-bot-difficulty"),
-      botDifficultyMetaValue: document.querySelector(".game-live-bot-difficulty-value"),
-      connectionPill: document.querySelector(".game-connection-pill"),
-      gameResultBanner: document.querySelector(".game-result-banner"),
-      statusText: document.querySelector(".status-bar-text"),
-      statusCheck: document.querySelector(".status-bar-check-notification"),
-      whiteName: document.querySelector(".main-playground-white-name"),
-      whitePointsValue: document.querySelector(".white-points-value"),
-      whiteRating: document.querySelector(".main-playground-white-rating"),
-      whiteMoveHistory: document.querySelector(".main-playground-white-move-history"),
-      blackPawnsTaken: document.querySelector(".taken-pieces-black-pawn-value"),
-      blackKnightsTaken: document.querySelector(".taken-pieces-black-knight-value"),
-      blackBishopsTaken: document.querySelector(".taken-pieces-black-bishop-value"),
-      blackRooksTaken: document.querySelector(".taken-pieces-black-rook-value"),
-      blackQueensTaken: document.querySelector(".taken-pieces-black-queen-value"),
-      blackName: document.querySelector(".main-playground-black-name"),
-      blackRating: document.querySelector(".main-playground-black-rating"),
-      blackPointsValue: document.querySelector(".black-points-value"),
-      blackMoveHistory: document.querySelector(".main-playground-black-move-history"),
-      whitePawnsTaken: document.querySelector(".taken-pieces-white-pawn-value"),
-      whiteKnightsTaken: document.querySelector(".taken-pieces-white-knight-value"),
-      whiteBishopsTaken: document.querySelector(".taken-pieces-white-bishop-value"),
-      whiteRooksTaken: document.querySelector(".taken-pieces-white-rook-value"),
-      whiteQueensTaken: document.querySelector(".taken-pieces-white-queen-value"),
-      gameChatWindow: document.querySelector(".game-chat-window"),
-      lobbyChatWindow: document.querySelector(".game-lobby-chat-window"),
-      rooms: document.querySelector(".game-lobby-room-container"),
-      lobbyRoomCount: document.querySelector(".game-lobby-room-count"),
-      lobbyInputName: document.querySelector(".game-lobby-input-name"),
-      lobbyInputCreateBtn: document.querySelector(".game-lobby-input-create-btn"),
-      botDifficultySelect: document.querySelector("#bot-difficulty-select"),
-      lobbyInputVsBotBtn: document.querySelector(".game-lobby-input-vs-bot-btn"),
-      lobbyChatInput: document.querySelector(".game-lobby-chat-input"),
-      lobbyChatSendBtn: document.querySelector(".game-lobby-chat-send-btn"),
-      lobbyChatCounter: document.querySelector(".game-lobby-chat-counter"),
-      gameChatInput: document.querySelector(".game-chat-input"),
-      gameChatSendBtn: document.querySelector(".game-chat-send-btn"),
-      gameChatCounter: document.querySelector(".game-chat-counter"),
-      resignBtn: document.querySelector(".resign-btn"),
-      offerDrawBtn: document.querySelector(".offer-draw-btn"),
-      threefoldDrawBtn: document.querySelector(".threefold-draw-btn"),
-      boardThemeSelect: document.querySelector("#board-theme-select"),
-      pieceThemeSelect: document.querySelector("#piece-theme-select"),
-      checkHintsToggle: document.querySelector("#check-hints-toggle"),
-      legalMovesToggle: document.querySelector("#legal-moves-toggle"),
-      lobbyContainer: document.querySelector(".game-lobby"),
-      playAgainVsBotBtn: document.querySelector(".game-play-again-btn"),
-      replayStartBtn: document.querySelector(".game-replay-start-btn"),
-      replayPrevBtn: document.querySelector(".game-replay-prev-btn"),
-      replayNextBtn: document.querySelector(".game-replay-next-btn"),
-      replayLiveBtn: document.querySelector(".game-replay-live-btn"),
-      exportPgnBtn: document.querySelector(".game-export-pgn-btn"),
-      replayIndicator: document.querySelector(".game-replay-indicator"),
-      replayHotkeys: document.querySelector(".game-replay-hotkeys")
-    };
-  }
-  function createState() {
-    return {
-      playerId: null,
-      playerName: null,
-      playerColor: null,
-      playerOneName: null,
-      playerTwoName: null,
-      isBotGame: false,
-      botPlayerId: null,
-      botPlayerName: null,
-      liveFen: "start",
-      displayFen: "start",
-      board: null,
-      currentFen: "start",
-      isGameStarted: false,
-      hasGameEnded: false,
-      gameOverCode: null,
-      gameOverWinnerName: null,
-      isReplayMode: false,
-      replayIndex: 0,
-      fenTimeline: ["start"],
-      whiteMoves: [],
-      blackMoves: [],
-      mobilePanel: "board",
-      connectionState: "disconnected",
-      turnNumber: 1,
-      activeMovingPlayerId: null,
-      activeMovingPlayerName: null,
-      isYourTurn: false,
-      isInCheck: false,
-      legalMoves: [],
-      legalMovesRequestId: 0,
-      syncRequestInFlight: false,
-      pendingSyncTimeoutId: null,
-      pendingSyncRetryTimeoutId: null,
-      syncRetryAttempt: 0,
-      pendingBotRecoveryTimeoutId: null,
-      pendingHighlightTimeoutId: null,
-      boardInitialized: false,
-      selectedBoardTheme: getStoredValue(storageKeys.boardTheme, "classic", boardThemes),
-      selectedPieceTheme: getStoredValue(storageKeys.pieceTheme, "wikipedia", pieceThemes),
-      hintsEnabled: getStoredBoolean(storageKeys.checkHints, true),
-      legalHintsEnabled: getStoredBoolean(storageKeys.legalMoveHints, true),
-      botDifficulty: getStoredValue(storageKeys.botDifficulty, "normal", botDifficulties),
-      lobbyNameValid: false,
-      lobbyActionInFlight: false,
-      gameActionInFlight: false
-    };
-  }
-  function getStoredValue(storageKey, fallbackValue, options) {
-    try {
-      const storedValue = localStorage.getItem(storageKey);
-      if (storedValue !== null && Object.prototype.hasOwnProperty.call(options, storedValue)) {
-        return storedValue;
-      }
-    } catch (error) {
-    }
-    return fallbackValue;
-  }
-  function storeValue(storageKey, value) {
-    try {
-      localStorage.setItem(storageKey, value);
-    } catch (error) {
-    }
-  }
-  function getStoredBoolean(storageKey, fallbackValue) {
-    try {
-      const storedValue = localStorage.getItem(storageKey);
-      if (storedValue === null) {
-        return fallbackValue;
-      }
-      return storedValue === "true";
-    } catch (error) {
-      return fallbackValue;
-    }
-  }
-  function storeBoolean(storageKey, value) {
-    try {
-      localStorage.setItem(storageKey, value ? "true" : "false");
-    } catch (error) {
-    }
-  }
-  function getStoredText(storageKey, fallbackValue = "") {
-    try {
-      const storedValue = localStorage.getItem(storageKey);
-      if (typeof storedValue === "string") {
-        return storedValue;
-      }
-    } catch (error) {
-    }
-    return fallbackValue;
-  }
-
   // wwwroot/js/src/lobby.js
   var playerNamePattern = /^[A-Za-z0-9_]{3,20}$/;
+  function getLobbyStorageKey2(elements) {
+    const dataKey = (elements.lobbyInputName.dataset.storageKey || "").trim();
+    return dataKey || storageKeys.lobbyName;
+  }
+  function storeLobbyName(lobbyStorageKey, name) {
+    if (!name || !playerNamePattern.test(name)) {
+      return;
+    }
+    storeValue(lobbyStorageKey, name);
+    if (lobbyStorageKey !== storageKeys.lobbyName) {
+      storeValue(storageKeys.lobbyName, name);
+    }
+  }
   function setLobbyButtonsDisabled(elements, shouldDisable, isBusy) {
     elements.lobbyInputCreateBtn.disabled = shouldDisable;
     elements.lobbyInputCreateBtn.classList.toggle("is-disabled", shouldDisable);
@@ -1988,11 +1829,10 @@ ${movesSection}${movesSection ? " " : ""}${result}
         elements.lobbyInputName.setCustomValidity(t("hubErrorNameInvalid"));
       }
     }
+    const lobbyStorageKey = getLobbyStorageKey2(elements);
     const name = (elements.lobbyInputName.value || "").trim();
-    if (name.length === 0) {
-      storeValue(storageKeys.lobbyName, "");
-    } else if (playerNamePattern.test(name)) {
-      storeValue(storageKeys.lobbyName, name);
+    if (name.length > 0 && playerNamePattern.test(name)) {
+      storeLobbyName(lobbyStorageKey, name);
     }
   }
   function tryGetLobbyName(elements) {
@@ -2007,7 +1847,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
       elements.lobbyInputName.focus();
       return null;
     }
-    storeValue(storageKeys.lobbyName, name);
+    storeLobbyName(getLobbyStorageKey2(elements), name);
     return name;
   }
   function runLobbyAction(elements, state, action) {
@@ -2033,12 +1873,45 @@ ${movesSection}${movesSection ? " " : ""}${result}
     storeValue(storageKeys.botDifficulty, normalized);
     return normalized;
   }
-  function bindLobbyHandlers(connection, elements, state) {
-    const storedLobbyName = getStoredText(storageKeys.lobbyName, "").trim();
-    if (playerNamePattern.test(storedLobbyName) && !elements.lobbyInputName.value.trim()) {
-      elements.lobbyInputName.value = storedLobbyName;
+  function resolvePersistedLobbyName(lobbyStorageKey, defaultLobbyName) {
+    const rememberedScopedName = getStoredText(lobbyStorageKey, "").trim();
+    if (playerNamePattern.test(rememberedScopedName)) {
+      return rememberedScopedName;
     }
+    const rememberedGlobalName = getStoredText(storageKeys.lobbyName, "").trim();
+    if (playerNamePattern.test(rememberedGlobalName)) {
+      return rememberedGlobalName;
+    }
+    if (playerNamePattern.test(defaultLobbyName)) {
+      return defaultLobbyName;
+    }
+    return "";
+  }
+  function bindLobbyHandlers(connection, elements, state) {
+    const lobbyStorageKey = getLobbyStorageKey2(elements);
+    const defaultLobbyName = (elements.lobbyInputName.dataset.defaultName || "").trim();
+    const persistedLobbyName = resolvePersistedLobbyName(lobbyStorageKey, defaultLobbyName);
+    if (!elements.lobbyInputName.value.trim() && persistedLobbyName) {
+      elements.lobbyInputName.value = persistedLobbyName;
+    }
+    const ensureLobbyNameIsSeeded = () => {
+      const current = (elements.lobbyInputName.value || "").trim();
+      if (playerNamePattern.test(current)) {
+        return current;
+      }
+      const fallbackName = resolvePersistedLobbyName(lobbyStorageKey, defaultLobbyName);
+      if (fallbackName) {
+        elements.lobbyInputName.value = fallbackName;
+        storeValue(lobbyStorageKey, fallbackName);
+        return fallbackName;
+      }
+      return "";
+    };
     elements.lobbyInputName.addEventListener("input", function onLobbyNameInput() {
+      syncLobbyNameValidity(elements, state);
+    });
+    elements.lobbyInputName.addEventListener("blur", function onLobbyNameBlur() {
+      ensureLobbyNameIsSeeded();
       syncLobbyNameValidity(elements, state);
     });
     elements.lobbyInputName.addEventListener("keydown", function onLobbyNameKeyDown(event) {
@@ -2062,6 +1935,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
       }
       const roomElement = $(this).closest(".game-lobby-room-item");
       const id = roomElement.data("room-id");
+      ensureLobbyNameIsSeeded();
       const name = tryGetLobbyName(elements);
       if (!name || !id) {
         return;
@@ -2071,6 +1945,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
       }));
     });
     elements.lobbyInputCreateBtn.addEventListener("click", function onCreateRoomClick() {
+      ensureLobbyNameIsSeeded();
       const name = tryGetLobbyName(elements);
       if (!name) {
         return;
@@ -2081,6 +1956,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
     });
     if (elements.lobbyInputVsBotBtn) {
       elements.lobbyInputVsBotBtn.addEventListener("click", function onStartVsBotClick() {
+        ensureLobbyNameIsSeeded();
         const name = tryGetLobbyName(elements);
         if (!name) {
           return;
@@ -2091,6 +1967,7 @@ ${movesSection}${movesSection ? " " : ""}${result}
         }));
       });
     }
+    ensureLobbyNameIsSeeded();
     syncLobbyNameValidity(elements, state);
   }
 
@@ -2177,66 +2054,11 @@ ${movesSection}${movesSection ? " " : ""}${result}
     window.addEventListener("resize", applyResponsiveState);
     applyResponsiveState();
   }
-  function bindReplayShortcuts(elements, state) {
-    document.addEventListener("keydown", (event) => {
-      if (event.altKey || event.ctrlKey || event.metaKey) {
-        return;
-      }
-      if (!state.isGameStarted && !state.hasGameEnded) {
-        return;
-      }
-      const target = event.target;
-      const tag = target && target.tagName ? target.tagName.toLowerCase() : "";
-      if (tag === "input" || tag === "textarea" || tag === "select" || target && target.isContentEditable) {
-        return;
-      }
-      switch (event.key) {
-        case "ArrowLeft":
-          if (!state.isBotGame) {
-            return;
-          }
-          event.preventDefault();
-          if (state.isReplayMode) {
-            elements.replayPrevBtn?.click();
-          } else {
-            elements.replayStartBtn?.click();
-          }
-          break;
-        case "ArrowRight":
-          if (!state.isBotGame) {
-            return;
-          }
-          event.preventDefault();
-          elements.replayNextBtn?.click();
-          break;
-        case "Home":
-          if (!state.isBotGame) {
-            return;
-          }
-          event.preventDefault();
-          elements.replayStartBtn?.click();
-          break;
-        case "End":
-          if (!state.isBotGame) {
-            return;
-          }
-          event.preventDefault();
-          elements.replayLiveBtn?.click();
-          break;
-        case "p":
-        case "P":
-          event.preventDefault();
-          elements.exportPgnBtn?.click();
-          break;
-        default:
-          break;
-      }
-    });
-  }
   $(function bootstrapGameLobby() {
     const connection = createConnection();
     const elements = getElements();
     const state = createState();
+    purgeLegacyReplayUi();
     registerConnectionHandlers(connection, elements, state);
     const onDrop = createOnDropHandler(state, connection);
     const onDragStart = createOnDragStartHandler(state);
@@ -2297,7 +2119,17 @@ ${movesSection}${movesSection ? " " : ""}${result}
     updateBotDifficultyBadge(elements, state);
     updateReplayControls(elements, state);
     bindMobileTabs(elements, state);
-    bindReplayShortcuts(elements, state);
+    [150, 450, 1e3].forEach((delayMs) => {
+      setTimeout(() => purgeLegacyReplayUi(), delayMs);
+    });
+    let replayWatchdogTicks = 0;
+    const replayWatchdog = setInterval(() => {
+      replayWatchdogTicks += 1;
+      purgeLegacyReplayUi();
+      if (replayWatchdogTicks >= 20) {
+        clearInterval(replayWatchdog);
+      }
+    }, 1500);
     bindLobbyHandlers(connection, elements, state);
     bindChatHandlers(connection, elements);
     bindGameOptionHandlers(connection, elements, state);

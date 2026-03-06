@@ -10,6 +10,7 @@
     var wins = Model.UserStats.Wins;
     var draws = Model.UserStats.Draws;
     var losses = Model.UserStats.Losses;
+    var isFreshAccount = games == 0;
     var winRate = games > 0 ? Math.Round((double)wins / games * 100, 0) : 0;
     var drawRate = games > 0 ? Math.Round((double)draws / games * 100, 0) : 0;
     var lossRate = games > 0 ? Math.Round((double)losses / games * 100, 0) : 0;
@@ -46,7 +47,17 @@
     <header class="stats-hero-card">
         <div class="stats-hero-label">@Localizer["Stats_EloRating"]</div>
         <div class="stats-hero-value">@Model.UserStats.Rating</div>
+        <p class="stats-hero-note">@Localizer["Stats_EloInitialHint"]</p>
     </header>
+
+    <section class="stats-elo-note" aria-label="@Localizer["Stats_EloInfo_Title"]">
+        <h2 class="stats-elo-note-title">@Localizer["Stats_EloInfo_Title"]</h2>
+        <p class="stats-elo-note-text">@Localizer["Stats_EloInfo_Body"]</p>
+        @if (isFreshAccount)
+        {
+            <p class="stats-elo-note-fresh">@Localizer["Stats_EloFreshAccountHint"]</p>
+        }
+    </section>
 
     <section class="stats-personal-grid" aria-label="@Localizer["Stats_EloRating"]">
         <article class="stats-personal-card">

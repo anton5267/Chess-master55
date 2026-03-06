@@ -77,13 +77,6 @@ export function getElements() {
         legalMovesToggle: document.querySelector('#legal-moves-toggle'),
         lobbyContainer: document.querySelector('.game-lobby'),
         playAgainVsBotBtn: document.querySelector('.game-play-again-btn'),
-        replayStartBtn: document.querySelector('.game-replay-start-btn'),
-        replayPrevBtn: document.querySelector('.game-replay-prev-btn'),
-        replayNextBtn: document.querySelector('.game-replay-next-btn'),
-        replayLiveBtn: document.querySelector('.game-replay-live-btn'),
-        exportPgnBtn: document.querySelector('.game-export-pgn-btn'),
-        replayIndicator: document.querySelector('.game-replay-indicator'),
-        replayHotkeys: document.querySelector('.game-replay-hotkeys'),
     };
 }
 
@@ -105,11 +98,6 @@ export function createState() {
         hasGameEnded: false,
         gameOverCode: null,
         gameOverWinnerName: null,
-        isReplayMode: false,
-        replayIndex: 0,
-        fenTimeline: ['start'],
-        whiteMoves: [],
-        blackMoves: [],
         mobilePanel: 'board',
         connectionState: 'disconnected',
         turnNumber: 1,
