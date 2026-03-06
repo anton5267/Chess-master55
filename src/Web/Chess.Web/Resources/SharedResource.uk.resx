@@ -1383,5 +1383,35 @@
   <data name="Js_ConnectionOffline" xml:space="preserve">
     <value>Немає інтернет-з'єднання. Очікую мережу...</value>
   </data>
+  <data name="Theme_Label" xml:space="preserve">
+    <value>Тема сайту</value>
+  </data>
+  <data name="Theme_Auto" xml:space="preserve">
+    <value>Авто (системна)</value>
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>Світла</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>Темна</value>
+  </data>
+  <data name="Theme_WarmDark" xml:space="preserve">
+    <value>Тепла темна</value>
+  </data>
+  <data name="Theme_ContrastLight" xml:space="preserve">
+    <value>Високий контраст (світла)</value>
+  </data>
+  <data name="Theme_ContrastDark" xml:space="preserve">
+    <value>Високий контраст (темна)</value>
+  </data>
+  <data name="Motion_Label" xml:space="preserve">
+    <value>Анімації</value>
+  </data>
+  <data name="Motion_On" xml:space="preserve">
+    <value>Увімкнено</value>
+  </data>
+  <data name="Motion_Off" xml:space="preserve">
+    <value>Вимкнено</value>
+  </data>
 </root>
 

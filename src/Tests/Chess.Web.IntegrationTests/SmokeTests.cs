@@ -125,6 +125,60 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
+    public async Task Home_ShouldNotRenderThemeAndMotionSwitcher()
+    {
+        var response = await this.client.GetAsync("/");
+        var html = await response.Content.ReadAsStringAsync();
+        var decodedHtml = WebUtility.HtmlDecode(html);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        decodedHtml.Should().NotContain("id=\"site-theme-select\"");
+        decodedHtml.Should().NotContain("id=\"site-motion-select\"");
+        decodedHtml.Should().NotContain("theme-switcher");
+        decodedHtml.Should().NotContain("theme-variant-select");
+        decodedHtml.Should().NotContain("theme-motion-select");
+    }
+
+    [Fact]
+    public async Task Layout_ShouldContainEarlyThemeBootstrapAndControllerScript()
+    {
+        var response = await this.client.GetAsync("/");
+        var html = await response.Content.ReadAsStringAsync();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        html.Should().Contain("window.__chessThemeBootstrap = true;");
+        html.Should().Contain("chess.siteThemeMode");
+        html.Should().Contain("chess.siteThemeVariant");
+        html.Should().Contain("chess.siteMotion");
+        html.Should().Contain("/js/theme-controller.js");
+    }
+
+    [Theory]
+    [InlineData("en", "Site theme", "Auto (System)", "Motion", "Warm Dark")]
+    [InlineData("uk", "Тема сайту", "Авто (системна)", "Анімації", "Тепла темна")]
+    [InlineData("es", "Tema del sitio", "Automático (sistema)", "Animaciones", "Oscuro cálido")]
+    public async Task ManageThemePreferences_ShouldRenderLocalizedLabels(string culture, string themeLabel, string autoLabel, string motionLabel, string warmThemeLabel)
+    {
+        await this.SeedAuthenticatedUserAsync();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/Identity/Account/Manage");
+        request.Headers.AcceptLanguage.Add(new StringWithQualityHeaderValue(culture));
+        request.Headers.Add(TestAuthHandler.HeaderName, "1");
+
+        var response = await this.client.SendAsync(request);
+        var html = await response.Content.ReadAsStringAsync();
+        var decodedHtml = WebUtility.HtmlDecode(html);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        decodedHtml.Should().Contain("id=\"site-theme-select\"");
+        decodedHtml.Should().Contain("id=\"site-motion-select\"");
+        decodedHtml.Should().Contain(themeLabel);
+        decodedHtml.Should().Contain(autoLabel);
+        decodedHtml.Should().Contain(motionLabel);
+        decodedHtml.Should().Contain(warmThemeLabel);
+    }
+
+    [Fact]
     public async Task SetLanguage_ShouldSetCultureCookie_AndRedirect()
     {
         var antiForgery = await this.GetAntiForgeryAsync();
@@ -363,6 +417,7 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         html.Should().Contain("manage-shell");
         html.Should().Contain("manage-user-chip");
+        html.Should().Contain("manage-preferences-card");
         html.Should().Contain("manage-shell-content");
         html.Should().Contain("aria-label=\"");
     }

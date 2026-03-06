@@ -18,6 +18,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@this.ViewData["Title"] - @CommonConstants.SystemName</title>
     <link rel="apple-touch-icon" href="~/apple-touch-icon.png"/>
+    <script>
+        (function () {
+            var themeModeKey = 'chess.siteThemeMode';
+            var themeVariantKey = 'chess.siteThemeVariant';
+            var motionKey = 'chess.siteMotion';
+            var supportedVariants = ['light', 'dark', 'warm-dark', 'contrast-light', 'contrast-dark'];
+
+            function safeReadStorageValue(key) {
+                try {
+                    return window.localStorage.getItem(key);
+                } catch (error) {
+                    return null;
+                }
+            }
+
+            function isSupportedVariant(value) {
+                return supportedVariants.indexOf(value) !== -1;
+            }
+
+            function readSystemThemeVariant() {
+                var darkQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+                var contrastQuery = window.matchMedia ? window.matchMedia('(prefers-contrast: more)') : null;
+                var hasSignal = darkQuery !== null || contrastQuery !== null;
+                if (!hasSignal) {
+                    return 'dark';
+                }
+
+                var prefersDark = darkQuery ? darkQuery.matches : false;
+                var prefersContrast = contrastQuery ? contrastQuery.matches : false;
+                if (prefersContrast) {
+                    return prefersDark ? 'contrast-dark' : 'contrast-light';
+                }
+
+                return prefersDark ? 'dark' : 'light';
+            }
+
+            var mode = safeReadStorageValue(themeModeKey);
+            if (mode !== 'auto' && mode !== 'manual') {
+                mode = 'auto';
+            }
+
+            var variant = safeReadStorageValue(themeVariantKey);
+            if (!isSupportedVariant(variant)) {
+                variant = 'dark';
+            }
+
+            var resolvedTheme = mode === 'manual'
+                ? variant
+                : readSystemThemeVariant();
+            if (!isSupportedVariant(resolvedTheme)) {
+                resolvedTheme = 'dark';
+            }
+
+            var motion = safeReadStorageValue(motionKey);
+            if (motion !== 'on' && motion !== 'off') {
+                motion = 'on';
+            }
+
+            var reducedMotionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+            var prefersReducedMotion = reducedMotionQuery ? reducedMotionQuery.matches : false;
+            var root = document.documentElement;
+            root.setAttribute('data-theme', resolvedTheme);
+            root.setAttribute('data-theme-mode', mode);
+            root.setAttribute('data-theme-variant', variant);
+            root.setAttribute('data-motion', motion);
+            root.setAttribute('data-reduced-motion', prefersReducedMotion ? 'true' : 'false');
+            window.__chessThemeBootstrap = true;
+        })();
+    </script>
 
     <environment names="Development">
         <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
@@ -113,6 +182,7 @@
     </environment>
     <script src="~/js/password-toggle.js" asp-append-version="true"></script>
     <script src="~/js/form-submit-guard.js" asp-append-version="true"></script>
+    <script src="~/js/theme-controller.js" asp-append-version="true"></script>
 
     @this.RenderSection("Scripts", required: false)
 </body>

@@ -1383,5 +1383,35 @@
   <data name="Js_ConnectionOffline" xml:space="preserve">
     <value>No internet connection. Waiting for network...</value>
   </data>
+  <data name="Theme_Label" xml:space="preserve">
+    <value>Site theme</value>
+  </data>
+  <data name="Theme_Auto" xml:space="preserve">
+    <value>Auto (System)</value>
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="Theme_WarmDark" xml:space="preserve">
+    <value>Warm Dark</value>
+  </data>
+  <data name="Theme_ContrastLight" xml:space="preserve">
+    <value>High Contrast Light</value>
+  </data>
+  <data name="Theme_ContrastDark" xml:space="preserve">
+    <value>High Contrast Dark</value>
+  </data>
+  <data name="Motion_Label" xml:space="preserve">
+    <value>Motion</value>
+  </data>
+  <data name="Motion_On" xml:space="preserve">
+    <value>Motion On</value>
+  </data>
+  <data name="Motion_Off" xml:space="preserve">
+    <value>Motion Off</value>
+  </data>
 </root>
 

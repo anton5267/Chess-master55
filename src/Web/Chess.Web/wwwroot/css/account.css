@@ -41,6 +41,59 @@
     padding: 0.45rem 0.85rem;
 }
 
+.manage-preferences-card {
+    background: color-mix(in srgb, var(--surface-card) 92%, var(--surface-page) 8%);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1rem;
+}
+
+.manage-preferences-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.35rem 0.75rem;
+    margin-bottom: 0.65rem;
+}
+
+.manage-preferences-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1d2f47;
+}
+
+.manage-preferences-subtitle {
+    margin: 0;
+    font-size: 0.86rem;
+    color: #607797;
+}
+
+.manage-preferences-card .theme-switcher {
+    width: 100%;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(170px, 1fr));
+    gap: 0.7rem;
+}
+
+.manage-preferences-card .theme-switcher-field {
+    min-width: 0;
+}
+
+.manage-preferences-card .theme-switcher-label {
+    color: #4f6584;
+}
+
+.manage-preferences-card .theme-switcher-select {
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+}
+
 .manage-shell-content {
     display: grid;
     grid-template-columns: 260px minmax(0, 1fr);
@@ -304,6 +357,10 @@
 }
 
 @media (max-width: 991px) {
+    .manage-preferences-card .theme-switcher {
+        grid-template-columns: 1fr;
+    }
+
     .manage-shell-content {
         grid-template-columns: 1fr;
     }
@@ -333,4 +390,163 @@
     .auth-panel-external .btn-primary {
         width: 100%;
     }
+}
+
+/* Dark-family theme overrides */
+html[data-theme="dark"] .manage-shell,
+html[data-theme="warm-dark"] .manage-shell,
+html[data-theme="contrast-dark"] .manage-shell {
+    background: linear-gradient(145deg, rgba(26, 33, 44, 0.96), rgba(20, 27, 37, 0.96));
+}
+
+html[data-theme="dark"] .manage-shell-title,
+html[data-theme="dark"] .manage-content-card h3,
+html[data-theme="dark"] .manage-content-card h4,
+html[data-theme="dark"] .manage-preferences-title,
+html[data-theme="warm-dark"] .manage-shell-title,
+html[data-theme="warm-dark"] .manage-content-card h3,
+html[data-theme="warm-dark"] .manage-content-card h4,
+html[data-theme="warm-dark"] .manage-preferences-title,
+html[data-theme="contrast-dark"] .manage-shell-title,
+html[data-theme="contrast-dark"] .manage-content-card h3,
+html[data-theme="contrast-dark"] .manage-content-card h4,
+html[data-theme="contrast-dark"] .manage-preferences-title {
+    color: #eef3f9;
+}
+
+html[data-theme="dark"] .manage-shell-subtitle,
+html[data-theme="dark"] .manage-preferences-subtitle,
+html[data-theme="dark"] .manage-content-card,
+html[data-theme="dark"] .manage-content-card p,
+html[data-theme="dark"] .manage-content-card label,
+html[data-theme="dark"] .auth-panel-external p,
+html[data-theme="warm-dark"] .manage-shell-subtitle,
+html[data-theme="warm-dark"] .manage-preferences-subtitle,
+html[data-theme="warm-dark"] .manage-content-card,
+html[data-theme="warm-dark"] .manage-content-card p,
+html[data-theme="warm-dark"] .manage-content-card label,
+html[data-theme="warm-dark"] .auth-panel-external p,
+html[data-theme="contrast-dark"] .manage-shell-subtitle,
+html[data-theme="contrast-dark"] .manage-preferences-subtitle,
+html[data-theme="contrast-dark"] .manage-content-card,
+html[data-theme="contrast-dark"] .manage-content-card p,
+html[data-theme="contrast-dark"] .manage-content-card label,
+html[data-theme="contrast-dark"] .auth-panel-external p {
+    color: #b3bece;
+}
+
+html[data-theme="dark"] .manage-user-chip,
+html[data-theme="warm-dark"] .manage-user-chip,
+html[data-theme="contrast-dark"] .manage-user-chip {
+    background: rgba(242, 166, 90, 0.14);
+    border: 1px solid rgba(242, 166, 90, 0.3);
+    color: #ffdbaf;
+}
+
+html[data-theme="dark"] .manage-nav-card,
+html[data-theme="dark"] .manage-content-card,
+html[data-theme="dark"] .manage-preferences-card,
+html[data-theme="dark"] .auth-panel,
+html[data-theme="dark"] .auth-panel-muted,
+html[data-theme="warm-dark"] .manage-nav-card,
+html[data-theme="warm-dark"] .manage-content-card,
+html[data-theme="warm-dark"] .manage-preferences-card,
+html[data-theme="warm-dark"] .auth-panel,
+html[data-theme="warm-dark"] .auth-panel-muted,
+html[data-theme="contrast-dark"] .manage-nav-card,
+html[data-theme="contrast-dark"] .manage-content-card,
+html[data-theme="contrast-dark"] .manage-preferences-card,
+html[data-theme="contrast-dark"] .auth-panel,
+html[data-theme="contrast-dark"] .auth-panel-muted {
+    background: rgba(23, 30, 40, 0.96);
+    border-color: var(--line-soft);
+}
+
+html[data-theme="dark"] .manage-preferences-card .theme-switcher-label,
+html[data-theme="warm-dark"] .manage-preferences-card .theme-switcher-label,
+html[data-theme="contrast-dark"] .manage-preferences-card .theme-switcher-label {
+    color: #9cb0c9;
+}
+
+html[data-theme="dark"] .manage-shell .nav-pills .nav-link,
+html[data-theme="warm-dark"] .manage-shell .nav-pills .nav-link,
+html[data-theme="contrast-dark"] .manage-shell .nav-pills .nav-link {
+    color: #d5deec;
+}
+
+html[data-theme="dark"] .manage-shell .nav-pills .nav-link:hover,
+html[data-theme="warm-dark"] .manage-shell .nav-pills .nav-link:hover,
+html[data-theme="contrast-dark"] .manage-shell .nav-pills .nav-link:hover {
+    background: rgba(242, 166, 90, 0.14);
+}
+
+html[data-theme="dark"] .manage-shell .nav-pills .nav-link.active,
+html[data-theme="warm-dark"] .manage-shell .nav-pills .nav-link.active,
+html[data-theme="contrast-dark"] .manage-shell .nav-pills .nav-link.active {
+    background: linear-gradient(120deg, #f2a65a, #e89645);
+    color: #172131;
+    box-shadow: 0 8px 18px rgba(242, 166, 90, 0.28);
+}
+
+html[data-theme="dark"] .manage-content-card .form-floating > .form-control,
+html[data-theme="dark"] .manage-content-card .form-control,
+html[data-theme="dark"] .auth-shell .form-control,
+html[data-theme="warm-dark"] .manage-content-card .form-floating > .form-control,
+html[data-theme="warm-dark"] .manage-content-card .form-control,
+html[data-theme="warm-dark"] .auth-shell .form-control,
+html[data-theme="contrast-dark"] .manage-content-card .form-floating > .form-control,
+html[data-theme="contrast-dark"] .manage-content-card .form-control,
+html[data-theme="contrast-dark"] .auth-shell .form-control {
+    background: #151d28;
+    border-color: #4a5b73;
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] .manage-content-card .form-floating > .form-control::placeholder,
+html[data-theme="dark"] .manage-content-card .form-control::placeholder,
+html[data-theme="dark"] .auth-shell .form-control::placeholder,
+html[data-theme="warm-dark"] .manage-content-card .form-floating > .form-control::placeholder,
+html[data-theme="warm-dark"] .manage-content-card .form-control::placeholder,
+html[data-theme="warm-dark"] .auth-shell .form-control::placeholder,
+html[data-theme="contrast-dark"] .manage-content-card .form-floating > .form-control::placeholder,
+html[data-theme="contrast-dark"] .manage-content-card .form-control::placeholder,
+html[data-theme="contrast-dark"] .auth-shell .form-control::placeholder {
+    color: #8f9db2;
+}
+
+html[data-theme="dark"] .auth-shell .auth-remember-me,
+html[data-theme="warm-dark"] .auth-shell .auth-remember-me,
+html[data-theme="contrast-dark"] .auth-shell .auth-remember-me {
+    justify-content: flex-start;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+html[data-theme="dark"] .auth-shell .auth-remember-me .auth-remember-input,
+html[data-theme="dark"] .auth-shell .auth-remember-me .form-check-input,
+html[data-theme="warm-dark"] .auth-shell .auth-remember-me .auth-remember-input,
+html[data-theme="warm-dark"] .auth-shell .auth-remember-me .form-check-input,
+html[data-theme="contrast-dark"] .auth-shell .auth-remember-me .auth-remember-input,
+html[data-theme="contrast-dark"] .auth-shell .auth-remember-me .form-check-input {
+    margin: 0;
+    margin-right: 0.2rem;
+}
+
+html[data-theme="dark"] .auth-shell .password-toggle-wrapper .password-toggle-btn,
+html[data-theme="warm-dark"] .auth-shell .password-toggle-wrapper .password-toggle-btn,
+html[data-theme="contrast-dark"] .auth-shell .password-toggle-wrapper .password-toggle-btn {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+html[data-theme="dark"] .auth-shell .auth-links-list a,
+html[data-theme="warm-dark"] .auth-shell .auth-links-list a,
+html[data-theme="contrast-dark"] .auth-shell .auth-links-list a {
+    color: #ffd3a2;
+}
+
+html[data-theme="dark"] .auth-shell .auth-links-list a:hover,
+html[data-theme="warm-dark"] .auth-shell .auth-links-list a:hover,
+html[data-theme="contrast-dark"] .auth-shell .auth-links-list a:hover {
+    color: #ffe2bf;
 }

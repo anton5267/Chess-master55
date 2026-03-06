@@ -21,6 +21,14 @@
         </div>
     </header>
 
+    <section class="manage-preferences-card" aria-label="@Localizer["Theme_Label"]">
+        <div class="manage-preferences-header">
+            <h2 class="manage-preferences-title">@Localizer["Theme_Label"] / @Localizer["Motion_Label"]</h2>
+            <p class="manage-preferences-subtitle">@Localizer["Manage_AccountSubtitle"]</p>
+        </div>
+        <partial name="~/Views/Shared/_ThemeSwitcher.cshtml" />
+    </section>
+
     <div class="manage-shell-content">
         <aside class="manage-nav-card">
             <partial name="_ManageNav" />

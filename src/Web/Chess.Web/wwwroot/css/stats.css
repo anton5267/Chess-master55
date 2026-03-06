@@ -417,3 +417,133 @@
         min-height: 88px;
     }
 }
+
+/* Dark-family theme overrides */
+html[data-theme="dark"] .stats-page-header,
+html[data-theme="dark"] .stats-chart-card,
+html[data-theme="dark"] .stats-kpi-card,
+html[data-theme="dark"] .stats-personal-card,
+html[data-theme="dark"] .stats-balance-card,
+html[data-theme="dark"] .stats-rate-card,
+html[data-theme="dark"] .stats-elo-note,
+html[data-theme="warm-dark"] .stats-page-header,
+html[data-theme="warm-dark"] .stats-chart-card,
+html[data-theme="warm-dark"] .stats-kpi-card,
+html[data-theme="warm-dark"] .stats-personal-card,
+html[data-theme="warm-dark"] .stats-balance-card,
+html[data-theme="warm-dark"] .stats-rate-card,
+html[data-theme="warm-dark"] .stats-elo-note,
+html[data-theme="contrast-dark"] .stats-page-header,
+html[data-theme="contrast-dark"] .stats-chart-card,
+html[data-theme="contrast-dark"] .stats-kpi-card,
+html[data-theme="contrast-dark"] .stats-personal-card,
+html[data-theme="contrast-dark"] .stats-balance-card,
+html[data-theme="contrast-dark"] .stats-rate-card,
+html[data-theme="contrast-dark"] .stats-elo-note {
+    background: linear-gradient(145deg, rgba(24, 31, 42, 0.97), rgba(20, 27, 37, 0.97));
+    border-color: var(--line-soft);
+}
+
+html[data-theme="dark"] .stats-page-subtitle,
+html[data-theme="dark"] .stats-hero-note,
+html[data-theme="dark"] .stats-kpi-title,
+html[data-theme="dark"] .stats-personal-title,
+html[data-theme="dark"] .stats-rate-title,
+html[data-theme="dark"] .stats-balance-title,
+html[data-theme="dark"] .stats-elo-note-text,
+html[data-theme="dark"] .stats-chart-empty,
+html[data-theme="dark"] .stats-balance-total,
+html[data-theme="dark"] .stats-balance-legend-item,
+html[data-theme="warm-dark"] .stats-page-subtitle,
+html[data-theme="warm-dark"] .stats-hero-note,
+html[data-theme="warm-dark"] .stats-kpi-title,
+html[data-theme="warm-dark"] .stats-personal-title,
+html[data-theme="warm-dark"] .stats-rate-title,
+html[data-theme="warm-dark"] .stats-balance-title,
+html[data-theme="warm-dark"] .stats-elo-note-text,
+html[data-theme="warm-dark"] .stats-chart-empty,
+html[data-theme="warm-dark"] .stats-balance-total,
+html[data-theme="warm-dark"] .stats-balance-legend-item,
+html[data-theme="contrast-dark"] .stats-page-subtitle,
+html[data-theme="contrast-dark"] .stats-hero-note,
+html[data-theme="contrast-dark"] .stats-kpi-title,
+html[data-theme="contrast-dark"] .stats-personal-title,
+html[data-theme="contrast-dark"] .stats-rate-title,
+html[data-theme="contrast-dark"] .stats-balance-title,
+html[data-theme="contrast-dark"] .stats-elo-note-text,
+html[data-theme="contrast-dark"] .stats-chart-empty,
+html[data-theme="contrast-dark"] .stats-balance-total,
+html[data-theme="contrast-dark"] .stats-balance-legend-item {
+    color: #b2bed0;
+}
+
+html[data-theme="dark"] .stats-page-title,
+html[data-theme="dark"] .stats-kpi-value,
+html[data-theme="dark"] .stats-personal-value,
+html[data-theme="dark"] .stats-rate-value,
+html[data-theme="dark"] .stats-elo-note-title,
+html[data-theme="dark"] .stats-chart-title,
+html[data-theme="dark"] .stats-balance-legend-item strong,
+html[data-theme="warm-dark"] .stats-page-title,
+html[data-theme="warm-dark"] .stats-kpi-value,
+html[data-theme="warm-dark"] .stats-personal-value,
+html[data-theme="warm-dark"] .stats-rate-value,
+html[data-theme="warm-dark"] .stats-elo-note-title,
+html[data-theme="warm-dark"] .stats-chart-title,
+html[data-theme="warm-dark"] .stats-balance-legend-item strong,
+html[data-theme="contrast-dark"] .stats-page-title,
+html[data-theme="contrast-dark"] .stats-kpi-value,
+html[data-theme="contrast-dark"] .stats-personal-value,
+html[data-theme="contrast-dark"] .stats-rate-value,
+html[data-theme="contrast-dark"] .stats-elo-note-title,
+html[data-theme="contrast-dark"] .stats-chart-title,
+html[data-theme="contrast-dark"] .stats-balance-legend-item strong {
+    color: #eef3f9;
+}
+
+html[data-theme="dark"] .stats-hero-label,
+html[data-theme="warm-dark"] .stats-hero-label,
+html[data-theme="contrast-dark"] .stats-hero-label {
+    background: linear-gradient(120deg, #2a3442 0%, #334357 100%);
+}
+
+html[data-theme="dark"] .stats-hero-value,
+html[data-theme="warm-dark"] .stats-hero-value,
+html[data-theme="contrast-dark"] .stats-hero-value {
+    background: linear-gradient(120deg, #f2a65a 0%, #e6923e 100%);
+    color: #161f2d;
+}
+
+html[data-theme="dark"] .stats-hero-note,
+html[data-theme="warm-dark"] .stats-hero-note,
+html[data-theme="contrast-dark"] .stats-hero-note {
+    border-top-color: var(--line-soft);
+    background: rgba(25, 34, 47, 0.95);
+}
+
+html[data-theme="dark"] .stats-elo-note,
+html[data-theme="warm-dark"] .stats-elo-note,
+html[data-theme="contrast-dark"] .stats-elo-note {
+    border-left-color: #f2a65a;
+}
+
+html[data-theme="dark"] .stats-elo-note-fresh,
+html[data-theme="warm-dark"] .stats-elo-note-fresh,
+html[data-theme="contrast-dark"] .stats-elo-note-fresh {
+    background: rgba(242, 166, 90, 0.18);
+    border-color: rgba(242, 166, 90, 0.38);
+    color: #ffd7ab;
+}
+
+html[data-theme="dark"] .stats-balance-track,
+html[data-theme="warm-dark"] .stats-balance-track,
+html[data-theme="contrast-dark"] .stats-balance-track {
+    background: #2b3646;
+}
+
+html[data-theme="dark"] .stats-balance-legend-item,
+html[data-theme="warm-dark"] .stats-balance-legend-item,
+html[data-theme="contrast-dark"] .stats-balance-legend-item {
+    border-color: #425066;
+    background: #1d2633;
+}

@@ -1,3 +1,47 @@
+html[data-theme="light"],
+html[data-theme="contrast-light"] {
+    --home-hero-overlay-start: rgba(18, 36, 61, 0.72);
+    --home-hero-overlay-mid: rgba(26, 51, 88, 0.66);
+    --home-hero-overlay-end: rgba(37, 99, 235, 0.45);
+    --home-hero-kicker-color: #dce9ff;
+    --home-hero-title-color: #ffffff;
+    --home-hero-subtitle-color: #ecf3ff;
+    --home-card-bg: linear-gradient(145deg, #ffffff, #f6f9ff);
+    --home-card-text: #1e3455;
+    --home-card-muted: #4f6687;
+    --home-history-bg: linear-gradient(150deg, #ffffff, #f5f9ff);
+    --home-history-text: #4f6687;
+}
+
+html[data-theme="dark"],
+html[data-theme="contrast-dark"] {
+    --home-hero-overlay-start: rgba(8, 13, 23, 0.74);
+    --home-hero-overlay-mid: rgba(17, 27, 41, 0.7);
+    --home-hero-overlay-end: rgba(47, 85, 142, 0.56);
+    --home-hero-kicker-color: #ffe0b9;
+    --home-hero-title-color: #ffffff;
+    --home-hero-subtitle-color: #d6e1f2;
+    --home-card-bg: linear-gradient(145deg, rgba(22, 29, 39, 0.98), rgba(18, 24, 33, 0.98));
+    --home-card-text: #eef3f9;
+    --home-card-muted: #b8c4d6;
+    --home-history-bg: linear-gradient(150deg, rgba(20, 28, 39, 0.98), rgba(16, 23, 33, 0.98));
+    --home-history-text: #c2cddd;
+}
+
+html[data-theme="warm-dark"] {
+    --home-hero-overlay-start: rgba(19, 14, 17, 0.78);
+    --home-hero-overlay-mid: rgba(33, 24, 31, 0.74);
+    --home-hero-overlay-end: rgba(115, 72, 31, 0.6);
+    --home-hero-kicker-color: #ffd9af;
+    --home-hero-title-color: #fff3e4;
+    --home-hero-subtitle-color: #e8d6c2;
+    --home-card-bg: linear-gradient(145deg, rgba(34, 26, 36, 0.98), rgba(28, 22, 31, 0.98));
+    --home-card-text: #f4e8db;
+    --home-card-muted: #cfbdab;
+    --home-history-bg: linear-gradient(150deg, rgba(34, 26, 36, 0.98), rgba(28, 22, 31, 0.98));
+    --home-history-text: #d5c4b3;
+}
+
 .home-hero {
     display: grid;
     grid-template-columns: 1fr;
@@ -6,15 +50,20 @@
     border-radius: var(--radius-xl);
     padding: 1.4rem;
     background:
-        linear-gradient(120deg, rgba(18, 41, 73, 0.95), rgba(35, 89, 182, 0.92)),
+        linear-gradient(
+            125deg,
+            var(--home-hero-overlay-start),
+            var(--home-hero-overlay-mid) 48%,
+            var(--home-hero-overlay-end)),
         url("../img/chess.jpg");
+    background-position: center;
     background-size: cover;
     box-shadow: var(--shadow-lg);
     margin-bottom: 1rem;
 }
 
 .home-hero-content {
-    color: #f7fbff;
+    color: var(--home-hero-title-color);
 }
 
 .home-hero-kicker {
@@ -22,7 +71,7 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-size: 0.78rem;
-    color: rgba(226, 236, 255, 0.94);
+    color: var(--home-hero-kicker-color);
     font-weight: 700;
 }
 
@@ -31,14 +80,14 @@
     font-size: clamp(2rem, 5vw, 3rem);
     letter-spacing: 0.03em;
     text-transform: uppercase;
-    color: #ffffff;
+    color: var(--home-hero-title-color);
     font-weight: 800;
 }
 
 .home-hero-subtitle {
     margin: 0;
     line-height: 1.7;
-    color: rgba(246, 251, 255, 0.95);
+    color: var(--home-hero-subtitle-color);
     font-size: 1.02rem;
 }
 
@@ -67,7 +116,7 @@
     overflow: hidden;
     border: 1px solid var(--line-soft);
     border-radius: var(--radius-lg);
-    background: var(--surface-card);
+    background: var(--home-card-bg);
     box-shadow: var(--shadow-md);
 }
 
@@ -106,7 +155,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    color: #223754;
+    color: var(--home-card-text);
     text-decoration: none;
     font-weight: 800;
 }
@@ -117,13 +166,13 @@
 
 .home-feature-description {
     margin: 0;
-    color: #425b79;
+    color: var(--home-card-muted);
 }
 
 .home-history-card {
     border: 1px solid var(--line-soft);
     border-radius: var(--radius-lg);
-    background: var(--surface-card);
+    background: var(--home-history-bg);
     box-shadow: var(--shadow-sm);
     padding: 1rem 1.1rem;
 }
@@ -136,7 +185,7 @@
 
 .home-history-text {
     margin: 0;
-    color: #2b4463;
+    color: var(--home-history-text);
     line-height: 1.72;
 }
 

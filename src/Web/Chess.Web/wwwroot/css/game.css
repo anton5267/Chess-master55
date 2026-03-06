@@ -673,3 +673,208 @@
         height: clamp(250px, 32vh, 360px);
     }
 }
+
+/* Dark-family theme overrides */
+html[data-theme="dark"] .game-shell,
+html[data-theme="warm-dark"] .game-shell,
+html[data-theme="contrast-dark"] .game-shell {
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] .main-playground-board-container,
+html[data-theme="warm-dark"] .main-playground-board-container,
+html[data-theme="contrast-dark"] .main-playground-board-container {
+    background: linear-gradient(145deg, rgba(25, 31, 41, 0.98), rgba(20, 26, 35, 0.98));
+    border-color: var(--line-soft);
+}
+
+html[data-theme="dark"] .board-settings-container.game-toolbar,
+html[data-theme="dark"] .board-hints-container,
+html[data-theme="dark"] .status-bar-container,
+html[data-theme="dark"] .game-control-row,
+html[data-theme="warm-dark"] .board-settings-container.game-toolbar,
+html[data-theme="warm-dark"] .board-hints-container,
+html[data-theme="warm-dark"] .status-bar-container,
+html[data-theme="warm-dark"] .game-control-row,
+html[data-theme="contrast-dark"] .board-settings-container.game-toolbar,
+html[data-theme="contrast-dark"] .board-hints-container,
+html[data-theme="contrast-dark"] .status-bar-container,
+html[data-theme="contrast-dark"] .game-control-row {
+    background: rgba(28, 36, 48, 0.86);
+    border-color: var(--line-soft);
+}
+
+html[data-theme="dark"] .board-settings-label,
+html[data-theme="dark"] .board-hint-option,
+html[data-theme="dark"] .game-live-meta-label,
+html[data-theme="warm-dark"] .board-settings-label,
+html[data-theme="warm-dark"] .board-hint-option,
+html[data-theme="warm-dark"] .game-live-meta-label,
+html[data-theme="contrast-dark"] .board-settings-label,
+html[data-theme="contrast-dark"] .board-hint-option,
+html[data-theme="contrast-dark"] .game-live-meta-label {
+    color: #aebad0;
+}
+
+html[data-theme="dark"] .board-settings-select,
+html[data-theme="warm-dark"] .board-settings-select,
+html[data-theme="contrast-dark"] .board-settings-select {
+    background: #141b25;
+    border-color: #4e5e76;
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] .game-live-meta-item,
+html[data-theme="warm-dark"] .game-live-meta-item,
+html[data-theme="contrast-dark"] .game-live-meta-item {
+    background: rgba(21, 28, 39, 0.95);
+    border-color: #4b5d76;
+    color: #ccd7e8;
+}
+
+html[data-theme="dark"] .game-live-meta-value,
+html[data-theme="warm-dark"] .game-live-meta-value,
+html[data-theme="contrast-dark"] .game-live-meta-value {
+    color: #ffd39f;
+}
+
+html[data-theme="dark"] .game-result-win,
+html[data-theme="warm-dark"] .game-result-win,
+html[data-theme="contrast-dark"] .game-result-win {
+    color: #89e3af;
+    background: rgba(22, 73, 43, 0.55);
+    border-color: rgba(98, 196, 136, 0.55);
+}
+
+html[data-theme="dark"] .game-result-loss,
+html[data-theme="warm-dark"] .game-result-loss,
+html[data-theme="contrast-dark"] .game-result-loss {
+    color: #ffb6b6;
+    background: rgba(113, 41, 41, 0.58);
+    border-color: rgba(239, 117, 117, 0.5);
+}
+
+html[data-theme="dark"] .game-result-draw,
+html[data-theme="warm-dark"] .game-result-draw,
+html[data-theme="contrast-dark"] .game-result-draw {
+    color: #f1d59b;
+    background: rgba(108, 83, 33, 0.58);
+    border-color: rgba(232, 181, 96, 0.52);
+}
+
+html[data-theme="dark"] .status-bar-check-notification,
+html[data-theme="warm-dark"] .status-bar-check-notification,
+html[data-theme="contrast-dark"] .status-bar-check-notification {
+    color: #ffb19f;
+}
+
+html[data-theme="dark"] .player-stats,
+html[data-theme="warm-dark"] .player-stats,
+html[data-theme="contrast-dark"] .player-stats {
+    background: linear-gradient(150deg, rgba(25, 32, 43, 0.98), rgba(21, 27, 37, 0.98));
+    border-color: var(--line-soft);
+}
+
+html[data-theme="dark"] .player-rating,
+html[data-theme="warm-dark"] .player-rating,
+html[data-theme="contrast-dark"] .player-rating {
+    color: #89e3af;
+}
+
+html[data-theme="dark"] .player-points,
+html[data-theme="dark"] .player-name,
+html[data-theme="dark"] .player-name-container i,
+html[data-theme="warm-dark"] .player-points,
+html[data-theme="warm-dark"] .player-name,
+html[data-theme="warm-dark"] .player-name-container i,
+html[data-theme="contrast-dark"] .player-points,
+html[data-theme="contrast-dark"] .player-name,
+html[data-theme="contrast-dark"] .player-name-container i {
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] .player-move-history,
+html[data-theme="warm-dark"] .player-move-history,
+html[data-theme="contrast-dark"] .player-move-history {
+    background: #151c26;
+    border-color: #4a5b73;
+}
+
+html[data-theme="dark"] .list-group-item,
+html[data-theme="warm-dark"] .list-group-item,
+html[data-theme="contrast-dark"] .list-group-item {
+    border-color: rgba(71, 85, 108, 0.72);
+    background: transparent;
+    color: #c8d4e6;
+}
+
+html[data-theme="dark"] .main-playground-black-move-history .list-group-item,
+html[data-theme="warm-dark"] .main-playground-black-move-history .list-group-item,
+html[data-theme="contrast-dark"] .main-playground-black-move-history .list-group-item {
+    background-color: #101722;
+    border-color: rgba(71, 85, 108, 0.72);
+}
+
+html[data-theme="dark"] .game-chat-window-wrapper,
+html[data-theme="warm-dark"] .game-chat-window-wrapper,
+html[data-theme="contrast-dark"] .game-chat-window-wrapper {
+    background: #131a24;
+    border-color: #4a5b73;
+}
+
+html[data-theme="dark"] .game-chat-input,
+html[data-theme="warm-dark"] .game-chat-input,
+html[data-theme="contrast-dark"] .game-chat-input {
+    background: #101722;
+    border-color: #4a5b73;
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] .game-chat-input::placeholder,
+html[data-theme="warm-dark"] .game-chat-input::placeholder,
+html[data-theme="contrast-dark"] .game-chat-input::placeholder {
+    color: #8f9cb0;
+}
+
+html[data-theme="dark"] .game-chat-send-btn,
+html[data-theme="warm-dark"] .game-chat-send-btn,
+html[data-theme="contrast-dark"] .game-chat-send-btn {
+    border-color: #4f607a;
+}
+
+html[data-theme="dark"] .white-chat-msg,
+html[data-theme="warm-dark"] .white-chat-msg,
+html[data-theme="contrast-dark"] .white-chat-msg {
+    background: #1f2936;
+    color: #d7e0ef;
+}
+
+html[data-theme="dark"] .black-chat-msg,
+html[data-theme="warm-dark"] .black-chat-msg,
+html[data-theme="contrast-dark"] .black-chat-msg {
+    background-color: #0f1520;
+    color: #e6eefb;
+}
+
+html[data-theme="dark"] .game-mobile-tabs.is-visible,
+html[data-theme="warm-dark"] .game-mobile-tabs.is-visible,
+html[data-theme="contrast-dark"] .game-mobile-tabs.is-visible {
+    background: rgba(27, 35, 47, 0.9);
+    border-color: var(--line-soft);
+}
+
+html[data-theme="dark"] .game-mobile-tab-btn,
+html[data-theme="warm-dark"] .game-mobile-tab-btn,
+html[data-theme="contrast-dark"] .game-mobile-tab-btn {
+    border-color: #4a5b73;
+    background: #161e2a;
+    color: #c6d2e4;
+}
+
+html[data-theme="dark"] .game-mobile-tab-btn.is-active,
+html[data-theme="warm-dark"] .game-mobile-tab-btn.is-active,
+html[data-theme="contrast-dark"] .game-mobile-tab-btn.is-active {
+    background: #f2a65a;
+    color: #1a2230;
+    border-color: #f2a65a;
+}
