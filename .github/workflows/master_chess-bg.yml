@@ -11,7 +11,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 env:
   DOTNET_VERSION: 8.0.x
@@ -21,6 +20,7 @@ env:
   WEB_WORKDIR: src/Web/Chess.Web
   AZURE_WEBAPP_NAME: chess-bg
   AZURE_WEBAPP_SLOT: Production
+  AZURE_HEALTHCHECK_PATH: /healthz
 
 jobs:
   terraform_validate:
@@ -92,6 +92,9 @@ jobs:
       - build_test_publish
     environment:
       name: Production
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - name: Download Publish Artifact
@@ -100,42 +103,80 @@ jobs:
           name: webapp-publish
           path: ./publish
 
-      - name: Validate Azure Deployment Credentials
+      - name: Validate OIDC Secrets
         shell: bash
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         run: |
-          if [ -z "${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}" ] && [ -z "${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B31E786770E447D284998F21B6B8E93A }}" ] && [ -z "${{ secrets.AZURE_CREDENTIALS }}" ]; then
-            echo "::error::No Azure credentials found. Configure one of: AZURE_WEBAPP_PUBLISH_PROFILE, AZUREAPPSERVICE_PUBLISHPROFILE_B31E786770E447D284998F21B6B8E93A (legacy), or AZURE_CREDENTIALS."
+          if [ -z "${AZURE_CLIENT_ID}" ] || [ -z "${AZURE_TENANT_ID}" ] || [ -z "${AZURE_SUBSCRIPTION_ID}" ]; then
+            echo "::error::Missing OIDC secrets. Configure AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID."
             exit 1
           fi
 
-      - name: Azure Login (Service Principal)
-        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE == '' && secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B31E786770E447D284998F21B6B8E93A == '' && secrets.AZURE_CREDENTIALS != '' }}
+      - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Deploy to Azure Web App (Publish Profile)
-        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE != '' }}
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          slot-name: ${{ env.AZURE_WEBAPP_SLOT }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./publish
-
-      - name: Deploy to Azure Web App (Legacy Publish Profile Secret)
-        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE == '' && secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B31E786770E447D284998F21B6B8E93A != '' }}
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          slot-name: ${{ env.AZURE_WEBAPP_SLOT }}
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B31E786770E447D284998F21B6B8E93A }}
-          package: ./publish
-
-      - name: Deploy to Azure Web App (Azure Login Session)
-        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE == '' && secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B31E786770E447D284998F21B6B8E93A == '' && secrets.AZURE_CREDENTIALS != '' }}
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: ${{ env.AZURE_WEBAPP_SLOT }}
           package: ./publish
+
+      - name: Post-Deploy Health Check
+        shell: bash
+        env:
+          AZURE_WEBAPP_URL: ${{ secrets.AZURE_WEBAPP_URL }}
+        run: |
+          set -euo pipefail
+
+          base_url="${AZURE_WEBAPP_URL:-https://${AZURE_WEBAPP_NAME}.azurewebsites.net}"
+          base_url="${base_url%/}"
+          health_path="${AZURE_HEALTHCHECK_PATH:-/healthz}"
+          if [[ "${health_path}" != /* ]]; then
+            health_path="/${health_path}"
+          fi
+
+          health_url="${base_url}${health_path}"
+          echo "Health check URL: ${health_url}"
+
+          success="false"
+          for attempt in 1 2 3 4 5; do
+            status_code="$(curl --silent --show-error --location --max-time 20 --connect-timeout 8 --output /tmp/healthcheck_body.txt --write-out '%{http_code}' "${health_url}" || true)"
+            if [ "${status_code}" = "200" ]; then
+              success="true"
+              break
+            fi
+
+            echo "Attempt ${attempt}: health check returned HTTP ${status_code:-N/A}"
+            sleep 6
+          done
+
+          if [ "${success}" != "true" ]; then
+            echo "::error::Post-deploy health check failed for ${health_url}"
+            cat /tmp/healthcheck_body.txt || true
+            exit 1
+          fi
+
+      - name: Deployment Summary
+        if: always()
+        shell: bash
+        env:
+          AZURE_WEBAPP_URL: ${{ secrets.AZURE_WEBAPP_URL }}
+        run: |
+          resolved_url="${AZURE_WEBAPP_URL:-https://${AZURE_WEBAPP_NAME}.azurewebsites.net}"
+          {
+            echo "## Deployment Summary"
+            echo ""
+            echo "- Mode: \`OIDC\`"
+            echo "- App Service: \`${AZURE_WEBAPP_NAME}\`"
+            echo "- Slot: \`${AZURE_WEBAPP_SLOT}\`"
+            echo "- Base URL: \`${resolved_url}\`"
+            echo "- Health Path: \`${AZURE_HEALTHCHECK_PATH}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
