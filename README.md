@@ -68,6 +68,46 @@ dotnet build src/Chess.sln
 dotnet test src/Chess.sln
 ```
 
+## Production Deployment (GitHub Actions -> Azure App Service)
+
+Workflow: `.github/workflows/master_chess-bg.yml`  
+Web App name: `chess-bg`  
+Deploy job runs on `push` to `main`.
+
+Configure **one** of these authentication methods in GitHub Secrets:
+
+1. Publish Profile (recommended for quick setup):
+   - `AZURE_WEBAPP_PUBLISH_PROFILE`
+   - Optional legacy fallback (already supported by workflow):  
+     `AZUREAPPSERVICE_PUBLISHPROFILE_B31E786770E447D284998F21B6B8E93A`
+
+2. Service Principal login:
+   - `AZURE_CREDENTIALS` (JSON from Azure CLI `--sdk-auth`)
+
+### How to add Publish Profile secret
+
+1. Azure Portal -> App Services -> `chess-bg` -> `Get publish profile`.
+2. In GitHub repo -> Settings -> Secrets and variables -> Actions -> New repository secret.
+3. Name: `AZURE_WEBAPP_PUBLISH_PROFILE`, value: full XML content from downloaded publish profile.
+
+### How to add AZURE_CREDENTIALS secret (alternative)
+
+```bash
+az ad sp create-for-rbac \
+  --name "github-chess-bg-deploy" \
+  --role contributor \
+  --scopes /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP_NAME> \
+  --sdk-auth
+```
+
+Copy JSON output to GitHub secret `AZURE_CREDENTIALS`.
+
+### Verify deployment
+
+1. Push to `main`.
+2. Open Actions -> `chess-ci-cd`.
+3. Ensure jobs `terraform_validate`, `build_test_publish`, `deploy` are green.
+
 One-command full quality check (assets + backend tests):
 
 ```bash

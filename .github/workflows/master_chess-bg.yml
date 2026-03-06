@@ -9,12 +9,18 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+  id-token: write
+
 env:
   DOTNET_VERSION: 8.0.x
   NODE_VERSION: 20
   SOLUTION_PATH: src/Chess.sln
   WEB_PROJECT_PATH: src/Web/Chess.Web/Chess.Web.csproj
   WEB_WORKDIR: src/Web/Chess.Web
+  AZURE_WEBAPP_NAME: chess-bg
+  AZURE_WEBAPP_SLOT: Production
 
 jobs:
   terraform_validate:
@@ -94,10 +100,42 @@ jobs:
           name: webapp-publish
           path: ./publish
 
-      - name: Deploy to Azure Web App
+      - name: Validate Azure Deployment Credentials
+        shell: bash
+        run: |
+          if [ -z "${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}" ] && [ -z "${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B31E786770E447D284998F21B6B8E93A }}" ] && [ -z "${{ secrets.AZURE_CREDENTIALS }}" ]; then
+            echo "::error::No Azure credentials found. Configure one of: AZURE_WEBAPP_PUBLISH_PROFILE, AZUREAPPSERVICE_PUBLISHPROFILE_B31E786770E447D284998F21B6B8E93A (legacy), or AZURE_CREDENTIALS."
+            exit 1
+          fi
+
+      - name: Azure Login (Service Principal)
+        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE == '' && secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B31E786770E447D284998F21B6B8E93A == '' && secrets.AZURE_CREDENTIALS != '' }}
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App (Publish Profile)
+        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE != '' }}
         uses: azure/webapps-deploy@v2
         with:
-          app-name: chess-bg
-          slot-name: Production
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          slot-name: ${{ env.AZURE_WEBAPP_SLOT }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./publish
+
+      - name: Deploy to Azure Web App (Legacy Publish Profile Secret)
+        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE == '' && secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B31E786770E447D284998F21B6B8E93A != '' }}
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          slot-name: ${{ env.AZURE_WEBAPP_SLOT }}
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B31E786770E447D284998F21B6B8E93A }}
+          package: ./publish
+
+      - name: Deploy to Azure Web App (Azure Login Session)
+        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE == '' && secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B31E786770E447D284998F21B6B8E93A == '' && secrets.AZURE_CREDENTIALS != '' }}
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          slot-name: ${{ env.AZURE_WEBAPP_SLOT }}
           package: ./publish
