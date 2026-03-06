@@ -108,6 +108,11 @@ gh secret set AZURE_WEBAPP_URL --repo anton5267/Chess-master55 --body "https://<
 
 If the deployment summary shows `deploy_skipped_missing_secrets`, configure all required values above and rerun the workflow.
 
+PowerShell helper (idempotent):
+```powershell
+pwsh ./scripts/bootstrap-azure-oidc.ps1 -Repo anton5267/Chess-master55 -WebAppName "<webapp-name>" -ResourceGroup "<resource-group>"
+```
+
 Health endpoints:
 - `/healthz`
 - `/healthz/live`
@@ -209,6 +214,11 @@ gh secret set AZURE_WEBAPP_URL --repo anton5267/Chess-master55 --body "https://<
 ```
 
 Якщо в summary бачиш `deploy_skipped_missing_secrets`, додай усі обовʼязкові значення вище та перезапусти workflow.
+
+PowerShell helper (ідемпотентний):
+```powershell
+pwsh ./scripts/bootstrap-azure-oidc.ps1 -Repo anton5267/Chess-master55 -WebAppName "<webapp-name>" -ResourceGroup "<resource-group>"
+```
 
 ---
 
