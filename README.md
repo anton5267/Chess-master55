@@ -79,6 +79,10 @@ Required secrets for OIDC deployment:
 - `AZURE_CLIENT_ID`
 - `AZURE_TENANT_ID`
 - `AZURE_SUBSCRIPTION_ID`
+- `AZURE_WEBAPP_URL` (optional, recommended for explicit health check URL)
+
+Required repository variable:
+- `AZURE_WEBAPP_NAME` (example: `your-app-name` without `.azurewebsites.net`)
 
 Deploy triggers on push to `main`.
 
@@ -148,6 +152,10 @@ Workflow: `.github/workflows/master_chess-bg.yml`
 - `AZURE_CLIENT_ID`
 - `AZURE_TENANT_ID`
 - `AZURE_SUBSCRIPTION_ID`
+- `AZURE_WEBAPP_URL` (опційно, рекомендовано)
+
+Необхідна Repository Variable:
+- `AZURE_WEBAPP_NAME` (наприклад: `your-app-name`, без `.azurewebsites.net`)
 
 Після push у `main` запускається повний pipeline:
 - `terraform_validate`
