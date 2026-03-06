@@ -1,7 +1,45 @@
 @using System.Collections.Generic
+@using System.Linq
 @using System.Text.Json
 @{
     this.ViewData["Title"] = Localizer["Game_Title"];
+
+    bool IsAsciiLetterOrDigit(char value) =>
+        (value >= 'a' && value <= 'z')
+        || (value >= 'A' && value <= 'Z')
+        || (value >= '0' && value <= '9');
+
+    var identityName = this.User?.Identity?.Name ?? string.Empty;
+    var identityPrefix = identityName.Contains("@")
+        ? identityName[..identityName.IndexOf('@')]
+        : identityName;
+    var suggestedLobbyName = new string(identityPrefix
+        .Where(ch => IsAsciiLetterOrDigit(ch) || ch == '_')
+        .ToArray());
+    if (suggestedLobbyName.Length < 3)
+    {
+        var fallbackSeed = new string(identityName
+            .Where(IsAsciiLetterOrDigit)
+            .ToArray());
+
+        suggestedLobbyName = string.IsNullOrWhiteSpace(fallbackSeed)
+            ? "player"
+            : $"player{fallbackSeed}";
+    }
+
+    if (suggestedLobbyName.Length > 20)
+    {
+        suggestedLobbyName = suggestedLobbyName[..20];
+    }
+
+    if (suggestedLobbyName.Length < 3)
+    {
+        suggestedLobbyName = "player";
+    }
+
+    var lobbyStorageScope = string.IsNullOrWhiteSpace(identityName)
+        ? "anon"
+        : identityName.Trim().ToLowerInvariant();
 
     var jsTranslations = new Dictionary<string, string>
     {
@@ -39,10 +77,6 @@
         ["gameResultWin"] = Localizer["Js_GameResult_Win"],
         ["gameResultLoss"] = Localizer["Js_GameResult_Loss"],
         ["gameResultDraw"] = Localizer["Js_GameResult_Draw"],
-        ["replayLive"] = Localizer["Js_ReplayLive"],
-        ["replayModeFormat"] = Localizer["Js_ReplayModeFormat"],
-        ["pgnDownloaded"] = Localizer["Js_PgnDownloaded"],
-        ["pgnDownloadFailed"] = Localizer["Js_PgnDownloadFailed"],
         ["connectionReconnecting"] = Localizer["Js_ConnectionReconnecting"],
         ["connectionSyncing"] = Localizer["Js_ConnectionSyncing"],
         ["connectionDisconnected"] = Localizer["Js_ConnectionDisconnected"],
@@ -144,13 +178,6 @@
                 <button type="submit" class="resign-btn option-btn game-btn btn"><i class="far fa-flag"></i> @Localizer["Game_Resign"]</button>
                 <button type="button" class="game-play-again-btn game-btn btn"><i class="fas fa-rotate-right"></i> @Localizer["Game_PlayAgainVsBot"]</button>
             </div>
-            <div class="game-replay-toolbar">
-                <button type="button" class="game-replay-start-btn game-btn btn" aria-keyshortcuts="Home"><i class="fas fa-backward-fast"></i> @Localizer["Game_ReplayStart"]</button>
-                <button type="button" class="game-replay-prev-btn game-btn btn" aria-keyshortcuts="ArrowLeft"><i class="fas fa-chevron-left"></i> @Localizer["Game_ReplayPrev"]</button>
-                <button type="button" class="game-replay-next-btn game-btn btn" aria-keyshortcuts="ArrowRight"><i class="fas fa-chevron-right"></i> @Localizer["Game_ReplayNext"]</button>
-                <button type="button" class="game-replay-live-btn game-btn btn" aria-keyshortcuts="End"><i class="fas fa-bolt"></i> @Localizer["Game_ReplayLive"]</button>
-                <span class="game-replay-indicator">@Localizer["Game_ReplayIndicatorLive"]</span>
-            </div>
             <div class="game-chat-container chat-container">
                 <div class="game-chat-window-wrapper chat-window-wrapper">
                     <ul class="game-chat-window chat-window"></ul>
@@ -200,7 +227,7 @@
 
     <article class="game-lobby game-lobby-shell">
         <section class="game-lobby-input-container form">
-            <input type="text" class="game-lobby-input-name" placeholder="@Localizer["Game_EnterName"]" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]+" autofocus />
+            <input type="text" class="game-lobby-input-name" value="@suggestedLobbyName" placeholder="@Localizer["Game_EnterName"]" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]+" data-default-name="@suggestedLobbyName" data-storage-key="chess.lobbyName.@lobbyStorageScope" autocomplete="nickname" autofocus />
             <button type="submit" class="game-lobby-input-create-btn game-btn">@Localizer["Game_CreateRoom"]</button>
             <label class="game-lobby-input-bot-difficulty-label" for="bot-difficulty-select">@Localizer["Game_BotDifficultyLabel"]</label>
             <select class="game-lobby-input-bot-difficulty" id="bot-difficulty-select">
@@ -208,6 +235,7 @@
                 <option value="easy">@Localizer["Game_BotDifficulty_Easy"]</option>
             </select>
             <button type="button" class="game-lobby-input-vs-bot-btn game-btn">@Localizer["Game_PlayVsBot"]</button>
+            <p class="game-lobby-input-note">@Localizer["Game_BotEloNotice"]</p>
         </section>
 
         <section class="game-lobby-title-container">

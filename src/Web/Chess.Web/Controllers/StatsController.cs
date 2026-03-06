@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Security.Claims;
+    using System.Threading.Tasks;
 
     using Chess.Data.Models;
     using Chess.Services.Data.Services.Contracts;
@@ -23,10 +24,21 @@
             this.userManager = userManager;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             var userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return this.RedirectToAction("Index", "Home");
+            }
+
             var stats = this.statsService.GetUserStats<UserStatsViewModel>(userId);
+
+            if (stats == null)
+            {
+                await this.statsService.InitiateStatsAsync(userId);
+                stats = this.statsService.GetUserStats<UserStatsViewModel>(userId);
+            }
 
             if (stats == null)
             {

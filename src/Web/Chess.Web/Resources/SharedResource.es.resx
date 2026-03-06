@@ -93,6 +93,18 @@
   <data name="Stats_EloRating" xml:space="preserve">
     <value>TU CALIFICACIÓN ELO</value>
   </data>
+  <data name="Stats_EloInfo_Title" xml:space="preserve">
+    <value>Cómo funciona el ELO</value>
+  </data>
+  <data name="Stats_EloInfo_Body" xml:space="preserve">
+    <value>Las cuentas nuevas empiezan en 1200. La puntuación solo cambia después de partidas PvP finalizadas contra jugadores reales. Las partidas contra bots no afectan al ELO.</value>
+  </data>
+  <data name="Stats_EloInitialHint" xml:space="preserve">
+    <value>Los jugadores nuevos comienzan con 1200 de ELO.</value>
+  </data>
+  <data name="Stats_EloFreshAccountHint" xml:space="preserve">
+    <value>Todavía no tienes partidas PvP clasificadas, por eso tu rating sigue en el valor inicial de 1200.</value>
+  </data>
   <data name="Stats_AllUsers" xml:space="preserve">
     <value>TODOS LOS USUARIOS</value>
   </data>
@@ -142,10 +154,10 @@
     <value>Piezas</value>
   </data>
   <data name="Game_DeclareThreefold" xml:space="preserve">
-    <value>Declarar sorteo 3F</value>
+    <value>Reclamar tablas (triple repetición)</value>
   </data>
   <data name="Game_OfferDraw" xml:space="preserve">
-    <value>Sorteo de oferta</value>
+    <value>Ofrecer tablas</value>
   </data>
   <data name="Game_Resign" xml:space="preserve">
     <value>Renunciar</value>
@@ -173,6 +185,9 @@
   </data>
   <data name="Game_BotDifficulty_Normal" xml:space="preserve">
     <value>Normal</value>
+  </data>
+  <data name="Game_BotEloNotice" xml:space="preserve">
+    <value>Las partidas contra bots no afectan tu ELO PvP ni tus estadísticas.</value>
   </data>
   <data name="Game_RoomsTitle" xml:space="preserve">
     <value>SALAS DE JUEGO</value>

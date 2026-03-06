@@ -24,6 +24,123 @@ function normalizeErrorMessage(error) {
 }
 
 const connectionToneClasses = ['is-reconnecting', 'is-syncing', 'is-disconnected', 'is-offline'];
+const internalChatDedupWindowMs = 5000;
+const maxChatItems = 250;
+const legacyReplaySelectors = [
+    '.game-replay-toolbar',
+    '.game-replay-hotkeys',
+    '.game-replay-indicator',
+    '.game-replay-controls',
+    '.replay-toolbar',
+    '.replay-controls',
+    '.replay-hotkeys',
+    '.pgn-export-controls',
+];
+const legacyReplayTextTokens = [
+    'повтор',
+    'повтор:',
+    'replay',
+    'wiederholung',
+    'powtor',
+    'powtór',
+    'repeticion',
+    'repetición',
+    'export pgn',
+    'експорт pgn',
+    'экспорт pgn',
+    'eksport pgn',
+    'exportar pgn',
+    'pgn exportieren',
+    'повернутися у live',
+    'return to live',
+    'zurück zu live',
+    'powrót do live',
+    'volver a live',
+    'поточна позиція',
+    'current position',
+];
+const legacyReplayLooseButtonLabels = new Set(['home', 'end', 'p', '\u2190', '\u2192']);
+let legacyReplayCleanupObserver = null;
+let legacyReplayCleanupScheduled = false;
+
+function scheduleLegacyReplayCleanup() {
+    if (legacyReplayCleanupScheduled) {
+        return;
+    }
+
+    legacyReplayCleanupScheduled = true;
+    requestAnimationFrame(() => {
+        legacyReplayCleanupScheduled = false;
+        removeLegacyReplayDomArtifacts(false);
+    });
+}
+
+function ensureLegacyReplayCleanupObserver(observeRoot) {
+    if (legacyReplayCleanupObserver || !observeRoot || typeof MutationObserver === 'undefined') {
+        return;
+    }
+
+    legacyReplayCleanupObserver = new MutationObserver(() => {
+        scheduleLegacyReplayCleanup();
+    });
+
+    legacyReplayCleanupObserver.observe(observeRoot, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        characterData: true,
+    });
+}
+
+function removeLegacyReplayDomArtifacts(ensureObserver = true) {
+    const gameShell = document.querySelector('.game-shell');
+    if (!gameShell) {
+        return;
+    }
+
+    const boardScope = gameShell.querySelector('.main-playground-board-container');
+    const cleanupScope = boardScope || gameShell;
+
+    if (ensureObserver) {
+        ensureLegacyReplayCleanupObserver(gameShell);
+    }
+
+    cleanupScope.querySelectorAll(legacyReplaySelectors.join(',')).forEach((node) => node.remove());
+    cleanupScope.querySelectorAll('[aria-keyshortcuts]').forEach((node) => node.remove());
+
+    cleanupScope.querySelectorAll('button, .btn, a.btn, [role="button"]').forEach((node) => {
+        const text = (node.textContent || '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+
+        if (!text) {
+            return;
+        }
+
+        const isLooseLegacyButtonLabel = legacyReplayLooseButtonLabels.has(text)
+            && (node.tagName === 'BUTTON' || node.classList.contains('btn'));
+        const hasLegacyReplayToken = legacyReplayTextTokens.some((token) => text.includes(token));
+        const hasReplayShortcut = typeof node.getAttribute === 'function'
+            && !!node.getAttribute('aria-keyshortcuts');
+
+        if (isLooseLegacyButtonLabel || hasLegacyReplayToken || hasReplayShortcut) {
+            const removableContainer = node.closest('.btn-group, .toolbar, .game-replay-toolbar, .game-replay-hotkeys, .game-replay-indicator, .game-replay-controls, .replay-toolbar, .replay-controls, .replay-hotkeys, .pgn-export-controls');
+            if (removableContainer && cleanupScope.contains(removableContainer)) {
+                removableContainer.remove();
+                return;
+            }
+
+            if (cleanupScope.contains(node)) {
+                node.remove();
+            }
+        }
+    });
+}
+
+export function purgeLegacyReplayUi() {
+    removeLegacyReplayDomArtifacts(true);
+}
 
 export function createRoomElement(player) {
     const div = document.createElement('div');
@@ -117,8 +234,27 @@ export function updateStatus(elements, state, movingPlayerId, movingPlayerName) 
 }
 
 export function updateChat(elements, message, chat, isInternalMessage, isBlack) {
+    const normalizedMessage = `${message || ''}`.trim();
+    if (normalizedMessage.length === 0) {
+        return;
+    }
+
+    if (isInternalMessage) {
+        const lastEntry = chat.lastElementChild;
+        if (lastEntry && lastEntry.classList.contains('chat-internal-msg')) {
+            const lastMessage = (lastEntry.dataset.chatMessage || '').trim();
+            const lastTimestamp = Number(lastEntry.dataset.chatTimestamp || 0);
+            const now = Date.now();
+            if (lastMessage === normalizedMessage && Number.isFinite(lastTimestamp) && (now - lastTimestamp) <= internalChatDedupWindowMs) {
+                return;
+            }
+        }
+    }
+
     const li = document.createElement('li');
-    li.innerText = `${message}`;
+    li.innerText = normalizedMessage;
+    li.dataset.chatMessage = normalizedMessage;
+    li.dataset.chatTimestamp = String(Date.now());
 
     if (isInternalMessage) {
         li.classList.add('chat-internal-msg', 'chat-msg', 'flex-start');
@@ -129,6 +265,9 @@ export function updateChat(elements, message, chat, isInternalMessage, isBlack) 
     }
 
     chat.appendChild(li);
+    while (chat.childElementCount > maxChatItems) {
+        chat.removeChild(chat.firstElementChild);
+    }
     chat.scrollTop = chat.scrollHeight;
 }
 
@@ -201,52 +340,24 @@ export function updateBotDifficultyBadge(elements, state) {
 }
 
 export function updateReplayControls(elements, state) {
-    const hasTimeline = Array.isArray(state.fenTimeline) && state.fenTimeline.length > 0;
-    const maxIndex = hasTimeline ? state.fenTimeline.length - 1 : 0;
-    const currentIndex = Math.max(0, Math.min(state.replayIndex || 0, maxIndex));
-    const hasPastMoves = maxIndex > 0;
-    const isReplayMode = !!state.isReplayMode;
-    const activeIndex = isReplayMode ? currentIndex : maxIndex;
-    const replayAllowed = !!state.isBotGame;
+    removeLegacyReplayDomArtifacts();
 
-    if (!replayAllowed && state.isReplayMode) {
-        state.isReplayMode = false;
-        state.replayIndex = maxIndex;
-    }
-
-    if (elements.replayStartBtn) {
-        elements.replayStartBtn.hidden = !replayAllowed;
-        elements.replayStartBtn.disabled = !replayAllowed || !hasPastMoves;
-    }
-
-    if (elements.replayPrevBtn) {
-        elements.replayPrevBtn.hidden = !replayAllowed;
-        elements.replayPrevBtn.disabled = !replayAllowed || !hasPastMoves || activeIndex <= 0;
-    }
-
-    if (elements.replayNextBtn) {
-        elements.replayNextBtn.hidden = !replayAllowed;
-        elements.replayNextBtn.disabled = !replayAllowed || !hasPastMoves || activeIndex >= maxIndex;
-    }
-
-    if (elements.replayLiveBtn) {
-        elements.replayLiveBtn.hidden = !replayAllowed;
-        elements.replayLiveBtn.disabled = !replayAllowed || !isReplayMode;
-    }
-
-    if (elements.replayHotkeys) {
-        elements.replayHotkeys.hidden = !replayAllowed;
-    }
-
-    if (elements.exportPgnBtn) {
-        elements.exportPgnBtn.disabled = !state.whiteMoves?.length && !state.blackMoves?.length;
-    }
-
-    const shouldLockInteractiveActions = !!state.isReplayMode || !!state.hasGameEnded || !state.isGameStarted;
+    const shouldLockInteractiveActions = !!state.hasGameEnded || !state.isGameStarted;
     const actionBusy = !!state.gameActionInFlight;
+    const isBotMode = !!state.isBotGame;
 
     if (elements.offerDrawBtn) {
-        elements.offerDrawBtn.disabled = shouldLockInteractiveActions || actionBusy;
+        elements.offerDrawBtn.hidden = isBotMode;
+        elements.offerDrawBtn.style.display = isBotMode ? 'none' : '';
+    }
+
+    if (elements.threefoldDrawBtn) {
+        elements.threefoldDrawBtn.hidden = isBotMode;
+        elements.threefoldDrawBtn.style.display = isBotMode ? 'none' : '';
+    }
+
+    if (elements.offerDrawBtn) {
+        elements.offerDrawBtn.disabled = isBotMode || shouldLockInteractiveActions || actionBusy;
     }
 
     if (elements.resignBtn) {
@@ -257,35 +368,14 @@ export function updateReplayControls(elements, state) {
         // Threefold availability is server-driven. Keep it disabled when replay/terminal/busy.
         elements.threefoldDrawBtn.disabled = true;
     }
+    if (elements.threefoldDrawBtn && isBotMode) {
+        elements.threefoldDrawBtn.disabled = true;
+    }
 
     if (elements.playAgainVsBotBtn) {
-        const canReplayBotGame = state.isBotGame && state.hasGameEnded && !state.isReplayMode && !actionBusy;
+        const canReplayBotGame = state.isBotGame && state.hasGameEnded && !actionBusy;
         elements.playAgainVsBotBtn.disabled = !canReplayBotGame;
     }
-
-    if (!elements.replayIndicator) {
-        return;
-    }
-
-    elements.replayIndicator.hidden = !replayAllowed;
-    if (!replayAllowed) {
-        return;
-    }
-
-    if (!hasPastMoves) {
-        elements.replayIndicator.textContent = t('replayLive');
-        return;
-    }
-
-    if (isReplayMode) {
-        elements.replayIndicator.textContent = t('replayModeFormat', {
-            current: String(currentIndex),
-            total: String(maxIndex),
-        });
-        return;
-    }
-
-    elements.replayIndicator.textContent = t('replayLive');
 }
 
 const gameResultTones = new Set(['win', 'loss', 'draw']);
@@ -317,6 +407,8 @@ export function setGameResultBanner(elements, message, tone = 'draw') {
 }
 
 export function resetGameUi(elements, state) {
+    removeLegacyReplayDomArtifacts();
+
     elements.statusCheck.style.display = 'none';
     elements.statusCheck.textContent = '';
     clearGameResultBanner(elements);
@@ -367,11 +459,6 @@ export function resetGameUi(elements, state) {
     state.lobbyNameValid = false;
     state.lobbyActionInFlight = false;
     state.gameActionInFlight = false;
-    state.isReplayMode = false;
-    state.replayIndex = 0;
-    state.fenTimeline = ['start'];
-    state.whiteMoves = [];
-    state.blackMoves = [];
     state.mobilePanel = 'board';
 
     if (state.pendingSyncTimeoutId) {

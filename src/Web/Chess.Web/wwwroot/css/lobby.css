@@ -40,6 +40,15 @@
     border-radius: 10px;
 }
 
+.game-lobby-input-note {
+    flex: 1 0 100%;
+    margin: 0.15rem 0 0;
+    color: #556887;
+    font-size: 0.85rem;
+    line-height: 1.35;
+    text-align: left;
+}
+
 .game-lobby-input-bot-difficulty-label {
     display: inline-flex;
     align-items: center;
@@ -227,6 +236,10 @@
 @media (max-width: 640px) {
     .game-lobby-input-container {
         flex-direction: column;
+    }
+
+    .game-lobby-input-note {
+        margin-top: 0.1rem;
     }
 
     .game-lobby-input-create-btn {

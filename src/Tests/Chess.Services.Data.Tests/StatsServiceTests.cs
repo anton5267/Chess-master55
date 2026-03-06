@@ -32,6 +32,48 @@ public class StatsServiceTests
     }
 
     [Fact]
+    public async Task InitiateStatsAsync_ShouldBeIdempotent_ForSameUser()
+    {
+        var repository = new InMemoryStatisticRepository();
+        var service = new StatsService(repository);
+
+        await service.InitiateStatsAsync("user-1");
+        await service.InitiateStatsAsync("user-1");
+
+        repository.Items.Should().ContainSingle(x => x.UserId == "user-1");
+        repository.SaveChangesCalls.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task InitiateStatsAsync_ShouldSkip_WhenUserIdIsMissing()
+    {
+        var repository = new InMemoryStatisticRepository();
+        var service = new StatsService(repository);
+
+        await service.InitiateStatsAsync(string.Empty);
+        await service.InitiateStatsAsync("   ");
+
+        repository.Items.Should().BeEmpty();
+        repository.SaveChangesCalls.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task InitiateStatsAsync_ShouldIgnoreDuplicateRace_WhenSaveChangesThrowsButStatsAlreadyExist()
+    {
+        var repository = new InMemoryStatisticRepository
+        {
+            SaveChangesException = new InvalidOperationException("duplicate key"),
+        };
+        var service = new StatsService(repository);
+
+        Func<Task> act = () => service.InitiateStatsAsync("user-1");
+
+        await act.Should().NotThrowAsync();
+        repository.Items.Should().ContainSingle(x => x.UserId == "user-1");
+        repository.SaveChangesCalls.Should().Be(1);
+    }
+
+    [Fact]
     public void IsStatsInitiated_ShouldReturnTrue_WhenUserStatsExist()
     {
         var repository = new InMemoryStatisticRepository();
@@ -149,6 +191,8 @@ public class StatsServiceTests
 
         public int SaveChangesCalls { get; private set; }
 
+        public Exception? SaveChangesException { get; set; }
+
         public IQueryable<StatisticEntity> All()
         {
             return this.Items.AsQueryable();
@@ -180,6 +224,12 @@ public class StatsServiceTests
         public Task<int> SaveChangesAsync()
         {
             this.SaveChangesCalls++;
+
+            if (this.SaveChangesException != null)
+            {
+                throw this.SaveChangesException;
+            }
+
             return Task.FromResult(1);
         }
 

@@ -1,244 +1,160 @@
-# Multiplayer Chess
+# Chess-master55
 
-**ASP.NET Core** board game with **SignalR** and **chessboardjs**.
+[![CI/CD](https://github.com/anton5267/Chess-master55/actions/workflows/master_chess-bg.yml/badge.svg)](https://github.com/anton5267/Chess-master55/actions/workflows/master_chess-bg.yml)
+![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
+Modern multiplayer chess platform built with ASP.NET Core MVC + SignalR.
+Supports real-time PvP, bot mode, localization (EN/UK/DE/PL/ES), ELO stats, and Azure deployment.
 
-## Build Status
+---
 
+## English
 
-## Technologies
+### Product Overview
+- Real-time multiplayer chess over SignalR.
+- Bot mode with selectable difficulty.
+- Full identity flow (register/login/manage).
+- Stats page with ELO and historical game metrics.
+- Production CI/CD workflow for Azure App Service.
 
-* C#
-* .NET 8
-* ASP.NET Core
-* ASP.NET Core MVC
-* Entity Framework Core
-* SignalR
-* JavaScript
-* jQuery
-* HTML
-* CSS
-* Bootstrap
+### Architecture at a Glance
+- **Web**: ASP.NET Core MVC + Razor Views
+- **Realtime**: SignalR hubs (`/hub`)
+- **Data**: EF Core + SQL database
+- **Game state**: in-memory session store with synchronization hardening
+- **Frontend build**: esbuild (game/stats bundles)
 
-## Asset Pipeline
+### Key Features
+- Move validation, check, checkmate, stalemate
+- Castling, en passant, promotion
+- Draw offer, resign, repetition and 50-move draw rules
+- Lobby + room system + live chat
+- Multi-language UI: English, Ukrainian, German, Polish, Spanish
+- Board/piece themes and modernized UI
 
-Frontend assets are built with `esbuild` only.
+### Local Development
+```bash
+cd src/Web/Chess.Web
+npm ci
+npm run build:assets
+cd ../..
+dotnet restore src/Chess.sln
+dotnet build src/Chess.sln
+dotnet test src/Chess.sln --nologo
+dotnet run --project src/Web/Chess.Web/Chess.Web.csproj
+```
 
-- JS outputs: `wwwroot/js/game.bundle(.min).js`, `wwwroot/js/stats.bundle(.min).js`
-- Legacy `BuildBundlerMinifier`/`bundleconfig.json` pipeline was removed
-
-## Features
-
-- [x] Move Validation
-- [x] Check
-- [x] Checkmate
-- [x] Stalemate
-- [x] Draw
-- [x] Offer Draw
-- [x] Threefold Repetition Draw
-- [x] Fivefold Repetition Draw
-- [x] Resign
-- [x] Castling
-- [x] Pawn Promotion
-- [x] En Passant Capture
-- [x] Points Calculation
-- [x] Taken Pieces History
-- [x] Algebraic Notation Move History
-- [x] User Authentication
-- [x] Highlight Last Move
-- [x] Board & Piece Theme Selector (saved locally)
-- [x] Lobby
-- [x] Lobby Chat
-- [x] Game Chat
-- [x] Stats Page
-- [x] ELO Rating Calculation
-- [x] Fifty-Move Draw
-- [x] Email Notifications
-- [ ] Timer Game Mode
-- [ ] Stateless App
-
-## Local Build
+### Ngrok-First Development
+Use this when you want to open the app via a public URL only:
+`https://nonhostilely-unhampered-noah.ngrok-free.dev`
 
 ```bash
 cd src/Web/Chess.Web
-npm install
-npm run build:assets
-cd ../..
-dotnet build src/Chess.sln
-dotnet test src/Chess.sln
+npm ci
+npm run dev:remote
 ```
 
-## Production Deployment (GitHub Actions -> Azure App Service)
+Troubleshooting:
+- `ERR_NGROK_8012`: local upstream is not running (`https://localhost:5001`)
+- `ConnectionString not initialized`: set `ASPNETCORE_ENVIRONMENT=Development`
+- Certificate warning: run `dotnet dev-certs https --trust` or use `dev:remote:http`
 
-Workflow: `.github/workflows/master_chess-bg.yml`  
-Web App name: `chess-bg`  
-Deploy job runs on `push` to `main`.
-
-Configure **one** of these authentication methods in GitHub Secrets:
-
-1. Publish Profile (recommended for quick setup):
-   - `AZURE_WEBAPP_PUBLISH_PROFILE`
-   - Optional legacy fallback (already supported by workflow):  
-     `AZUREAPPSERVICE_PUBLISHPROFILE_B31E786770E447D284998F21B6B8E93A`
-
-2. Service Principal login:
-   - `AZURE_CREDENTIALS` (JSON from Azure CLI `--sdk-auth`)
-
-### How to add Publish Profile secret
-
-1. Azure Portal -> App Services -> `chess-bg` -> `Get publish profile`.
-2. In GitHub repo -> Settings -> Secrets and variables -> Actions -> New repository secret.
-3. Name: `AZURE_WEBAPP_PUBLISH_PROFILE`, value: full XML content from downloaded publish profile.
-
-### How to add AZURE_CREDENTIALS secret (alternative)
-
-```bash
-az ad sp create-for-rbac \
-  --name "github-chess-bg-deploy" \
-  --role contributor \
-  --scopes /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP_NAME> \
-  --sdk-auth
-```
-
-Copy JSON output to GitHub secret `AZURE_CREDENTIALS`.
-
-### Verify deployment
-
-1. Push to `main`.
-2. Open Actions -> `chess-ci-cd`.
-3. Ensure jobs `terraform_validate`, `build_test_publish`, `deploy` are green.
-
-One-command full quality check (assets + backend tests):
-
+### Testing
 ```bash
 cd src/Web/Chess.Web
 npm run check:full
 ```
 
-Windows-safe variant (auto stops running `Chess.Web` before tests to avoid locked DLL files):
-
+Windows-safe test mode (auto-stops running web process before tests):
 ```bash
 cd src/Web/Chess.Web
 npm run check:full:safe
 ```
 
-## Local Development
+### CI/CD (GitHub Actions -> Azure App Service)
+Workflow: `.github/workflows/master_chess-bg.yml`
 
-```bash
-cd src/Web/Chess.Web
-npm install
-npm run dev
-```
+Required secrets for OIDC deployment:
+- `AZURE_CLIENT_ID`
+- `AZURE_TENANT_ID`
+- `AZURE_SUBSCRIPTION_ID`
 
-Trusted HTTPS setup (recommended):
+Deploy triggers on push to `main`.
 
-```bash
-dotnet dev-certs https --trust
-```
+Health endpoints:
+- `/healthz`
+- `/healthz/live`
+- `/healthz/ready`
 
-HTTP fallback when local certificate is not trusted:
+---
 
-```bash
-cd src/Web/Chess.Web
-npm run dev:http
-```
+## Українська
 
-## Ngrok-First Development (fixed public URL)
+### Опис продукту
+- Онлайн-шахи в реальному часі на SignalR.
+- Режим гри проти бота з вибором складності.
+- Повний Identity flow (реєстрація, логін, керування акаунтом).
+- Сторінка статистики з ELO та метриками партій.
+- Production CI/CD деплой в Azure App Service.
 
-Use this mode when you want to open the app only through:
-`https://nonhostilely-unhampered-noah.ngrok-free.dev`
+### Архітектура (коротко)
+- **Web**: ASP.NET Core MVC + Razor Views
+- **Realtime**: SignalR hubs (`/hub`)
+- **Data**: EF Core + SQL БД
+- **Стан гри**: in-memory session store із захистом від десинхрону
+- **Фронтенд-білд**: esbuild (бандли гри і статистики)
 
-```bash
-cd src/Web/Chess.Web
-npm install
-npm run dev:remote
-```
+### Основні можливості
+- Валідація ходів, шах, мат, пат
+- Рокіровка, en passant, перетворення пішака
+- Нічия, пропозиція нічиєї, здача
+- Лобі, кімнати, живий чат
+- 5 мов інтерфейсу: EN/UK/DE/PL/ES
+- Теми дошки/фігур та оновлений UI
 
-What it starts:
-- `watch:assets`
-- `dotnet watch run --project Chess.Web.csproj` (upstream: `https://localhost:5001`)
-- `ngrok` tunnel with fixed domain
-
-Important environment default:
-
-- `ASPNETCORE_ENVIRONMENT=Development` must be set so `ChessDb` connection string from `appsettings.Development.json` is used.
-
-PowerShell example:
-
-```powershell
-$env:ASPNETCORE_ENVIRONMENT = "Development"
-cd src/Web/Chess.Web
-npm run dev:remote
-```
-
-If HTTPS certificate is not trusted locally, use HTTP upstream remote mode:
-
-```bash
-cd src/Web/Chess.Web
-npm run dev:remote:http
-```
-
-Verify tunnel status:
-
-```bash
-curl http://127.0.0.1:4040/api/tunnels
-```
-
-Quick upstream checks before browser smoke:
-
-```bash
-curl -k https://localhost:5001/healthz
-curl https://nonhostilely-unhampered-noah.ngrok-free.dev/healthz
-```
-
-## Restart Runbook (when updates do not appear)
-
-1. Stop all running `dotnet` and `ngrok` processes.
-2. Rebuild assets:
-
+### Локальний запуск
 ```bash
 cd src/Web/Chess.Web
 npm ci
 npm run build:assets
+cd ../..
+dotnet restore src/Chess.sln
+dotnet build src/Chess.sln
+dotnet test src/Chess.sln --nologo
+dotnet run --project src/Web/Chess.Web/Chess.Web.csproj
 ```
 
-3. Restart remote dev mode:
+### Режим Ngrok-first
+Публічний URL для перевірки:
+`https://nonhostilely-unhampered-noah.ngrok-free.dev`
 
 ```bash
-$env:ASPNETCORE_ENVIRONMENT=Development
+cd src/Web/Chess.Web
+npm ci
 npm run dev:remote
 ```
 
-4. Open the app in an incognito window:
-`https://nonhostilely-unhampered-noah.ngrok-free.dev`
-
-## Troubleshooting
-
-1. `ERR_NGROK_8012` / `502 Bad Gateway`:
-   - upstream `https://localhost:5001` is not running;
-   - restart `npm run dev:remote`.
-2. `The ConnectionString property has not been initialized`:
-   - app started outside `Development` environment;
-   - set `ASPNETCORE_ENVIRONMENT=Development` and restart.
-3. `NET::ERR_CERT_AUTHORITY_INVALID` on localhost upstream:
-   - run `dotnet dev-certs https --trust`;
-   - or switch to HTTP remote mode (`npm run dev:remote:http`).
-4. Port is already in use:
-   - stop old `dotnet`/`ngrok` processes and rerun.
-
-## Health Check
-
-Service health endpoint:
-
+### Перевірка якості
 ```bash
-GET /healthz
+cd src/Web/Chess.Web
+npm run check:full
 ```
 
-Expected response code: `200 OK`.
+### CI/CD деплой (OIDC)
+Workflow: `.github/workflows/master_chess-bg.yml`
 
-Additional probes:
+Необхідні GitHub Secrets:
+- `AZURE_CLIENT_ID`
+- `AZURE_TENANT_ID`
+- `AZURE_SUBSCRIPTION_ID`
 
-```bash
-GET /healthz/live
-GET /healthz/ready
-```
+Після push у `main` запускається повний pipeline:
+- `terraform_validate`
+- `build_test_publish`
+- `deploy`
+
+---
+
+## License
+MIT License. See [LICENSE](./LICENSE).

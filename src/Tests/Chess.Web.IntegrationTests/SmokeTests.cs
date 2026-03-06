@@ -43,10 +43,11 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         html.Should().Contain("site-footer");
         html.Should().Contain("skip-to-content-link");
         html.Should().Contain("home-hero");
-        html.Should().Contain("home-hero-mini-grid");
+        html.Should().Contain("home-hero-actions");
         html.Should().Contain("aria-labelledby=\"home-hero-title\"");
-        html.Should().Contain("home-summary-heading");
         html.Should().Contain("home-features-heading");
+        html.Should().Contain("home-history-card");
+        html.Should().Contain("home-history-title");
         html.Should().Contain("loading=\"lazy\"");
     }
 
@@ -245,10 +246,12 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         decodedHtml.Should().Contain("1440");
         decodedHtml.Should().NotContain("&#x");
         decodedHtml.Should().NotContain("&amp;#x");
+        decodedHtml.Should().Contain("New accounts start at 1200.");
         decodedHtml.Should().Contain("stats-data");
         decodedHtml.Should().Contain("stats-pie-chart");
         html.Should().Contain("stats-dashboard");
         html.Should().Contain("stats-page-header");
+        html.Should().Contain("stats-elo-note");
         html.Should().Contain("stats-rate-strip");
         html.Should().Contain("stats-balance-card");
         html.Should().Contain("stats-chart-figure");
@@ -256,7 +259,23 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
-    public async Task Game_ShouldRenderHintAndReplayUx_ForAuthenticatedUser()
+    public async Task Stats_ShouldExplainInitialRating_ForFreshAccount()
+    {
+        await this.SeedAuthenticatedUserAsync(includeStats: false);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/Stats");
+        request.Headers.Add(TestAuthHandler.HeaderName, "1");
+
+        var response = await this.client.SendAsync(request);
+        var html = await response.Content.ReadAsStringAsync();
+        var decodedHtml = WebUtility.HtmlDecode(html);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK, because: decodedHtml);
+        decodedHtml.Should().Contain("You have no rated PvP games yet, so your rating is still the initial 1200.");
+    }
+
+    [Fact]
+    public async Task Game_ShouldRenderHintUx_ForAuthenticatedUser()
     {
         await this.SeedAuthenticatedUserAsync();
 
@@ -272,6 +291,8 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         decodedHtml.Should().Contain("legal-moves-toggle");
         decodedHtml.Should().Contain("game-lobby-input-vs-bot-btn");
         decodedHtml.Should().Contain("bot-difficulty-select");
+        decodedHtml.Should().Contain("game-lobby-input-note");
+        decodedHtml.Should().Contain("ELO");
         decodedHtml.Should().Contain("game-lobby-room-count");
         decodedHtml.Should().Contain("game-play-again-btn");
         decodedHtml.Should().Contain("game-result-banner");
@@ -282,13 +303,16 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         decodedHtml.Should().Contain("game-lobby-chat-counter");
         decodedHtml.Should().Contain("game-mobile-tabs");
         decodedHtml.Should().Contain("noRoomsAvailable");
-        decodedHtml.Should().Contain("game-replay-toolbar");
-        decodedHtml.Should().Contain("game-replay-start-btn");
-        decodedHtml.Should().Contain("game-replay-live-btn");
-        decodedHtml.Should().Contain("game-export-pgn-btn");
-        decodedHtml.Should().Contain("game-replay-hotkeys");
-        decodedHtml.Should().Contain("aria-keyshortcuts=\"Home\"");
-        decodedHtml.Should().Contain("aria-keyshortcuts=\"ArrowRight\"");
+        decodedHtml.Should().Contain("data-default-name=");
+        decodedHtml.Should().Contain("data-default-name=\"tester\"");
+        decodedHtml.Should().Contain("data-storage-key=");
+        decodedHtml.Should().NotContain("game-replay-toolbar");
+        decodedHtml.Should().NotContain("game-replay-start-btn");
+        decodedHtml.Should().NotContain("game-replay-live-btn");
+        decodedHtml.Should().NotContain("game-export-pgn-btn");
+        decodedHtml.Should().NotContain("game-replay-hotkeys");
+        decodedHtml.Should().NotContain("aria-keyshortcuts=\"Home\"");
+        decodedHtml.Should().NotContain("aria-keyshortcuts=\"ArrowRight\"");
         html.Should().Contain("game-shell");
         html.Should().Contain("game-control-row");
     }
@@ -303,10 +327,13 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         script.Should().Contain("hasGameEnded");
         script.Should().Contain("gameOverCode");
         script.Should().Contain("gameOverWinnerName");
-        script.Should().Contain("isReplayMode");
-        script.Should().Contain("fenTimeline");
+        script.Should().Contain("StartVsBotWithDifficulty");
         script.Should().Contain("mobilePanel");
         script.Should().Contain("connectionOffline");
+        script.Should().NotContain("isReplayMode");
+        script.Should().NotContain("fenTimeline");
+        script.Should().Contain("button, .btn, a.btn, [role=\"button\"]");
+        script.Should().NotContain("button, .btn, a, span, div");
         script.Should().NotContain("alert(");
     }
 
@@ -384,7 +411,7 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         return (tokenMatch.Groups[1].Value, antiForgeryCookie!.Split(';')[0]);
     }
 
-    private async Task SeedAuthenticatedUserAsync()
+    private async Task SeedAuthenticatedUserAsync(bool includeStats = true)
     {
         await using var scope = this.factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ChessDbContext>();
@@ -403,7 +430,22 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
             });
         }
 
-        if (!await dbContext.Stats.AnyAsync(x => x.UserId == TestAuthHandler.UserId))
+        var existingStats = await dbContext.Stats
+            .Where(x => x.UserId == TestAuthHandler.UserId)
+            .ToListAsync();
+
+        if (!includeStats)
+        {
+            if (existingStats.Count > 0)
+            {
+                dbContext.Stats.RemoveRange(existingStats);
+            }
+
+            await dbContext.SaveChangesAsync();
+            return;
+        }
+
+        if (existingStats.Count == 0)
         {
             dbContext.Stats.Add(new StatisticEntity
             {
@@ -415,6 +457,20 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
                 EloRating = 1440,
                 CreatedOn = DateTime.UtcNow,
             });
+        }
+        else
+        {
+            var primaryStats = existingStats[0];
+            primaryStats.Played = 18;
+            primaryStats.Won = 10;
+            primaryStats.Drawn = 4;
+            primaryStats.Lost = 4;
+            primaryStats.EloRating = 1440;
+
+            if (existingStats.Count > 1)
+            {
+                dbContext.Stats.RemoveRange(existingStats.Skip(1));
+            }
         }
 
         await dbContext.SaveChangesAsync();

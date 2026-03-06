@@ -1,10 +1,52 @@
 (function () {
+    const togglePositionCallbacks = new Set();
+    let globalPositionListenerBound = false;
+
+    function bindGlobalPositionListener() {
+        if (globalPositionListenerBound) {
+            return;
+        }
+
+        globalPositionListenerBound = true;
+
+        const refreshAllToggles = () => {
+            togglePositionCallbacks.forEach((callback) => callback());
+        };
+
+        window.addEventListener('resize', refreshAllToggles);
+        window.addEventListener('orientationchange', refreshAllToggles);
+    }
+
     function getText(key, fallback) {
         if (document.body && document.body.dataset && document.body.dataset[key]) {
             return document.body.dataset[key];
         }
 
         return fallback;
+    }
+
+    function bindTogglePositionSync(input, button, wrapper) {
+        if (!input || !button || !wrapper) {
+            return;
+        }
+
+        const syncPosition = () => {
+            const inputTop = input.offsetTop || 0;
+            const inputHeight = input.offsetHeight || 0;
+            button.style.top = `${inputTop + (inputHeight / 2)}px`;
+        };
+
+        togglePositionCallbacks.add(syncPosition);
+        bindGlobalPositionListener();
+
+        syncPosition();
+        requestAnimationFrame(syncPosition);
+        setTimeout(syncPosition, 0);
+        setTimeout(syncPosition, 150);
+
+        input.addEventListener('focus', syncPosition);
+        input.addEventListener('input', syncPosition);
+        input.addEventListener('blur', syncPosition);
     }
 
     function initializePasswordToggles() {
@@ -49,6 +91,7 @@
             });
 
             wrapper.appendChild(button);
+            bindTogglePositionSync(input, button, wrapper);
         });
 
         const forms = Array.from(document.querySelectorAll('form'));

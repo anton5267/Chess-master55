@@ -96,6 +96,18 @@
   <data name="Stats_EloRating" xml:space="preserve">
     <value>IHRE ELO-BEWERTUNG</value>
   </data>
+  <data name="Stats_EloInfo_Title" xml:space="preserve">
+    <value>So funktioniert ELO</value>
+  </data>
+  <data name="Stats_EloInfo_Body" xml:space="preserve">
+    <value>Neue Konten starten bei 1200. Die Wertung ändert sich nur nach abgeschlossenen PvP-Partien gegen echte Spieler. Bot-Matches beeinflussen ELO nicht.</value>
+  </data>
+  <data name="Stats_EloInitialHint" xml:space="preserve">
+    <value>Neue Spieler starten mit 1200 ELO.</value>
+  </data>
+  <data name="Stats_EloFreshAccountHint" xml:space="preserve">
+    <value>Sie haben noch keine gewerteten PvP-Partien, daher bleibt Ihr Rating vorerst beim Startwert 1200.</value>
+  </data>
   <data name="Stats_AllUsers" xml:space="preserve">
     <value>ALLE BENUTZER</value>
   </data>
@@ -145,10 +157,10 @@
     <value>Stücke</value>
   </data>
   <data name="Game_DeclareThreefold" xml:space="preserve">
-    <value>Deklarieren Sie 3F Draw</value>
+    <value>Remis reklamieren (3x Wiederholung)</value>
   </data>
   <data name="Game_OfferDraw" xml:space="preserve">
-    <value>Angebotsverlosung</value>
+    <value>Remis anbieten</value>
   </data>
   <data name="Game_Resign" xml:space="preserve">
     <value>Zurücktreten</value>
@@ -176,6 +188,9 @@
   </data>
   <data name="Game_BotDifficulty_Normal" xml:space="preserve">
     <value>Normal</value>
+  </data>
+  <data name="Game_BotEloNotice" xml:space="preserve">
+    <value>Bot-Spiele beeinflussen Ihr PvP-ELO und Ihre Statistiken nicht.</value>
   </data>
   <data name="Game_RoomsTitle" xml:space="preserve">
     <value>SPIELRÄUME</value>
