@@ -59,25 +59,3 @@
     <p class="home-history-text">@Localizer["Home_HistoryParagraph2"]</p>
 </section>
 
-@section Scripts {
-    <script>
-        (function removeLegacyDuplicateHomeCards() {
-            const grids = document.querySelectorAll('.home-feature-grid');
-            grids.forEach((grid) => {
-                const cards = Array.from(grid.querySelectorAll('.home-feature-card'));
-                if (cards.length === 0) {
-                    return;
-                }
-
-                const imageCards = cards.filter((card) => !!card.querySelector('.home-feature-image-wrap img'));
-                if (imageCards.length === 0) {
-                    return;
-                }
-
-                cards
-                    .filter((card) => !card.querySelector('.home-feature-image-wrap img'))
-                    .forEach((card) => card.remove());
-            });
-        })();
-    </script>
-}

@@ -72,6 +72,10 @@ cd src/Web/Chess.Web
 npm run check:full:safe
 ```
 
+If you see `CS2012` (`cannot open ... because it is being used by another process`):
+- stop running `dotnet watch` / `dotnet run` instances first
+- then run `npm run check:full:safe`
+
 ### CI/CD (GitHub Actions -> Azure App Service)
 Workflow: `.github/workflows/master_chess-bg.yml`
 
@@ -84,7 +88,25 @@ Required secrets for OIDC deployment:
 Required repository variable:
 - `AZURE_WEBAPP_NAME` (example: `your-app-name` without `.azurewebsites.net`)
 
-Deploy triggers on push to `main`.
+Deploy runs on:
+- push to `main`
+- manual `workflow_dispatch` for `main`
+
+OIDC bootstrap (recommended one-time flow):
+```bash
+az login --scope https://management.core.windows.net//.default
+az login --scope https://graph.microsoft.com//.default
+az webapp list --query "[].{name:name,rg:resourceGroup,host:defaultHostName}" -o table
+# create/find App Registration + federated credential for:
+# repo:anton5267/Chess-master55:ref:refs/heads/main
+gh secret set AZURE_CLIENT_ID --repo anton5267/Chess-master55 --body "<app-client-id>"
+gh secret set AZURE_TENANT_ID --repo anton5267/Chess-master55 --body "<tenant-id>"
+gh secret set AZURE_SUBSCRIPTION_ID --repo anton5267/Chess-master55 --body "<subscription-id>"
+gh variable set AZURE_WEBAPP_NAME --repo anton5267/Chess-master55 --body "<webapp-name>"
+gh secret set AZURE_WEBAPP_URL --repo anton5267/Chess-master55 --body "https://<webapp-name>.azurewebsites.net"
+```
+
+If the deployment summary shows `deploy_skipped_missing_secrets`, configure all required values above and rerun the workflow.
 
 Health endpoints:
 - `/healthz`
@@ -145,6 +167,14 @@ cd src/Web/Chess.Web
 npm run check:full
 ```
 
+Якщо з’являється `CS2012` (файл зайнятий іншим процесом):
+- зупиніть активний `dotnet watch` / `dotnet run`
+- використайте безпечний режим:
+```bash
+cd src/Web/Chess.Web
+npm run check:full:safe
+```
+
 ### CI/CD деплой (OIDC)
 Workflow: `.github/workflows/master_chess-bg.yml`
 
@@ -157,10 +187,28 @@ Workflow: `.github/workflows/master_chess-bg.yml`
 Необхідна Repository Variable:
 - `AZURE_WEBAPP_NAME` (наприклад: `your-app-name`, без `.azurewebsites.net`)
 
-Після push у `main` запускається повний pipeline:
+Pipeline запускається:
+- при push у `main`
+- вручну через `workflow_dispatch` для `main`
+
+Склад pipeline:
 - `terraform_validate`
 - `build_test_publish`
 - `deploy`
+
+Базовий OIDC bootstrap (одноразово):
+```bash
+az login --scope https://management.core.windows.net//.default
+az login --scope https://graph.microsoft.com//.default
+az webapp list --query "[].{name:name,rg:resourceGroup,host:defaultHostName}" -o table
+gh secret set AZURE_CLIENT_ID --repo anton5267/Chess-master55 --body "<app-client-id>"
+gh secret set AZURE_TENANT_ID --repo anton5267/Chess-master55 --body "<tenant-id>"
+gh secret set AZURE_SUBSCRIPTION_ID --repo anton5267/Chess-master55 --body "<subscription-id>"
+gh variable set AZURE_WEBAPP_NAME --repo anton5267/Chess-master55 --body "<webapp-name>"
+gh secret set AZURE_WEBAPP_URL --repo anton5267/Chess-master55 --body "https://<webapp-name>.azurewebsites.net"
+```
+
+Якщо в summary бачиш `deploy_skipped_missing_secrets`, додай усі обовʼязкові значення вище та перезапусти workflow.
 
 ---
 

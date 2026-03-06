@@ -211,16 +211,16 @@
 .auth-shell .auth-remember-me {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
+    justify-content: flex-start;
+    gap: 0.5rem;
     margin-top: 0.35rem;
     margin-bottom: 0.9rem;
     min-height: 1.25rem;
     padding: 0;
-    width: 100%;
+    width: fit-content;
+    max-width: 100%;
     margin-left: 0;
-    justify-content: flex-start;
     text-align: left;
-    padding-left: 0.08rem;
 }
 
 .auth-shell .auth-remember-me.form-check {
@@ -237,7 +237,8 @@
     width: 1.05rem;
     height: 1.05rem;
     flex: 0 0 auto;
-    margin-right: 0.1rem;
+    margin-right: 0.02rem;
+    vertical-align: middle;
 }
 
 .auth-shell .auth-remember-me .auth-remember-label,
@@ -245,11 +246,11 @@
     display: inline-flex;
     align-items: center;
     margin: 0;
-    padding-left: 0.08rem;
+    padding-left: 0;
     font-weight: 600;
     color: #2f435f;
     cursor: pointer;
-    line-height: 1.25;
+    line-height: 1.15;
 }
 
 .auth-shell .auth-remember-me .auth-remember-input:focus-visible,

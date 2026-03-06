@@ -71,6 +71,12 @@
     box-shadow: var(--shadow-md);
 }
 
+@supports selector(.home-feature-card:has(.home-feature-image)) {
+    .home-feature-card:not(:has(.home-feature-image)) {
+        display: none;
+    }
+}
+
 .home-feature-image-wrap {
     overflow: hidden;
 }

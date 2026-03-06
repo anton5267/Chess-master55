@@ -260,6 +260,7 @@
     "current position"
   ];
   var legacyReplayLooseButtonLabels = /* @__PURE__ */ new Set(["home", "end", "p", "\u2190", "\u2192"]);
+  var legacyReplayTextOnlySelectors = ["div", "span", "p", "small", "strong", "label", "h6"];
   var legacyReplayCleanupObserver = null;
   var legacyReplayCleanupScheduled = false;
   function scheduleLegacyReplayCleanup() {
@@ -291,14 +292,13 @@
     if (!gameShell) {
       return;
     }
-    const boardScope = gameShell.querySelector(".main-playground-board-container");
-    const cleanupScope = boardScope || gameShell;
+    const cleanupScope = gameShell;
     if (ensureObserver) {
       ensureLegacyReplayCleanupObserver(gameShell);
     }
     cleanupScope.querySelectorAll(legacyReplaySelectors.join(",")).forEach((node) => node.remove());
     cleanupScope.querySelectorAll("[aria-keyshortcuts]").forEach((node) => node.remove());
-    cleanupScope.querySelectorAll('button, .btn, a.btn, [role="button"]').forEach((node) => {
+    cleanupScope.querySelectorAll('button, .btn, a.btn, [role="button"], a').forEach((node) => {
       const text = (node.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
       if (!text) {
         return;
@@ -315,6 +315,30 @@
         if (cleanupScope.contains(node)) {
           node.remove();
         }
+      }
+    });
+    cleanupScope.querySelectorAll(legacyReplayTextOnlySelectors.join(",")).forEach((node) => {
+      const text = (node.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
+      if (!text) {
+        return;
+      }
+      const hasLegacyReplayToken = legacyReplayTextTokens.some((token) => text.includes(token));
+      if (!hasLegacyReplayToken) {
+        return;
+      }
+      const hasInteractiveChild = node.querySelector('button, a, [role="button"]');
+      if (hasInteractiveChild) {
+        return;
+      }
+      const removableContainer = node.closest(
+        ".btn-group, .toolbar, .game-replay-toolbar, .game-replay-hotkeys, .game-replay-indicator, .game-replay-controls, .replay-toolbar, .replay-controls, .replay-hotkeys, .pgn-export-controls"
+      );
+      if (removableContainer && cleanupScope.contains(removableContainer)) {
+        removableContainer.remove();
+        return;
+      }
+      if (cleanupScope.contains(node)) {
+        node.remove();
       }
     });
   }

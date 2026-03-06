@@ -1,21 +1,6 @@
 (function () {
-    const togglePositionCallbacks = new Set();
-    let globalPositionListenerBound = false;
-
-    function bindGlobalPositionListener() {
-        if (globalPositionListenerBound) {
-            return;
-        }
-
-        globalPositionListenerBound = true;
-
-        const refreshAllToggles = () => {
-            togglePositionCallbacks.forEach((callback) => callback());
-        };
-
-        window.addEventListener('resize', refreshAllToggles);
-        window.addEventListener('orientationchange', refreshAllToggles);
-    }
+    const toggleBindings = [];
+    let resizeBound = false;
 
     function getText(key, fallback) {
         if (document.body && document.body.dataset && document.body.dataset[key]) {
@@ -25,28 +10,32 @@
         return fallback;
     }
 
-    function bindTogglePositionSync(input, button, wrapper) {
-        if (!input || !button || !wrapper) {
+    function syncTogglePosition(binding) {
+        if (!binding || !binding.input || !binding.button) {
             return;
         }
 
-        const syncPosition = () => {
-            const inputTop = input.offsetTop || 0;
-            const inputHeight = input.offsetHeight || 0;
-            button.style.top = `${inputTop + (inputHeight / 2)}px`;
-        };
+        const inputTop = Number.isFinite(binding.input.offsetTop) ? binding.input.offsetTop : 0;
+        const inputHeight = Number.isFinite(binding.input.offsetHeight) ? binding.input.offsetHeight : 0;
+        if (inputHeight <= 0) {
+            return;
+        }
 
-        togglePositionCallbacks.add(syncPosition);
-        bindGlobalPositionListener();
+        binding.button.style.top = `${inputTop + (inputHeight / 2)}px`;
+    }
 
-        syncPosition();
-        requestAnimationFrame(syncPosition);
-        setTimeout(syncPosition, 0);
-        setTimeout(syncPosition, 150);
+    function syncAllTogglePositions() {
+        toggleBindings.forEach(syncTogglePosition);
+    }
 
-        input.addEventListener('focus', syncPosition);
-        input.addEventListener('input', syncPosition);
-        input.addEventListener('blur', syncPosition);
+    function ensureResizeBinding() {
+        if (resizeBound) {
+            return;
+        }
+
+        resizeBound = true;
+        window.addEventListener('resize', syncAllTogglePositions);
+        window.addEventListener('orientationchange', syncAllTogglePositions);
     }
 
     function initializePasswordToggles() {
@@ -91,8 +80,15 @@
             });
 
             wrapper.appendChild(button);
-            bindTogglePositionSync(input, button, wrapper);
+
+            const binding = { input, button };
+            toggleBindings.push(binding);
+            syncTogglePosition(binding);
+            requestAnimationFrame(() => syncTogglePosition(binding));
         });
+
+        ensureResizeBinding();
+        requestAnimationFrame(syncAllTogglePositions);
 
         const forms = Array.from(document.querySelectorAll('form'));
         forms.forEach((form) => {
