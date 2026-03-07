@@ -192,8 +192,16 @@
 
         private void AddServices(IServiceCollection services)
         {
-            services.AddTransient<IEmailSender>(x =>
-                new SendGridEmailSender(this.configuration.GetValue<string>("SendGridApiKey")));
+            var sendGridApiKey = this.configuration.GetValue<string>("SendGridApiKey");
+            if (string.IsNullOrWhiteSpace(sendGridApiKey) || sendGridApiKey.StartsWith("<"))
+            {
+                services.AddTransient<IEmailSender, NoOpEmailSender>();
+            }
+            else
+            {
+                services.AddTransient<IEmailSender>(_ => new SendGridEmailSender(sendGridApiKey));
+            }
+
             services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, IdentityUiEmailSender>();
             services.AddTransient<IBoardFenSerializer, BoardFenSerializer>();
             services.AddTransient<IGameService, GameService>();
