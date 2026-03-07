@@ -61,7 +61,8 @@ jobs:
       - name: Restore Client Libraries (LibMan)
         run: |
           dotnet tool install --global Microsoft.Web.LibraryManager.Cli
-          ~/.dotnet/tools/libman restore src/Web/Chess.Web/libman.json
+          ~/.dotnet/tools/libman restore
+        working-directory: ${{ env.WEB_WORKDIR }}
 
       - name: Install Frontend Dependencies
         run: npm ci
