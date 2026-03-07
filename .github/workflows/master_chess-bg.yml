@@ -92,6 +92,7 @@ jobs:
       - build_test_publish
     outputs:
       configured: ${{ steps.detect_oidc.outputs.configured }}
+      deploy_mode: ${{ steps.detect_oidc.outputs.deploy_mode }}
       missing: ${{ steps.detect_oidc.outputs.missing }}
       resolved_url: ${{ steps.detect_oidc.outputs.resolved_url }}
 
@@ -103,14 +104,17 @@ jobs:
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           AZURE_WEBAPP_NAME: ${{ env.AZURE_WEBAPP_NAME }}
           AZURE_WEBAPP_URL: ${{ secrets.AZURE_WEBAPP_URL }}
         run: |
-          missing=()
-          [ -z "${AZURE_CLIENT_ID}" ] && missing+=("AZURE_CLIENT_ID (secret)")
-          [ -z "${AZURE_TENANT_ID}" ] && missing+=("AZURE_TENANT_ID (secret)")
-          [ -z "${AZURE_SUBSCRIPTION_ID}" ] && missing+=("AZURE_SUBSCRIPTION_ID (secret)")
-          [ -z "${AZURE_WEBAPP_NAME}" ] && missing+=("AZURE_WEBAPP_NAME (repository variable)")
+          oidc_missing=()
+          [ -z "${AZURE_CLIENT_ID}" ] && oidc_missing+=("AZURE_CLIENT_ID (secret)")
+          [ -z "${AZURE_TENANT_ID}" ] && oidc_missing+=("AZURE_TENANT_ID (secret)")
+          [ -z "${AZURE_SUBSCRIPTION_ID}" ] && oidc_missing+=("AZURE_SUBSCRIPTION_ID (secret)")
+
+          shared_missing=()
+          [ -z "${AZURE_WEBAPP_NAME}" ] && shared_missing+=("AZURE_WEBAPP_NAME (repository variable)")
 
           if [ -n "${AZURE_WEBAPP_URL}" ]; then
             resolved_url="${AZURE_WEBAPP_URL}"
@@ -120,16 +124,30 @@ jobs:
             resolved_url="(not configured)"
           fi
 
-          if [ "${#missing[@]}" -gt 0 ]; then
+          if [ "${#shared_missing[@]}" -gt 0 ]; then
             echo "configured=false" >> "${GITHUB_OUTPUT}"
-            printf 'missing=%s\n' "$(IFS='; '; echo "${missing[*]}")" >> "${GITHUB_OUTPUT}"
+            echo "deploy_mode=none" >> "${GITHUB_OUTPUT}"
+            printf 'missing=%s\n' "$(IFS='; '; echo "${shared_missing[*]}")" >> "${GITHUB_OUTPUT}"
             printf 'resolved_url=%s\n' "${resolved_url}" >> "${GITHUB_OUTPUT}"
-            echo "::warning::Azure deployment config is incomplete. Deployment job will be skipped."
-            printf '::warning::Missing: %s\n' "$(IFS=', '; echo "${missing[*]}")"
-          else
+            echo "::warning::Azure deployment config is incomplete. Missing shared settings."
+            printf '::warning::Missing: %s\n' "$(IFS=', '; echo "${shared_missing[*]}")"
+          elif [ "${#oidc_missing[@]}" -eq 0 ]; then
             echo "configured=true" >> "${GITHUB_OUTPUT}"
+            echo "deploy_mode=oidc" >> "${GITHUB_OUTPUT}"
             echo "missing=none" >> "${GITHUB_OUTPUT}"
             printf 'resolved_url=%s\n' "${resolved_url}" >> "${GITHUB_OUTPUT}"
+          elif [ -n "${AZURE_WEBAPP_PUBLISH_PROFILE}" ]; then
+            echo "configured=true" >> "${GITHUB_OUTPUT}"
+            echo "deploy_mode=publish_profile" >> "${GITHUB_OUTPUT}"
+            printf 'missing=%s\n' "$(IFS='; '; echo "${oidc_missing[*]}")" >> "${GITHUB_OUTPUT}"
+            printf 'resolved_url=%s\n' "${resolved_url}" >> "${GITHUB_OUTPUT}"
+            echo "::notice::OIDC secrets missing. Falling back to publish profile deployment."
+          else
+            echo "configured=false" >> "${GITHUB_OUTPUT}"
+            echo "deploy_mode=none" >> "${GITHUB_OUTPUT}"
+            printf 'missing=%s\n' "$(IFS='; '; echo "${oidc_missing[*]}")" >> "${GITHUB_OUTPUT}"
+            printf 'resolved_url=%s\n' "${resolved_url}" >> "${GITHUB_OUTPUT}"
+            echo "::warning::Neither OIDC nor publish profile configuration is complete."
           fi
 
   deploy:
@@ -153,17 +171,27 @@ jobs:
           path: ./publish
 
       - name: Azure Login (OIDC)
+        if: needs.deploy_precheck.outputs.deploy_mode == 'oidc'
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Deploy to Azure Web App
+      - name: Deploy to Azure Web App (OIDC)
+        if: needs.deploy_precheck.outputs.deploy_mode == 'oidc'
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: ${{ env.AZURE_WEBAPP_SLOT }}
+          package: ./publish
+
+      - name: Deploy to Azure Web App (Publish Profile)
+        if: needs.deploy_precheck.outputs.deploy_mode == 'publish_profile'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ./publish
 
       - name: Post-Deploy Health Check
@@ -217,13 +245,13 @@ jobs:
           {
             echo "## Deployment Summary"
             echo ""
-            echo "- Mode: \`OIDC\`"
+            echo "- Mode: \`${{ needs.deploy_precheck.outputs.deploy_mode }}\`"
             echo "- Status: \`deploy_executed\`"
             echo "- App Service: \`${AZURE_WEBAPP_NAME}\`"
             echo "- Slot: \`${AZURE_WEBAPP_SLOT}\`"
             echo "- Base URL: \`${resolved_url}\`"
             echo "- Health Path: \`${AZURE_HEALTHCHECK_PATH}\`"
-            echo "- Missing OIDC Config: \`none\`"
+            echo "- Missing OIDC Config: \`${{ needs.deploy_precheck.outputs.missing }}\`"
           } >> "${GITHUB_STEP_SUMMARY}"
 
   deploy_skipped:
@@ -241,7 +269,7 @@ jobs:
           {
             echo "## Deployment Summary"
             echo ""
-            echo "- Mode: \`OIDC\`"
+            echo "- Mode: \`${{ needs.deploy_precheck.outputs.deploy_mode }}\`"
             echo "- Status: \`deploy_skipped_missing_secrets\`"
             echo "- App Service: \`${AZURE_WEBAPP_NAME}\`"
             echo "- Slot: \`${AZURE_WEBAPP_SLOT}\`"
