@@ -84,12 +84,61 @@ jobs:
           name: webapp-publish
           path: ${{ github.workspace }}/publish
 
-  deploy:
+  deploy_precheck:
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs:
       - terraform_validate
       - build_test_publish
+    outputs:
+      configured: ${{ steps.detect_oidc.outputs.configured }}
+      missing: ${{ steps.detect_oidc.outputs.missing }}
+      resolved_url: ${{ steps.detect_oidc.outputs.resolved_url }}
+
+    steps:
+      - name: Detect OIDC Secrets
+        id: detect_oidc
+        shell: bash
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_WEBAPP_NAME: ${{ env.AZURE_WEBAPP_NAME }}
+          AZURE_WEBAPP_URL: ${{ secrets.AZURE_WEBAPP_URL }}
+        run: |
+          missing=()
+          [ -z "${AZURE_CLIENT_ID}" ] && missing+=("AZURE_CLIENT_ID (secret)")
+          [ -z "${AZURE_TENANT_ID}" ] && missing+=("AZURE_TENANT_ID (secret)")
+          [ -z "${AZURE_SUBSCRIPTION_ID}" ] && missing+=("AZURE_SUBSCRIPTION_ID (secret)")
+          [ -z "${AZURE_WEBAPP_NAME}" ] && missing+=("AZURE_WEBAPP_NAME (repository variable)")
+
+          if [ -n "${AZURE_WEBAPP_URL}" ]; then
+            resolved_url="${AZURE_WEBAPP_URL}"
+          elif [ -n "${AZURE_WEBAPP_NAME}" ]; then
+            resolved_url="https://${AZURE_WEBAPP_NAME}.azurewebsites.net"
+          else
+            resolved_url="(not configured)"
+          fi
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "configured=false" >> "${GITHUB_OUTPUT}"
+            printf 'missing=%s\n' "$(IFS='; '; echo "${missing[*]}")" >> "${GITHUB_OUTPUT}"
+            printf 'resolved_url=%s\n' "${resolved_url}" >> "${GITHUB_OUTPUT}"
+            echo "::warning::Azure deployment config is incomplete. Deployment job will be skipped."
+            printf '::warning::Missing: %s\n' "$(IFS=', '; echo "${missing[*]}")"
+          else
+            echo "configured=true" >> "${GITHUB_OUTPUT}"
+            echo "missing=none" >> "${GITHUB_OUTPUT}"
+            printf 'resolved_url=%s\n' "${resolved_url}" >> "${GITHUB_OUTPUT}"
+          fi
+
+  deploy:
+    if: needs.deploy_precheck.outputs.configured == 'true'
+    runs-on: ubuntu-latest
+    needs:
+      - terraform_validate
+      - build_test_publish
+      - deploy_precheck
     environment:
       name: Production
     permissions:
@@ -103,33 +152,7 @@ jobs:
           name: webapp-publish
           path: ./publish
 
-      - name: Detect OIDC Secrets
-        id: detect_oidc
-        shell: bash
-        env:
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          AZURE_WEBAPP_NAME: ${{ env.AZURE_WEBAPP_NAME }}
-        run: |
-          missing=()
-          [ -z "${AZURE_CLIENT_ID}" ] && missing+=("AZURE_CLIENT_ID (secret)")
-          [ -z "${AZURE_TENANT_ID}" ] && missing+=("AZURE_TENANT_ID (secret)")
-          [ -z "${AZURE_SUBSCRIPTION_ID}" ] && missing+=("AZURE_SUBSCRIPTION_ID (secret)")
-          [ -z "${AZURE_WEBAPP_NAME}" ] && missing+=("AZURE_WEBAPP_NAME (repository variable)")
-
-          if [ "${#missing[@]}" -gt 0 ]; then
-            echo "configured=false" >> "${GITHUB_OUTPUT}"
-            printf 'missing=%s\n' "$(IFS='; '; echo "${missing[*]}")" >> "${GITHUB_OUTPUT}"
-            echo "::warning::Azure deployment config is incomplete. Deployment step will be skipped."
-            printf '::warning::Missing: %s\n' "$(IFS=', '; echo "${missing[*]}")"
-          else
-            echo "configured=true" >> "${GITHUB_OUTPUT}"
-            echo "missing=none" >> "${GITHUB_OUTPUT}"
-          fi
-
       - name: Azure Login (OIDC)
-        if: ${{ steps.detect_oidc.outputs.configured == 'true' }}
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -137,7 +160,6 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy to Azure Web App
-        if: ${{ steps.detect_oidc.outputs.configured == 'true' }}
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
@@ -145,7 +167,6 @@ jobs:
           package: ./publish
 
       - name: Post-Deploy Health Check
-        if: ${{ steps.detect_oidc.outputs.configured == 'true' }}
         shell: bash
         env:
           AZURE_WEBAPP_URL: ${{ secrets.AZURE_WEBAPP_URL }}
@@ -180,12 +201,6 @@ jobs:
             exit 1
           fi
 
-      - name: Skip Deploy (Missing OIDC Secrets)
-        if: ${{ steps.detect_oidc.outputs.configured != 'true' }}
-        shell: bash
-        run: |
-          echo "Azure deploy skipped: required OIDC secrets are not configured."
-
       - name: Deployment Summary
         if: always()
         shell: bash
@@ -199,22 +214,40 @@ jobs:
           else
             resolved_url="(not configured)"
           fi
-          if [ "${{ steps.detect_oidc.outputs.configured }}" = "true" ]; then
-            mode="OIDC"
-            status="deploy_executed"
-          else
-            mode="OIDC"
-            status="deploy_skipped_missing_secrets"
-          fi
-          missing_items="${{ steps.detect_oidc.outputs.missing }}"
           {
             echo "## Deployment Summary"
             echo ""
-            echo "- Mode: \`${mode}\`"
-            echo "- Status: \`${status}\`"
+            echo "- Mode: \`OIDC\`"
+            echo "- Status: \`deploy_executed\`"
             echo "- App Service: \`${AZURE_WEBAPP_NAME}\`"
             echo "- Slot: \`${AZURE_WEBAPP_SLOT}\`"
             echo "- Base URL: \`${resolved_url}\`"
             echo "- Health Path: \`${AZURE_HEALTHCHECK_PATH}\`"
-            echo "- Missing OIDC Config: \`${missing_items}\`"
+            echo "- Missing OIDC Config: \`none\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  deploy_skipped:
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && needs.deploy_precheck.outputs.configured != 'true'
+    runs-on: ubuntu-latest
+    needs:
+      - terraform_validate
+      - build_test_publish
+      - deploy_precheck
+
+    steps:
+      - name: Deployment Summary (Skipped)
+        shell: bash
+        run: |
+          {
+            echo "## Deployment Summary"
+            echo ""
+            echo "- Mode: \`OIDC\`"
+            echo "- Status: \`deploy_skipped_missing_secrets\`"
+            echo "- App Service: \`${AZURE_WEBAPP_NAME}\`"
+            echo "- Slot: \`${AZURE_WEBAPP_SLOT}\`"
+            echo "- Base URL: \`${{ needs.deploy_precheck.outputs.resolved_url }}\`"
+            echo "- Health Path: \`${AZURE_HEALTHCHECK_PATH}\`"
+            echo "- Missing OIDC Config: \`${{ needs.deploy_precheck.outputs.missing }}\`"
+            echo ""
+            echo "Configure missing values and rerun the workflow."
           } >> "${GITHUB_STEP_SUMMARY}"

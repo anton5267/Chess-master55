@@ -47,7 +47,15 @@ function Ensure-ScopedLogin {
         az account get-access-token --scope $Scope --output none | Out-Null
     }
     catch {
-        throw "Azure token for scope '$Scope' is missing. Run: az login --scope $Scope $Hint"
+        Write-Host "Azure token for scope '$Scope' is missing. Starting interactive login..." -ForegroundColor Yellow
+        az login --scope $Scope --use-device-code | Out-Null
+
+        try {
+            az account get-access-token --scope $Scope --output none | Out-Null
+        }
+        catch {
+            throw "Azure token for scope '$Scope' is still missing. Run: az login --scope $Scope $Hint"
+        }
     }
 }
 

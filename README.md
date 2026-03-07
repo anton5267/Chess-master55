@@ -92,6 +92,13 @@ Deploy runs on:
 - push to `main`
 - manual `workflow_dispatch` for `main`
 
+Pipeline jobs:
+- `terraform_validate`
+- `build_test_publish`
+- `deploy_precheck`
+- `deploy` (runs only when OIDC config is complete)
+- `deploy_skipped` (writes summary when config is incomplete)
+
 OIDC bootstrap (recommended one-time flow):
 ```bash
 az login --scope https://management.core.windows.net//.default
@@ -107,11 +114,17 @@ gh secret set AZURE_WEBAPP_URL --repo anton5267/Chess-master55 --body "https://<
 ```
 
 If the deployment summary shows `deploy_skipped_missing_secrets`, configure all required values above and rerun the workflow.
+Quick check:
+```bash
+gh secret list --repo anton5267/Chess-master55
+gh variable list --repo anton5267/Chess-master55
+```
 
 PowerShell helper (idempotent):
 ```powershell
 pwsh ./scripts/bootstrap-azure-oidc.ps1 -Repo anton5267/Chess-master55 -WebAppName "<webapp-name>" -ResourceGroup "<resource-group>"
 ```
+If scoped Azure tokens are missing, the helper now opens `az login --use-device-code` automatically.
 
 Health endpoints:
 - `/healthz`
@@ -199,7 +212,9 @@ Pipeline запускається:
 Склад pipeline:
 - `terraform_validate`
 - `build_test_publish`
-- `deploy`
+- `deploy_precheck`
+- `deploy` (запускається лише коли OIDC налаштований повністю)
+- `deploy_skipped` (пише summary, якщо OIDC конфіг неповний)
 
 Базовий OIDC bootstrap (одноразово):
 ```bash
@@ -214,11 +229,17 @@ gh secret set AZURE_WEBAPP_URL --repo anton5267/Chess-master55 --body "https://<
 ```
 
 Якщо в summary бачиш `deploy_skipped_missing_secrets`, додай усі обовʼязкові значення вище та перезапусти workflow.
+Швидка перевірка:
+```bash
+gh secret list --repo anton5267/Chess-master55
+gh variable list --repo anton5267/Chess-master55
+```
 
 PowerShell helper (ідемпотентний):
 ```powershell
 pwsh ./scripts/bootstrap-azure-oidc.ps1 -Repo anton5267/Chess-master55 -WebAppName "<webapp-name>" -ResourceGroup "<resource-group>"
 ```
+Якщо бракує scoped token, helper автоматично запустить `az login --use-device-code`.
 
 ---
 
