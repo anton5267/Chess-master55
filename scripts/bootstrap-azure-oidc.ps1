@@ -43,17 +43,17 @@ function Ensure-ScopedLogin {
         [string]$Hint
     )
 
-    try {
-        az account get-access-token --scope $Scope --output none | Out-Null
-    }
-    catch {
+    az account get-access-token --scope $Scope --output none | Out-Null
+    if ($LASTEXITCODE -ne 0) {
         Write-Host "Azure token for scope '$Scope' is missing. Starting interactive login..." -ForegroundColor Yellow
         az login --scope $Scope --use-device-code | Out-Null
 
-        try {
-            az account get-access-token --scope $Scope --output none | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Interactive Azure login failed for scope '$Scope'. Run: az login --scope $Scope $Hint"
         }
-        catch {
+
+        az account get-access-token --scope $Scope --output none | Out-Null
+        if ($LASTEXITCODE -ne 0) {
             throw "Azure token for scope '$Scope' is still missing. Run: az login --scope $Scope $Hint"
         }
     }
