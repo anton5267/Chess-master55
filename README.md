@@ -9,6 +9,15 @@ Supports real-time PvP, bot mode, localization (EN/UK/DE/PL/ES), ELO stats, and 
 
 ---
 
+## Live
+- Production: `https://chess-master55-prod-4a93e5e5.azurewebsites.net`
+- Ngrok-first dev: `https://nonhostilely-unhampered-noah.ngrok-free.dev`
+
+## Release Notes
+- See [RELEASE_NOTES.md](./RELEASE_NOTES.md) for the latest production changes.
+
+---
+
 ## English
 
 ### Product Overview
