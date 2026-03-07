@@ -58,6 +58,11 @@ jobs:
           cache: npm
           cache-dependency-path: ${{ env.WEB_WORKDIR }}/package-lock.json
 
+      - name: Restore Client Libraries (LibMan)
+        run: |
+          dotnet tool install --global Microsoft.Web.LibraryManager.Cli
+          ~/.dotnet/tools/libman restore src/Web/Chess.Web/libman.json
+
       - name: Install Frontend Dependencies
         run: npm ci
         working-directory: ${{ env.WEB_WORKDIR }}
