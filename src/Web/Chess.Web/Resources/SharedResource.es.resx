@@ -231,6 +231,12 @@
   <data name="Js_GameReview_MovesEmpty" xml:space="preserve">
     <value>No hay movimientos registrados.</value>
   </data>
+  <data name="Js_GameReview_MaterialEqual" xml:space="preserve">
+    <value>Igualado</value>
+  </data>
+  <data name="Js_GameReview_MaterialLeadFormat" xml:space="preserve">
+    <value>{name} +{points}</value>
+  </data>
   <data name="Js_PlayerTurnFormat" xml:space="preserve">
     <value>¡El turno de {name}!</value>
   </data>
@@ -1262,6 +1268,18 @@
   </data>
   <data name="Game_ReviewMoveCount" xml:space="preserve">
     <value>Movimientos</value>
+  </data>
+  <data name="Game_ReviewCaptures" xml:space="preserve">
+    <value>Capturas</value>
+  </data>
+  <data name="Game_ReviewChecks" xml:space="preserve">
+    <value>Jaques</value>
+  </data>
+  <data name="Game_ReviewPromotions" xml:space="preserve">
+    <value>Promociones</value>
+  </data>
+  <data name="Game_ReviewMaterial" xml:space="preserve">
+    <value>Material</value>
   </data>
   <data name="Game_ReviewMoves" xml:space="preserve">
     <value>Lista de movimientos</value>

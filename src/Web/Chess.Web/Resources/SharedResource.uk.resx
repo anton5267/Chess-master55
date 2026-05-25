@@ -486,6 +486,12 @@
   <data name="Js_GameReview_MovesEmpty" xml:space="preserve">
     <value>Ходи не записані.</value>
   </data>
+  <data name="Js_GameReview_MaterialEqual" xml:space="preserve">
+    <value>Рівно</value>
+  </data>
+  <data name="Js_GameReview_MaterialLeadFormat" xml:space="preserve">
+    <value>{name} +{points}</value>
+  </data>
   <data name="Js_PlayerTurnFormat" xml:space="preserve">
     <value>Черга {name}!</value>
   </data>
@@ -1262,6 +1268,18 @@
   </data>
   <data name="Game_ReviewMoveCount" xml:space="preserve">
     <value>Ходи</value>
+  </data>
+  <data name="Game_ReviewCaptures" xml:space="preserve">
+    <value>Взяття</value>
+  </data>
+  <data name="Game_ReviewChecks" xml:space="preserve">
+    <value>Шахи</value>
+  </data>
+  <data name="Game_ReviewPromotions" xml:space="preserve">
+    <value>Перетворення</value>
+  </data>
+  <data name="Game_ReviewMaterial" xml:space="preserve">
+    <value>Матеріал</value>
   </data>
   <data name="Game_ReviewMoves" xml:space="preserve">
     <value>Список ходів</value>

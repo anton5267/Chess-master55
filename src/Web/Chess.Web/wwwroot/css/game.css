@@ -265,6 +265,7 @@
     margin: 0.15rem 0 0;
     color: #24374f;
     font-weight: 800;
+    overflow-wrap: anywhere;
 }
 
 .game-review-moves-heading {

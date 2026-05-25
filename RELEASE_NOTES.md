@@ -28,6 +28,9 @@
 - Fixed full app game layout so the fixed navbar does not cover the board/status area on desktop or mobile.
 - Added smoother chessboard movement, turn/status pulses, move-history entry animation, and captured-piece counter feedback in both the full app and static demo.
 - Added UX v1 polish: Hard bot difficulty, optional sound effects, post-game review, and README screenshots for demo/full app.
+- Strengthened Hard bot play with a lightweight engine-style search that considers material, king pressure, promotions, checks, and opponent replies without bundling Stockfish.
+- Expanded post-game review in the static demo and full app with captures, checks, promotions, and material balance.
+- Reduced legacy/generated StyleCop warning noise from Identity, migrations, and old formatting rules.
 
 ### Verified
 - `libman restore`

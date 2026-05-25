@@ -462,6 +462,13 @@ export function updateReplayControls(elements, state) {
 
 const gameResultTones = new Set(['win', 'loss', 'draw']);
 const gameResultToneClasses = ['game-result-win', 'game-result-loss', 'game-result-draw'];
+const reviewPieceValues = {
+    Pawn: 1,
+    Knight: 3,
+    Bishop: 3,
+    Rook: 5,
+    Queen: 9,
+};
 
 export function clearGameResultBanner(elements) {
     if (!elements.gameResultBanner) {
@@ -507,9 +514,60 @@ export function clearGameReview(elements) {
     if (elements.gameReviewMoveCount) {
         elements.gameReviewMoveCount.textContent = '0';
     }
+    if (elements.gameReviewCaptures) {
+        elements.gameReviewCaptures.textContent = '0';
+    }
+    if (elements.gameReviewChecks) {
+        elements.gameReviewChecks.textContent = '0';
+    }
+    if (elements.gameReviewPromotions) {
+        elements.gameReviewPromotions.textContent = '0';
+    }
+    if (elements.gameReviewMaterial) {
+        elements.gameReviewMaterial.textContent = '';
+    }
     if (elements.gameReviewMoves) {
         elements.gameReviewMoves.innerHTML = '';
     }
+}
+
+function getReviewCaptureValue(pieceName) {
+    return reviewPieceValues[pieceName] || 0;
+}
+
+function createReviewMetrics(state, moves) {
+    const captures = Array.isArray(state.reviewCaptures) ? state.reviewCaptures : [];
+    const notationCaptureCount = moves.filter((move) => (move.notation || '').includes('x')).length;
+    const captureCount = captures.length || notationCaptureCount;
+    const checks = moves.filter((move) => /[+#]/.test(move.notation || '')).length;
+    const promotions = moves.filter((move) => /=/.test(move.notation || '')).length;
+
+    let playerOneMaterial = 0;
+    let playerTwoMaterial = 0;
+    captures.forEach((capture) => {
+        const value = getReviewCaptureValue(capture.pieceName);
+        if (capture.playerName === state.playerOneName) {
+            playerOneMaterial += value;
+        } else if (capture.playerName === state.playerTwoName) {
+            playerTwoMaterial += value;
+        }
+    });
+
+    let materialText = t('gameReviewMaterialEqual');
+    if (playerOneMaterial !== playerTwoMaterial) {
+        const leaderName = playerOneMaterial > playerTwoMaterial
+            ? state.playerOneName
+            : state.playerTwoName;
+        const lead = Math.abs(playerOneMaterial - playerTwoMaterial);
+        materialText = t('gameReviewMaterialLeadFormat', { name: leaderName || '-', points: lead });
+    }
+
+    return {
+        captures: captureCount,
+        checks,
+        promotions,
+        material: materialText,
+    };
 }
 
 export function renderGameReview(elements, state, resultMessage, reason) {
@@ -519,6 +577,7 @@ export function renderGameReview(elements, state, resultMessage, reason) {
 
     const moves = Array.isArray(state.reviewMoves) ? state.reviewMoves : [];
     const winnerName = state.gameOverWinnerName || t('gameReviewNoWinner');
+    const metrics = createReviewMetrics(state, moves);
 
     if (elements.gameReviewResult) {
         elements.gameReviewResult.textContent = resultMessage || t('gameResultDraw');
@@ -534,6 +593,22 @@ export function renderGameReview(elements, state, resultMessage, reason) {
 
     if (elements.gameReviewMoveCount) {
         elements.gameReviewMoveCount.textContent = String(moves.length);
+    }
+
+    if (elements.gameReviewCaptures) {
+        elements.gameReviewCaptures.textContent = String(metrics.captures);
+    }
+
+    if (elements.gameReviewChecks) {
+        elements.gameReviewChecks.textContent = String(metrics.checks);
+    }
+
+    if (elements.gameReviewPromotions) {
+        elements.gameReviewPromotions.textContent = String(metrics.promotions);
+    }
+
+    if (elements.gameReviewMaterial) {
+        elements.gameReviewMaterial.textContent = metrics.material;
     }
 
     if (elements.gameReviewMoves) {
@@ -593,6 +668,7 @@ export function resetGameUi(elements, state) {
     state.gameOverCode = null;
     state.gameOverWinnerName = null;
     state.reviewMoves = [];
+    state.reviewCaptures = [];
     state.currentFen = 'start';
     state.liveFen = 'start';
     state.displayFen = 'start';

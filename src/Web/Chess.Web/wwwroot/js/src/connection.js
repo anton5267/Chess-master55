@@ -989,6 +989,11 @@ export function registerConnectionHandlers(connection, elements, state) {
     });
 
     connection.on('UpdateTakenFigures', function onUpdateTakenFigures(movingPlayer, pieceName, points) {
+        state.reviewCaptures.push({
+            playerName: movingPlayer && movingPlayer.name ? movingPlayer.name : '',
+            pieceName,
+        });
+
         if (movingPlayer.name === state.playerOneName) {
             elements.whitePointsValue.innerText = points;
             switch (pieceName) {

@@ -28,7 +28,7 @@ The old Azure App Service URL is not treated as the live site anymore. Azure dep
 | Real-time PvP / lobby / chat | No | Yes |
 | Bot play | Yes, browser-local Easy/Normal/Hard | Yes, server-backed Easy/Normal/Hard |
 | Sound effects | Browser-local toggle | Browser-local toggle inside full app UI |
-| Game review | Local post-game summary | Client-side post-game summary from SignalR move history |
+| Game review | Local result, move list, captures, checks, promotions, material | Client-side result, move list, captures, checks, promotions, material |
 | Stats | Browser-local | EF Core + SQL database |
 | Source | `docs/` | `src/` |
 
@@ -37,7 +37,7 @@ The old Azure App Service URL is not treated as the live site anymore. Azure dep
 ### Product Overview
 
 - Real-time multiplayer chess over SignalR.
-- Bot mode with selectable difficulty.
+- Bot mode with selectable difficulty. Hard uses a lightweight engine-style search without bundling Stockfish.
 - Full Identity flow: register, login, account management.
 - Stats page with ELO and historical game metrics.
 - Multi-language UI: English, Ukrainian, German, Polish, Spanish.
@@ -119,7 +119,7 @@ What works on GitHub Pages:
 - Local two-player chess in one browser.
 - Play vs bot with Easy, Normal, and Hard demo difficulty.
 - Board/piece themes, promotion choice, undo, flip, draw, resign.
-- Sound effects toggle and post-game review.
+- Sound effects toggle and post-game review with captures, checks, promotions, and material balance.
 - Browser-local move history and stats.
 
 Requires the full ASP.NET Core app:

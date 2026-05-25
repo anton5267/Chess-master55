@@ -504,6 +504,7 @@ a {
 .review-summary dd {
   margin: 3px 0 0;
   font-weight: 900;
+  overflow-wrap: anywhere;
 }
 
 .review-move-list {

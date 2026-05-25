@@ -100,6 +100,46 @@ public class BotMoveSelectorTests
     }
 
     [Fact]
+    public void RandomLegalMoveSelector_HardDifficulty_ShouldPreferHighValueCapture()
+    {
+        var game = CreateEmptyGame(movingColor: Color.White);
+        var board = game.ChessBoard;
+
+        board.GetSquareByName("a1").Piece = Factory.GetKing(Color.White);
+        board.GetSquareByName("h8").Piece = Factory.GetKing(Color.Black);
+        board.GetSquareByName("d4").Piece = Factory.GetRook(Color.White);
+        board.GetSquareByName("d6").Piece = Factory.GetQueen(Color.Black);
+        board.GetSquareByName("g4").Piece = Factory.GetPawn(Color.Black);
+        board.CalculateAttackedSquares();
+
+        var selector = new RandomLegalMoveSelector();
+        selector.TrySelectMove(game, BotDifficulty.Hard, out var selectedMove).Should().BeTrue();
+        selectedMove.Should().NotBeNull();
+        selectedMove.Source.Should().Be("d4");
+        selectedMove.Target.Should().Be("d6");
+        selectedMove.IsCapture.Should().BeTrue();
+    }
+
+    [Fact]
+    public void RandomLegalMoveSelector_HardDifficulty_ShouldPreferPromotion()
+    {
+        var game = CreateEmptyGame(movingColor: Color.White);
+        var board = game.ChessBoard;
+
+        board.GetSquareByName("h1").Piece = Factory.GetKing(Color.White);
+        board.GetSquareByName("h8").Piece = Factory.GetKing(Color.Black);
+        board.GetSquareByName("a7").Piece = Factory.GetPawn(Color.White);
+        board.GetSquareByName("g4").Piece = Factory.GetPawn(Color.Black);
+        board.CalculateAttackedSquares();
+
+        var selector = new RandomLegalMoveSelector();
+        selector.TrySelectMove(game, BotDifficulty.Hard, out var selectedMove).Should().BeTrue();
+        selectedMove.Should().NotBeNull();
+        selectedMove.Source.Should().Be("a7");
+        selectedMove.Target.Should().Be("a8");
+    }
+
+    [Fact]
     public void RandomLegalMoveSelector_HardDifficulty_ShouldPreferLikelyMateOverQueenCapture()
     {
         var game = CreateEmptyGame(movingColor: Color.White);

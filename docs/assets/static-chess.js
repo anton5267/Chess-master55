@@ -37,6 +37,10 @@
       winner: "Winner",
       reason: "Reason",
       moves: "Moves",
+      captures: "Captures",
+      checks: "Checks",
+      promotions: "Promotions",
+      material: "Material",
       localStats: "Local stats",
       reset: "Reset",
       games: "Games",
@@ -57,6 +61,7 @@
       blackWon: "Black won",
       noWinner: "No winner",
       noMoves: "No moves recorded.",
+      equalMaterial: "Equal",
       botThinking: "Bot thinking",
       loadError: "The chess libraries did not load. Refresh the page or check the internet connection.",
     },
@@ -95,6 +100,10 @@
       winner: "Переможець",
       reason: "Причина",
       moves: "Ходи",
+      captures: "Взяття",
+      checks: "Шахи",
+      promotions: "Перетворення",
+      material: "Матеріал",
       localStats: "Локальна статистика",
       reset: "Скинути",
       games: "Ігри",
@@ -115,6 +124,7 @@
       blackWon: "Чорні перемогли",
       noWinner: "Без переможця",
       noMoves: "Ходи не записані.",
+      equalMaterial: "Рівно",
       botThinking: "Бот думає",
       loadError: "Шахові бібліотеки не завантажились. Онови сторінку або перевір інтернет.",
     },
@@ -153,6 +163,10 @@
       winner: "Sieger",
       reason: "Grund",
       moves: "Zuge",
+      captures: "Schlagen",
+      checks: "Schachs",
+      promotions: "Umwandlungen",
+      material: "Material",
       localStats: "Lokale Statistik",
       reset: "Reset",
       games: "Spiele",
@@ -173,6 +187,7 @@
       blackWon: "Schwarz gewinnt",
       noWinner: "Kein Sieger",
       noMoves: "Keine Zuge aufgezeichnet.",
+      equalMaterial: "Ausgeglichen",
       botThinking: "Bot denkt",
       loadError: "Die Schachbibliotheken wurden nicht geladen. Seite neu laden oder Verbindung prufen.",
     },
@@ -211,6 +226,10 @@
       winner: "Zwyciezca",
       reason: "Powod",
       moves: "Ruchy",
+      captures: "Bicia",
+      checks: "Szachy",
+      promotions: "Promocje",
+      material: "Material",
       localStats: "Statystyki lokalne",
       reset: "Reset",
       games: "Gry",
@@ -231,6 +250,7 @@
       blackWon: "Czarne wygraly",
       noWinner: "Brak zwyciezcy",
       noMoves: "Brak zapisanych ruchow.",
+      equalMaterial: "Rowno",
       botThinking: "Bot mysli",
       loadError: "Biblioteki szachowe sie nie zaladowaly. Odswiez strone albo sprawdz internet.",
     },
@@ -269,6 +289,10 @@
       winner: "Ganador",
       reason: "Motivo",
       moves: "Movimientos",
+      captures: "Capturas",
+      checks: "Jaques",
+      promotions: "Promociones",
+      material: "Material",
       localStats: "Estadisticas locales",
       reset: "Reiniciar",
       games: "Partidas",
@@ -289,6 +313,7 @@
       blackWon: "Ganan negras",
       noWinner: "Sin ganador",
       noMoves: "No hay movimientos registrados.",
+      equalMaterial: "Igualado",
       botThinking: "Bot pensando",
       loadError: "No se cargaron las bibliotecas de ajedrez. Recarga la pagina o revisa internet.",
     },
@@ -444,6 +469,10 @@
       "reviewWinner",
       "reviewReason",
       "reviewMoveCount",
+      "reviewCaptures",
+      "reviewChecks",
+      "reviewPromotions",
+      "reviewMaterial",
       "reviewMoves",
       "statGames",
       "statWhiteWins",
@@ -821,9 +850,61 @@
     return moves
       .map((move) => ({
         move,
-        score: scoreMove(move, difficulty) + Math.random() * (difficulty === "hard" ? 0.05 : 0.25),
+        score: (difficulty === "hard" ? scoreEngineStyleMove(move) : scoreMove(move, difficulty))
+          + Math.random() * (difficulty === "hard" ? 0.05 : 0.25),
       }))
       .sort((a, b) => b.score - a.score)[0].move;
+  }
+
+  function scoreEngineStyleMove(move) {
+    let score = scoreMove(move, "hard");
+    const movingColor = move.color;
+    const opponentColor = movingColor === "w" ? "b" : "w";
+
+    chess.move(move);
+    score += evaluatePosition(movingColor) * 0.14;
+    score += kingPressureScore(opponentColor, movingColor);
+    score -= bestReplyScore(opponentColor, movingColor) * 0.62;
+    chess.undo();
+
+    return score;
+  }
+
+  function bestReplyScore(replyColor, originalColor) {
+    const replies = chess.moves({ verbose: true });
+    if (replies.length === 0) {
+      return 0;
+    }
+
+    return replies.reduce((best, reply) => Math.max(best, scoreReplyMove(reply, replyColor, originalColor)), 0);
+  }
+
+  function scoreReplyMove(move, replyColor, originalColor) {
+    let score = 0;
+    if (move.captured) {
+      const victimValue = pieceValues[move.captured] || 0;
+      const attackerValue = pieceValues[move.piece] || 1;
+      score += (victimValue * 120) - (attackerValue * 7);
+    }
+
+    if (move.promotion) {
+      score += 900;
+    }
+
+    chess.move(move);
+    if (chess.in_checkmate()) {
+      score += 5000;
+    } else if (chess.in_check() || move.san.includes("+")) {
+      score += 90;
+    }
+
+    if (isSquareAttackedBy(move.to, originalColor)) {
+      score -= (pieceValues[move.piece] || 1) * 14;
+    }
+
+    score += evaluatePosition(replyColor) * 0.05;
+    chess.undo();
+    return score;
   }
 
   function scoreMove(move, difficulty) {
@@ -863,6 +944,123 @@
       score += Math.max(0, 20 - opponentMoves) * 0.3;
     }
     return score;
+  }
+
+  function evaluatePosition(color) {
+    let score = 0;
+    const boardState = chess.board();
+    boardState.forEach((row, rowIndex) => {
+      row.forEach((piece, fileIndex) => {
+        if (!piece) {
+          return;
+        }
+
+        const sign = piece.color === color ? 1 : -1;
+        const square = squareName(rowIndex, fileIndex);
+        score += sign * (pieceValues[piece.type] || 0) * 100;
+        score += sign * placementBonus(piece, square);
+      });
+    });
+
+    return score;
+  }
+
+  function squareName(rowIndex, fileIndex) {
+    return `${"abcdefgh"[fileIndex]}${8 - rowIndex}`;
+  }
+
+  function placementBonus(piece, square) {
+    let score = 0;
+    if (["d4", "e4", "d5", "e5"].includes(square)) {
+      score += 18;
+    } else if (["c3", "c4", "c5", "c6", "d3", "d6", "e3", "e6", "f3", "f4", "f5", "f6"].includes(square)) {
+      score += 7;
+    }
+
+    if (["n", "b"].includes(piece.type) && isDevelopedMinorPiece(piece, square)) {
+      score += 8;
+    }
+
+    if (piece.type === "p") {
+      const rank = Number(square[1]);
+      score += (piece.color === "w" ? Math.max(0, rank - 2) : Math.max(0, 7 - rank)) * 3;
+    }
+
+    return score;
+  }
+
+  function isDevelopedMinorPiece(piece, square) {
+    const homeRank = piece.color === "w" ? "1" : "8";
+    return square[1] !== homeRank;
+  }
+
+  function kingPressureScore(defenderColor, attackerColor) {
+    const kingSquare = findKingSquare(defenderColor);
+    if (!kingSquare) {
+      return 0;
+    }
+
+    const attackTargets = getLegalTargetsForColor(attackerColor);
+    let pressure = attackTargets.has(kingSquare) ? 55 : 0;
+    adjacentSquares(kingSquare).forEach((square) => {
+      if (attackTargets.has(square)) {
+        pressure += 8;
+      }
+    });
+
+    return pressure;
+  }
+
+  function findKingSquare(color) {
+    const boardState = chess.board();
+    for (let rowIndex = 0; rowIndex < boardState.length; rowIndex += 1) {
+      for (let fileIndex = 0; fileIndex < boardState[rowIndex].length; fileIndex += 1) {
+        const piece = boardState[rowIndex][fileIndex];
+        if (piece && piece.type === "k" && piece.color === color) {
+          return squareName(rowIndex, fileIndex);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  function adjacentSquares(square) {
+    const fileIndex = "abcdefgh".indexOf(square[0]);
+    const rank = Number(square[1]);
+    const squares = [];
+    for (let fileOffset = -1; fileOffset <= 1; fileOffset += 1) {
+      for (let rankOffset = -1; rankOffset <= 1; rankOffset += 1) {
+        if (fileOffset === 0 && rankOffset === 0) {
+          continue;
+        }
+
+        const nextFileIndex = fileIndex + fileOffset;
+        const nextRank = rank + rankOffset;
+        if (nextFileIndex >= 0 && nextFileIndex < 8 && nextRank >= 1 && nextRank <= 8) {
+          squares.push(`${"abcdefgh"[nextFileIndex]}${nextRank}`);
+        }
+      }
+    }
+
+    return squares;
+  }
+
+  function isSquareAttackedBy(square, color) {
+    return getLegalTargetsForColor(color).has(square);
+  }
+
+  function getLegalTargetsForColor(color) {
+    const fen = chess.fen();
+    const parts = fen.split(" ");
+    const activeColor = parts[1];
+    const analyzer = new window.Chess(fen);
+    if (activeColor !== color) {
+      parts[1] = color;
+      analyzer.load(parts.join(" "));
+    }
+
+    return new Set(analyzer.moves({ verbose: true }).map((move) => move.to));
   }
 
   function undoMove() {
@@ -1076,6 +1274,10 @@
     elements.reviewWinner.textContent = "-";
     elements.reviewReason.textContent = "-";
     elements.reviewMoveCount.textContent = "0";
+    elements.reviewCaptures.textContent = "0";
+    elements.reviewChecks.textContent = "0";
+    elements.reviewPromotions.textContent = "0";
+    elements.reviewMaterial.textContent = "-";
     elements.reviewMoves.innerHTML = "";
   }
 
@@ -1124,14 +1326,52 @@
     };
   }
 
+  function buildReviewMetrics(history) {
+    let whiteMaterial = 0;
+    let blackMaterial = 0;
+    const captures = history.filter((move) => !!move.captured).length;
+    const checks = history.filter((move) => /[+#]/.test(move.san || "")).length;
+    const promotions = history.filter((move) => !!move.promotion).length;
+
+    history.forEach((move) => {
+      if (!move.captured) {
+        return;
+      }
+
+      if (move.color === "w") {
+        whiteMaterial += pieceValues[move.captured] || 0;
+      } else {
+        blackMaterial += pieceValues[move.captured] || 0;
+      }
+    });
+
+    let material = t("equalMaterial");
+    if (whiteMaterial !== blackMaterial) {
+      const leader = whiteMaterial > blackMaterial ? t("white") : t("black");
+      material = `${leader} +${Math.abs(whiteMaterial - blackMaterial)}`;
+    }
+
+    return {
+      captures,
+      checks,
+      promotions,
+      material,
+    };
+  }
+
   function renderReview() {
     const summary = resolveGameSummary();
     const history = chess.history({ verbose: true });
+    const metrics = buildReviewMetrics(history);
 
     elements.reviewResult.textContent = summary.result;
     elements.reviewWinner.textContent = summary.winner;
     elements.reviewReason.textContent = summary.reason;
     elements.reviewMoveCount.textContent = String(history.length);
+    elements.reviewCaptures.textContent = String(metrics.captures);
+    elements.reviewChecks.textContent = String(metrics.checks);
+    elements.reviewPromotions.textContent = String(metrics.promotions);
+    elements.reviewMaterial.textContent = metrics.material;
     elements.reviewMoves.innerHTML = "";
 
     if (history.length === 0) {
