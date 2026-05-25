@@ -8,6 +8,8 @@
   - full ASP.NET Core app for local or server hosting.
 - Marked Azure App Service deployment as optional/manual instead of the main live target.
 - Updated local setup instructions for `libman restore`, `npm ci`, frontend asset build, .NET restore/build/test, and local run.
+- Added a Docker Compose full-app stack for ASP.NET Core + SQL Server local hosting.
+- Added a deployment guide for GitHub Pages, full local hosting, Docker Compose, and optional Azure.
 - Refreshed contributor guidance and issue template wording for the GitHub Pages demo + full app model.
 
 ### Gameplay
@@ -20,6 +22,7 @@
 - Verified package vulnerability scan reports no vulnerable packages.
 - Added a separate `full-app-ci` GitHub Actions workflow for the ASP.NET Core app quality gate.
 - Upgraded the full ASP.NET Core solution from .NET 8 to .NET 10 LTS.
+- Updated Docker images and container asset restore/build steps for .NET 10.
 
 ### UX
 - Fixed full app game layout so the fixed navbar does not cover the board/status area on desktop or mobile.

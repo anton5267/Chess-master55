@@ -58,6 +58,7 @@ The old Azure App Service URL is not treated as the live site anymore. Azure dep
 - .NET 10 SDK/runtime
 - Node.js with npm
 - SQL Server Express, LocalDB, or another SQL Server connection string
+- Docker Desktop, optional for the one-command full app stack
 - LibMan CLI:
 
 ```bash
@@ -86,6 +87,20 @@ dotnet run --project src/Web/Chess.Web/Chess.Web.csproj --urls http://localhost:
 Open: `http://localhost:5000`
 
 The app reads `CONNECTION_STRING` first. If it is not set, it uses `appsettings.Development.json` when `ASPNETCORE_ENVIRONMENT=Development`.
+
+### Full App With Docker Compose
+
+Requires Docker Desktop. Run from the repository root:
+
+```bash
+docker compose up --build
+```
+
+Open: `http://localhost:5000`
+
+Compose starts SQL Server and the full ASP.NET Core app. SQL data is stored in the `chess-sql-data` Docker volume. The default local SQL password is `Chess_dev_2026!`; override it with `CHESS_SQL_PASSWORD` before starting Compose.
+
+More deployment notes: [DEPLOYMENT.md](./DEPLOYMENT.md)
 
 ### Static GitHub Pages Demo
 
@@ -206,6 +221,20 @@ dotnet run --project src/Web/Chess.Web/Chess.Web.csproj --urls http://localhost:
 Відкрити: `http://localhost:5000`
 
 Для локальної бази потрібен SQL Server Express/LocalDB або змінна `CONNECTION_STRING`.
+
+### Docker Compose для повної версії
+
+Потрібен Docker Desktop. Запуск з кореня репозиторію:
+
+```bash
+docker compose up --build
+```
+
+Відкрити: `http://localhost:5000`
+
+Compose піднімає SQL Server і full ASP.NET Core app. Дані бази зберігаються в Docker volume `chess-sql-data`. Пароль для локального SQL за замовчуванням: `Chess_dev_2026!`; його можна змінити через `CHESS_SQL_PASSWORD`.
+
+Деталі деплою: [DEPLOYMENT.md](./DEPLOYMENT.md)
 
 ### GitHub Pages demo
 
