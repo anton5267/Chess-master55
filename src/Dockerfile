@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim AS assets
+FROM node:24-alpine AS assets
 WORKDIR /src/Web/Chess.Web
 COPY ["Web/Chess.Web/package.json", "Web/Chess.Web/package-lock.json", "./"]
 RUN npm ci
