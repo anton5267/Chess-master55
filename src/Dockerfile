@@ -32,14 +32,11 @@ RUN dotnet restore "Web/Chess.Web/Chess.Web.csproj"
 RUN dotnet tool install --global Microsoft.Web.LibraryManager.Cli
 COPY . .
 WORKDIR /src/Web/Chess.Web
-RUN /root/.dotnet/tools/libman restore
+RUN for attempt in 1 2 3; do /root/.dotnet/tools/libman restore && break; if [ "$attempt" = "3" ]; then exit 1; fi; sleep 3; done
 COPY --from=assets /src/Web/Chess.Web/wwwroot/js/ ./wwwroot/js/
-RUN dotnet build "Chess.Web.csproj" --no-restore -c Release -o /app/build
-
-FROM build AS publish
-RUN dotnet publish "Chess.Web.csproj" --no-build -c Release -o /app/publish
+RUN dotnet publish "Chess.Web.csproj" --no-restore -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "Chess.Web.dll"]
