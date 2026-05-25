@@ -502,10 +502,14 @@
     }
   }
   function setPlayAgainVsBotVisibility(elements, isVisible) {
-    if (!elements.playAgainVsBotBtn) {
+    const buttons = elements.playAgainVsBotBtns && elements.playAgainVsBotBtns.length ? elements.playAgainVsBotBtns : elements.playAgainVsBotBtn ? [elements.playAgainVsBotBtn] : [];
+    if (buttons.length === 0) {
       return;
     }
-    elements.playAgainVsBotBtn.style.display = isVisible ? "inline-flex" : "none";
+    buttons.forEach((button) => {
+      button.style.display = isVisible ? "inline-flex" : "none";
+      button.hidden = !isVisible;
+    });
   }
   function setConnectionStatus(elements, tone, message) {
     if (!elements.connectionPill) {
@@ -525,13 +529,19 @@
   }
   function resolveBotDifficultyLabel(elements, state) {
     if (!elements.botDifficultySelect) {
-      return state.botDifficulty === "easy" ? "Easy" : "Normal";
+      if (state.botDifficulty === "easy") {
+        return "Easy";
+      }
+      return state.botDifficulty === "hard" ? "Hard" : "Normal";
     }
     const selectedOption = Array.from(elements.botDifficultySelect.options).find((option) => option.value === state.botDifficulty);
     if (selectedOption) {
       return selectedOption.textContent || selectedOption.innerText || selectedOption.value;
     }
-    return state.botDifficulty === "easy" ? "Easy" : "Normal";
+    if (state.botDifficulty === "easy") {
+      return "Easy";
+    }
+    return state.botDifficulty === "hard" ? "Hard" : "Normal";
   }
   function updateBotDifficultyBadge(elements, state) {
     if (!elements.botDifficultyMeta || !elements.botDifficultyMetaValue) {
@@ -569,10 +579,11 @@
     if (elements.threefoldDrawBtn && isBotMode) {
       elements.threefoldDrawBtn.disabled = true;
     }
-    if (elements.playAgainVsBotBtn) {
-      const canReplayBotGame = state.isBotGame && state.hasGameEnded && !actionBusy;
-      elements.playAgainVsBotBtn.disabled = !canReplayBotGame;
-    }
+    const canReplayBotGame = state.isBotGame && state.hasGameEnded && !actionBusy;
+    const playAgainButtons = elements.playAgainVsBotBtns && elements.playAgainVsBotBtns.length ? elements.playAgainVsBotBtns : elements.playAgainVsBotBtn ? [elements.playAgainVsBotBtn] : [];
+    playAgainButtons.forEach((button) => {
+      button.disabled = !canReplayBotGame;
+    });
   }
   var gameResultTones = /* @__PURE__ */ new Set(["win", "loss", "draw"]);
   var gameResultToneClasses = ["game-result-win", "game-result-loss", "game-result-draw"];
@@ -596,11 +607,70 @@
     elements.gameResultBanner.classList.add("is-terminal");
     elements.gameResultBanner.classList.remove("game-result-hidden");
   }
+  function clearGameReview(elements) {
+    if (!elements.gameReviewPanel) {
+      return;
+    }
+    elements.gameReviewPanel.classList.add("game-review-hidden");
+    elements.gameReviewPanel.hidden = true;
+    if (elements.gameReviewResult) {
+      elements.gameReviewResult.textContent = "";
+    }
+    if (elements.gameReviewWinner) {
+      elements.gameReviewWinner.textContent = "";
+    }
+    if (elements.gameReviewReason) {
+      elements.gameReviewReason.textContent = "";
+    }
+    if (elements.gameReviewMoveCount) {
+      elements.gameReviewMoveCount.textContent = "0";
+    }
+    if (elements.gameReviewMoves) {
+      elements.gameReviewMoves.innerHTML = "";
+    }
+  }
+  function renderGameReview(elements, state, resultMessage, reason) {
+    if (!elements.gameReviewPanel) {
+      return;
+    }
+    const moves = Array.isArray(state.reviewMoves) ? state.reviewMoves : [];
+    const winnerName = state.gameOverWinnerName || t("gameReviewNoWinner");
+    if (elements.gameReviewResult) {
+      elements.gameReviewResult.textContent = resultMessage || t("gameResultDraw");
+    }
+    if (elements.gameReviewWinner) {
+      elements.gameReviewWinner.textContent = winnerName;
+    }
+    if (elements.gameReviewReason) {
+      elements.gameReviewReason.textContent = reason || t("draw");
+    }
+    if (elements.gameReviewMoveCount) {
+      elements.gameReviewMoveCount.textContent = String(moves.length);
+    }
+    if (elements.gameReviewMoves) {
+      elements.gameReviewMoves.innerHTML = "";
+      if (moves.length === 0) {
+        const item = document.createElement("li");
+        item.textContent = t("gameReviewMovesEmpty");
+        elements.gameReviewMoves.appendChild(item);
+      } else {
+        moves.forEach((move, index) => {
+          const item = document.createElement("li");
+          const playerName = move.playerName ? `${move.playerName}: ` : "";
+          item.textContent = `${index + 1}. ${playerName}${move.notation}`;
+          elements.gameReviewMoves.appendChild(item);
+        });
+      }
+    }
+    elements.gameReviewPanel.hidden = false;
+    elements.gameReviewPanel.classList.remove("game-review-hidden");
+  }
   function resetGameUi(elements, state) {
     removeLegacyReplayDomArtifacts();
     elements.statusCheck.style.display = "none";
     elements.statusCheck.textContent = "";
     clearGameResultBanner(elements);
+    clearGameReview(elements);
     setConnectionStatus(elements, null, "");
     elements.whitePointsValue.innerText = "0";
     elements.blackPointsValue.innerText = "0";
@@ -624,6 +694,7 @@
     state.hasGameEnded = false;
     state.gameOverCode = null;
     state.gameOverWinnerName = null;
+    state.reviewMoves = [];
     state.currentFen = "start";
     state.liveFen = "start";
     state.displayFen = "start";
@@ -849,8 +920,9 @@
     elements.resignBtn.addEventListener("click", function onResignClick() {
       runGameAction(() => connection.invoke("Resign"));
     });
-    if (elements.playAgainVsBotBtn) {
-      elements.playAgainVsBotBtn.addEventListener("click", function onPlayAgainVsBotClick() {
+    const playAgainButtons = elements.playAgainVsBotBtns && elements.playAgainVsBotBtns.length ? elements.playAgainVsBotBtns : elements.playAgainVsBotBtn ? [elements.playAgainVsBotBtn] : [];
+    playAgainButtons.forEach((button) => {
+      button.addEventListener("click", function onPlayAgainVsBotClick() {
         if (!state.isBotGame || !state.hasGameEnded) {
           return;
         }
@@ -861,12 +933,12 @@
           elements.lobbyInputName.focus();
           return;
         }
-        const difficulty = state.botDifficulty === "easy" ? "easy" : "normal";
+        const difficulty = state.botDifficulty === "easy" || state.botDifficulty === "hard" ? state.botDifficulty : "normal";
         runGameAction(() => connection.invoke("StartVsBotWithDifficulty", playerName, difficulty).then((player) => {
           state.playerId = player.id;
         }));
       });
-    }
+    });
     updateReplayControls(elements, state);
   }
 
@@ -876,6 +948,7 @@
     pieceTheme: "chess.pieceTheme",
     checkHints: "chess.checkHints",
     legalMoveHints: "chess.legalMoveHints",
+    soundEnabled: "chess.soundEnabled",
     botDifficulty: "chess.botDifficulty",
     lobbyName: "chess.lobbyName"
   };
@@ -891,7 +964,8 @@
   };
   var botDifficulties = {
     easy: "easy",
-    normal: "normal"
+    normal: "normal",
+    hard: "hard"
   };
   function getElements() {
     return {
@@ -903,6 +977,12 @@
       botDifficultyMetaValue: document.querySelector(".game-live-bot-difficulty-value"),
       connectionPill: document.querySelector(".game-connection-pill"),
       gameResultBanner: document.querySelector(".game-result-banner"),
+      gameReviewPanel: document.querySelector(".game-review-panel"),
+      gameReviewResult: document.querySelector(".game-review-result-value"),
+      gameReviewWinner: document.querySelector(".game-review-winner-value"),
+      gameReviewReason: document.querySelector(".game-review-reason-value"),
+      gameReviewMoveCount: document.querySelector(".game-review-move-count-value"),
+      gameReviewMoves: document.querySelector(".game-review-moves"),
       statusText: document.querySelector(".status-bar-text"),
       statusCheck: document.querySelector(".status-bar-check-notification"),
       whiteName: document.querySelector(".main-playground-white-name"),
@@ -944,8 +1024,10 @@
       pieceThemeSelect: document.querySelector("#piece-theme-select"),
       checkHintsToggle: document.querySelector("#check-hints-toggle"),
       legalMovesToggle: document.querySelector("#legal-moves-toggle"),
+      soundToggle: document.querySelector("#sound-toggle"),
       lobbyContainer: document.querySelector(".game-lobby"),
-      playAgainVsBotBtn: document.querySelector(".game-play-again-btn")
+      playAgainVsBotBtn: document.querySelector(".game-play-again-btn"),
+      playAgainVsBotBtns: Array.from(document.querySelectorAll(".game-play-again-btn"))
     };
   }
   function createState() {
@@ -966,6 +1048,7 @@
       hasGameEnded: false,
       gameOverCode: null,
       gameOverWinnerName: null,
+      reviewMoves: [],
       mobilePanel: "board",
       connectionState: "disconnected",
       turnNumber: 1,
@@ -986,6 +1069,7 @@
       selectedPieceTheme: getStoredValue(storageKeys.pieceTheme, "wikipedia", pieceThemes),
       hintsEnabled: getStoredBoolean(storageKeys.checkHints, true),
       legalHintsEnabled: getStoredBoolean(storageKeys.legalMoveHints, true),
+      soundEnabled: getStoredBoolean(storageKeys.soundEnabled, false),
       botDifficulty: getStoredValue(storageKeys.botDifficulty, "normal", botDifficulties),
       lobbyNameValid: false,
       lobbyActionInFlight: false,
@@ -1034,6 +1118,90 @@
     } catch (error) {
     }
     return fallbackValue;
+  }
+
+  // wwwroot/js/src/sound.js
+  var audioContext = null;
+  var soundProfiles = {
+    move: [{ frequency: 520, duration: 0.075, gain: 0.045 }],
+    capture: [
+      { frequency: 360, duration: 0.055, gain: 0.05 },
+      { frequency: 230, duration: 0.085, gain: 0.04, delay: 0.045 }
+    ],
+    check: [
+      { frequency: 660, duration: 0.075, gain: 0.045 },
+      { frequency: 880, duration: 0.09, gain: 0.04, delay: 0.06 }
+    ],
+    gameOver: [
+      { frequency: 392, duration: 0.11, gain: 0.045 },
+      { frequency: 330, duration: 0.14, gain: 0.038, delay: 0.1 }
+    ],
+    mate: [
+      { frequency: 587, duration: 0.1, gain: 0.05 },
+      { frequency: 784, duration: 0.13, gain: 0.045, delay: 0.095 },
+      { frequency: 988, duration: 0.16, gain: 0.035, delay: 0.21 }
+    ]
+  };
+  function getAudioContext() {
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextCtor) {
+      return null;
+    }
+    if (!audioContext) {
+      audioContext = new AudioContextCtor();
+    }
+    return audioContext;
+  }
+  function playTone(context, profile) {
+    const startAt = context.currentTime + (profile.delay || 0);
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(profile.frequency, startAt);
+    gain.gain.setValueAtTime(1e-4, startAt);
+    gain.gain.exponentialRampToValueAtTime(profile.gain, startAt + 0.012);
+    gain.gain.exponentialRampToValueAtTime(1e-4, startAt + profile.duration);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(startAt);
+    oscillator.stop(startAt + profile.duration + 0.02);
+  }
+  function primeGameAudio() {
+    const context = getAudioContext();
+    if (context && context.state === "suspended") {
+      context.resume().catch(() => {
+      });
+    }
+  }
+  function playGameSound(state, type) {
+    if (!state.soundEnabled) {
+      return;
+    }
+    const profile = soundProfiles[type] || soundProfiles.move;
+    const context = getAudioContext();
+    if (!context) {
+      return;
+    }
+    const play = () => profile.forEach((tone) => playTone(context, tone));
+    if (context.state === "suspended") {
+      context.resume().then(play).catch(() => {
+      });
+      return;
+    }
+    play();
+  }
+  function resolveMoveSoundType(moveNotation) {
+    const notation = moveNotation || "";
+    if (notation.includes("#")) {
+      return "mate";
+    }
+    if (notation.includes("+")) {
+      return "check";
+    }
+    if (notation.includes("x")) {
+      return "capture";
+    }
+    return "move";
   }
 
   // wwwroot/js/src/connection.js
@@ -1374,6 +1542,30 @@
         return "draw";
     }
   }
+  function resolveOpponentName(state, actorName) {
+    if (!actorName) {
+      return null;
+    }
+    if (state.playerOneName === actorName) {
+      return state.playerTwoName || null;
+    }
+    if (state.playerTwoName === actorName) {
+      return state.playerOneName || null;
+    }
+    return null;
+  }
+  function resolveGameReviewWinnerName(state, player, gameOver) {
+    const playerName = player && player.name ? player.name : null;
+    switch (gameOver) {
+      case 1:
+        return playerName;
+      case 6:
+      case 7:
+        return resolveOpponentName(state, playerName);
+      default:
+        return null;
+    }
+  }
   function registerConnectionHandlers(connection, elements, state) {
     window.addEventListener("offline", () => {
       applyOfflineState(elements, state);
@@ -1488,7 +1680,7 @@
       state.botPlayerId = normalizedPayload.botPlayerId;
       state.botPlayerName = normalizedPayload.botPlayerName;
       if (state.isBotGame) {
-        state.botDifficulty = normalizedPayload.botDifficulty === "easy" ? "easy" : "normal";
+        state.botDifficulty = normalizedPayload.botDifficulty === "easy" || normalizedPayload.botDifficulty === "hard" ? normalizedPayload.botDifficulty : "normal";
       }
       if (elements.botDifficultySelect) {
         elements.botDifficultySelect.value = state.botDifficulty;
@@ -1617,7 +1809,7 @@
       state.isGameStarted = false;
       state.hasGameEnded = true;
       state.gameOverCode = gameOver;
-      state.gameOverWinnerName = player && player.name ? player.name : null;
+      state.gameOverWinnerName = resolveGameReviewWinnerName(state, player, gameOver);
       state.isYourTurn = false;
       state.legalMoves = [];
       state.legalMovesRequestId += 1;
@@ -1685,6 +1877,8 @@
       }
       const resultMessage = elements.statusText.innerText ? `${resultPrefix} ${elements.statusText.innerText}`.trim() : resultPrefix;
       setGameResultBanner(elements, resultMessage, resultTone);
+      renderGameReview(elements, state, resultMessage, elements.statusText.innerText);
+      playGameSound(state, gameOver === 1 ? "mate" : "gameOver");
       $(".option-btn").prop("disabled", true);
       setPlayAgainVsBotVisibility(elements, state.isBotGame);
       updateReplayControls(elements, state);
@@ -1850,6 +2044,10 @@
       }
     });
     connection.on("UpdateMoveHistory", function onUpdateMoveHistory(movingPlayer, moveNotation) {
+      state.reviewMoves.push({
+        playerName: movingPlayer && movingPlayer.name ? movingPlayer.name : "",
+        notation: moveNotation
+      });
       const li = document.createElement("li");
       li.classList.add("list-group-item");
       li.classList.add("is-new-move");
@@ -1865,6 +2063,7 @@
           elements.blackMoveHistory.removeChild(elements.blackMoveHistory.childNodes[0]);
         }
       }
+      playGameSound(state, resolveMoveSoundType(moveNotation));
       updateReplayControls(elements, state);
     });
     connection.on("UpdateStatus", function onUpdateStatus(movingPlayerIdOrName, movingPlayerNameMaybe) {
@@ -1990,7 +2189,10 @@
     });
   }
   function normalizeDifficulty(value) {
-    return value === "easy" ? "easy" : "normal";
+    if (value === "easy" || value === "hard") {
+      return value;
+    }
+    return "normal";
   }
   function getSelectedBotDifficulty(elements, state) {
     const rawValue = elements.botDifficultySelect ? elements.botDifficultySelect.value : state.botDifficulty;
@@ -2199,6 +2401,9 @@
     if (elements.legalMovesToggle) {
       elements.legalMovesToggle.checked = state.legalHintsEnabled;
     }
+    if (elements.soundToggle) {
+      elements.soundToggle.checked = state.soundEnabled;
+    }
     elements.boardThemeSelect.addEventListener("change", function onBoardThemeChange(e) {
       state.selectedBoardTheme = e.target.value;
       applyBoardTheme(elements, boardThemes, state.selectedBoardTheme);
@@ -2235,6 +2440,15 @@
         storeBoolean(storageKeys.legalMoveHints, state.legalHintsEnabled);
         if (!state.legalHintsEnabled) {
           clearHintSquares();
+        }
+      });
+    }
+    if (elements.soundToggle) {
+      elements.soundToggle.addEventListener("change", function onSoundToggleChange(e) {
+        state.soundEnabled = !!e.target.checked;
+        storeBoolean(storageKeys.soundEnabled, state.soundEnabled);
+        if (state.soundEnabled) {
+          primeGameAudio();
         }
       });
     }

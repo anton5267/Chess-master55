@@ -343,13 +343,16 @@ public class SmokeTests : IClassFixture<ChessWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         decodedHtml.Should().Contain("check-hints-toggle");
         decodedHtml.Should().Contain("legal-moves-toggle");
+        decodedHtml.Should().Contain("sound-toggle");
         decodedHtml.Should().Contain("game-lobby-input-vs-bot-btn");
         decodedHtml.Should().Contain("bot-difficulty-select");
+        decodedHtml.Should().Contain("value=\"hard\"");
         decodedHtml.Should().Contain("game-lobby-input-note");
         decodedHtml.Should().Contain("ELO");
         decodedHtml.Should().Contain("game-lobby-room-count");
         decodedHtml.Should().Contain("game-play-again-btn");
         decodedHtml.Should().Contain("game-result-banner");
+        decodedHtml.Should().Contain("game-review-panel");
         decodedHtml.Should().Contain("game-live-bot-difficulty");
         decodedHtml.Should().Contain("game-connection-pill");
         decodedHtml.Should().Contain("connectionOffline");

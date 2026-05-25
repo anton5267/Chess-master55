@@ -9,6 +9,7 @@
       modeLocal: "Local",
       difficulty: "Difficulty",
       normal: "Normal",
+      hard: "Hard",
       easy: "Easy",
       boardTheme: "Board",
       classic: "Classic",
@@ -25,10 +26,17 @@
       flip: "Flip",
       draw: "Draw",
       resign: "Resign",
+      sound: "Sound",
       black: "Black",
       white: "White",
       points: "Points",
       moveHistory: "Move history",
+      gameReview: "Game review",
+      playAgain: "Play again",
+      result: "Result",
+      winner: "Winner",
+      reason: "Reason",
+      moves: "Moves",
       localStats: "Local stats",
       reset: "Reset",
       games: "Games",
@@ -47,6 +55,8 @@
       drawResult: "Draw",
       whiteWon: "White won",
       blackWon: "Black won",
+      noWinner: "No winner",
+      noMoves: "No moves recorded.",
       botThinking: "Bot thinking",
       loadError: "The chess libraries did not load. Refresh the page or check the internet connection.",
     },
@@ -57,6 +67,7 @@
       modeLocal: "Локально",
       difficulty: "Складність",
       normal: "Нормальна",
+      hard: "Складна",
       easy: "Легка",
       boardTheme: "Дошка",
       classic: "Класика",
@@ -73,10 +84,17 @@
       flip: "Повернути",
       draw: "Нічия",
       resign: "Здатися",
+      sound: "Звук",
       black: "Чорні",
       white: "Білі",
       points: "Очки",
       moveHistory: "Історія ходів",
+      gameReview: "Огляд партії",
+      playAgain: "Грати ще",
+      result: "Результат",
+      winner: "Переможець",
+      reason: "Причина",
+      moves: "Ходи",
       localStats: "Локальна статистика",
       reset: "Скинути",
       games: "Ігри",
@@ -95,6 +113,8 @@
       drawResult: "Нічия",
       whiteWon: "Білі перемогли",
       blackWon: "Чорні перемогли",
+      noWinner: "Без переможця",
+      noMoves: "Ходи не записані.",
       botThinking: "Бот думає",
       loadError: "Шахові бібліотеки не завантажились. Онови сторінку або перевір інтернет.",
     },
@@ -105,6 +125,7 @@
       modeLocal: "Lokal",
       difficulty: "Stufe",
       normal: "Normal",
+      hard: "Schwer",
       easy: "Einfach",
       boardTheme: "Brett",
       classic: "Klassisch",
@@ -121,10 +142,17 @@
       flip: "Drehen",
       draw: "Remis",
       resign: "Aufgeben",
+      sound: "Sound",
       black: "Schwarz",
       white: "Weiss",
       points: "Punkte",
       moveHistory: "Zugliste",
+      gameReview: "Partieanalyse",
+      playAgain: "Nochmal spielen",
+      result: "Ergebnis",
+      winner: "Sieger",
+      reason: "Grund",
+      moves: "Zuge",
       localStats: "Lokale Statistik",
       reset: "Reset",
       games: "Spiele",
@@ -143,6 +171,8 @@
       drawResult: "Remis",
       whiteWon: "Weiss gewinnt",
       blackWon: "Schwarz gewinnt",
+      noWinner: "Kein Sieger",
+      noMoves: "Keine Zuge aufgezeichnet.",
       botThinking: "Bot denkt",
       loadError: "Die Schachbibliotheken wurden nicht geladen. Seite neu laden oder Verbindung prufen.",
     },
@@ -153,6 +183,7 @@
       modeLocal: "Lokalnie",
       difficulty: "Poziom",
       normal: "Normalny",
+      hard: "Trudny",
       easy: "Latwy",
       boardTheme: "Szachownica",
       classic: "Klasyczna",
@@ -169,10 +200,17 @@
       flip: "Obroc",
       draw: "Remis",
       resign: "Poddaj",
+      sound: "Dzwiek",
       black: "Czarne",
       white: "Biale",
       points: "Punkty",
       moveHistory: "Historia ruchow",
+      gameReview: "Podsumowanie partii",
+      playAgain: "Zagraj ponownie",
+      result: "Wynik",
+      winner: "Zwyciezca",
+      reason: "Powod",
+      moves: "Ruchy",
       localStats: "Statystyki lokalne",
       reset: "Reset",
       games: "Gry",
@@ -191,6 +229,8 @@
       drawResult: "Remis",
       whiteWon: "Biale wygraly",
       blackWon: "Czarne wygraly",
+      noWinner: "Brak zwyciezcy",
+      noMoves: "Brak zapisanych ruchow.",
       botThinking: "Bot mysli",
       loadError: "Biblioteki szachowe sie nie zaladowaly. Odswiez strone albo sprawdz internet.",
     },
@@ -201,6 +241,7 @@
       modeLocal: "Local",
       difficulty: "Nivel",
       normal: "Normal",
+      hard: "Dificil",
       easy: "Facil",
       boardTheme: "Tablero",
       classic: "Clasico",
@@ -217,10 +258,17 @@
       flip: "Girar",
       draw: "Tablas",
       resign: "Rendirse",
+      sound: "Sonido",
       black: "Negras",
       white: "Blancas",
       points: "Puntos",
       moveHistory: "Historial",
+      gameReview: "Resumen de partida",
+      playAgain: "Jugar de nuevo",
+      result: "Resultado",
+      winner: "Ganador",
+      reason: "Motivo",
+      moves: "Movimientos",
       localStats: "Estadisticas locales",
       reset: "Reiniciar",
       games: "Partidas",
@@ -239,6 +287,8 @@
       drawResult: "Tablas",
       whiteWon: "Ganan blancas",
       blackWon: "Ganan negras",
+      noWinner: "Sin ganador",
+      noMoves: "No hay movimientos registrados.",
       botThinking: "Bot pensando",
       loadError: "No se cargaron las bibliotecas de ajedrez. Recarga la pagina o revisa internet.",
     },
@@ -262,12 +312,33 @@
   const pieceOrder = ["p", "n", "b", "r", "q"];
   const statsKey = "chess-master55.pages.stats";
   const settingsKey = "chess-master55.pages.settings";
+  const soundProfiles = {
+    move: [{ frequency: 520, duration: 0.075, gain: 0.045 }],
+    capture: [
+      { frequency: 360, duration: 0.055, gain: 0.05 },
+      { frequency: 230, duration: 0.085, gain: 0.04, delay: 0.045 },
+    ],
+    check: [
+      { frequency: 660, duration: 0.075, gain: 0.045 },
+      { frequency: 880, duration: 0.09, gain: 0.04, delay: 0.06 },
+    ],
+    gameOver: [
+      { frequency: 392, duration: 0.11, gain: 0.045 },
+      { frequency: 330, duration: 0.14, gain: 0.038, delay: 0.1 },
+    ],
+    mate: [
+      { frequency: 587, duration: 0.1, gain: 0.05 },
+      { frequency: 784, duration: 0.13, gain: 0.045, delay: 0.095 },
+      { frequency: 988, duration: 0.16, gain: 0.035, delay: 0.21 },
+    ],
+  };
 
   const elements = {};
   const settings = readSettings();
   let lang = resolveLanguage();
   let chess = null;
   let board = null;
+  let audioContext = null;
   let selectedSquare = null;
   let lastMoveSquares = [];
   let manualResult = null;
@@ -297,6 +368,7 @@
       boardTheme: elements.boardThemeSelect.value,
       pieceTheme: elements.pieceThemeSelect.value,
       promotion: elements.promotionSelect.value,
+      soundEnabled: elements.soundToggle.checked,
       lang,
     };
 
@@ -349,6 +421,7 @@
       "boardThemeSelect",
       "pieceThemeSelect",
       "promotionSelect",
+      "soundToggle",
       "newGameBtn",
       "undoBtn",
       "flipBtn",
@@ -365,6 +438,13 @@
       "blackCaptured",
       "moveHistory",
       "moveCount",
+      "reviewPanel",
+      "reviewPlayAgainBtn",
+      "reviewResult",
+      "reviewWinner",
+      "reviewReason",
+      "reviewMoveCount",
+      "reviewMoves",
       "statGames",
       "statWhiteWins",
       "statBlackWins",
@@ -378,7 +458,9 @@
   function applySavedSettings() {
     elements.languageSelect.value = lang;
     elements.modeSelect.value = settings.mode === "local" ? "local" : "bot";
-    elements.difficultySelect.value = settings.difficulty === "easy" ? "easy" : "normal";
+    elements.difficultySelect.value = ["easy", "normal", "hard"].includes(settings.difficulty)
+      ? settings.difficulty
+      : "normal";
     elements.boardThemeSelect.value = ["classic", "forest", "midnight"].includes(settings.boardTheme)
       ? settings.boardTheme
       : "classic";
@@ -388,6 +470,7 @@
     elements.promotionSelect.value = ["q", "r", "b", "n"].includes(settings.promotion)
       ? settings.promotion
       : "q";
+    elements.soundToggle.checked = settings.soundEnabled === true;
   }
 
   function applyTranslations() {
@@ -437,6 +520,7 @@
     });
 
     elements.newGameBtn.addEventListener("click", newGame);
+    elements.reviewPlayAgainBtn.addEventListener("click", newGame);
     elements.undoBtn.addEventListener("click", undoMove);
     elements.flipBtn.addEventListener("click", () => {
       if (board) {
@@ -448,6 +532,13 @@
     elements.resetStatsBtn.addEventListener("click", () => {
       storeStats(defaultStats());
       renderStats();
+    });
+
+    elements.soundToggle.addEventListener("change", () => {
+      storeSettings();
+      if (elements.soundToggle.checked) {
+        primeAudio();
+      }
     });
 
     window.addEventListener("resize", () => {
@@ -496,6 +587,79 @@
     void strip.offsetWidth;
     strip.classList.add("is-status-updating");
     window.setTimeout(() => strip.classList.remove("is-status-updating"), 320);
+  }
+
+  function getAudioContext() {
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextCtor) {
+      return null;
+    }
+
+    if (!audioContext) {
+      audioContext = new AudioContextCtor();
+    }
+
+    return audioContext;
+  }
+
+  function primeAudio() {
+    const context = getAudioContext();
+    if (context && context.state === "suspended") {
+      context.resume().catch(() => {});
+    }
+  }
+
+  function playTone(context, profile) {
+    const startAt = context.currentTime + (profile.delay || 0);
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(profile.frequency, startAt);
+    gain.gain.setValueAtTime(0.0001, startAt);
+    gain.gain.exponentialRampToValueAtTime(profile.gain, startAt + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startAt + profile.duration);
+
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(startAt);
+    oscillator.stop(startAt + profile.duration + 0.02);
+  }
+
+  function playSound(type) {
+    if (!elements.soundToggle.checked) {
+      return;
+    }
+
+    const context = getAudioContext();
+    const profile = soundProfiles[type] || soundProfiles.move;
+    if (!context) {
+      return;
+    }
+
+    const play = () => profile.forEach((tone) => playTone(context, tone));
+    if (context.state === "suspended") {
+      context.resume().then(play).catch(() => {});
+      return;
+    }
+
+    play();
+  }
+
+  function resolveMoveSound(move) {
+    if (!move) {
+      return "move";
+    }
+
+    if (move.san && move.san.includes("#")) {
+      return "mate";
+    }
+
+    if (move.san && move.san.includes("+")) {
+      return "check";
+    }
+
+    return move.captured ? "capture" : "move";
   }
 
   function createBoardConfig() {
@@ -550,6 +714,7 @@
     lastMoveSquares = [];
     manualResult = null;
     resultRecorded = false;
+    clearReview();
     updateNames();
     if (board) {
       board.start(false);
@@ -615,6 +780,7 @@
 
     selectedSquare = null;
     lastMoveSquares = [move.from, move.to];
+    playSound(resolveMoveSound(move));
     positionBoard(chess.fen(), true);
     updateUi();
 
@@ -634,10 +800,11 @@
       if (move) {
         chess.move(move);
         lastMoveSquares = [move.from, move.to];
+        playSound(resolveMoveSound(move));
         positionBoard(chess.fen(), true);
       }
       updateUi();
-    }, elements.difficultySelect.value === "easy" ? 360 : 520);
+    }, elements.difficultySelect.value === "easy" ? 360 : (elements.difficultySelect.value === "hard" ? 640 : 520));
   }
 
   function chooseBotMove() {
@@ -650,29 +817,50 @@
       return moves[Math.floor(Math.random() * moves.length)];
     }
 
+    const difficulty = elements.difficultySelect.value === "hard" ? "hard" : "normal";
     return moves
       .map((move) => ({
         move,
-        score: scoreMove(move) + Math.random() * 0.25,
+        score: scoreMove(move, difficulty) + Math.random() * (difficulty === "hard" ? 0.05 : 0.25),
       }))
       .sort((a, b) => b.score - a.score)[0].move;
   }
 
-  function scoreMove(move) {
+  function scoreMove(move, difficulty) {
     let score = 0;
     if (move.captured) {
-      score += (pieceValues[move.captured] || 0) * 10;
+      const victimValue = pieceValues[move.captured] || 0;
+      const attackerValue = pieceValues[move.piece] || 1;
+      score += difficulty === "hard"
+        ? (victimValue * 120) - (attackerValue * 8)
+        : victimValue * 10;
     }
-    if (move.san.includes("#")) {
-      score += 1000;
-    } else if (move.san.includes("+")) {
-      score += 4;
+
+    chess.move(move);
+    const isMate = chess.in_checkmate();
+    const isCheck = chess.in_check();
+    const opponentMoves = chess.moves().length;
+    chess.undo();
+
+    if (isMate || move.san.includes("#")) {
+      score += difficulty === "hard" ? 10000 : 1000;
+    } else if (isCheck || move.san.includes("+")) {
+      score += difficulty === "hard" ? 90 : 4;
     }
     if (move.promotion) {
-      score += pieceValues[move.promotion] || 0;
+      score += difficulty === "hard" ? 900 : (pieceValues[move.promotion] || 0);
     }
     if (["d4", "e4", "d5", "e5"].includes(move.to)) {
-      score += 0.5;
+      score += difficulty === "hard" ? 12 : 0.5;
+    }
+    if (difficulty === "hard") {
+      if (["n", "b"].includes(move.piece) && ["b8", "c8", "f8", "g8"].includes(move.from)) {
+        score += 10;
+      }
+      if (move.piece === "p") {
+        score += 3;
+      }
+      score += Math.max(0, 20 - opponentMoves) * 0.3;
     }
     return score;
   }
@@ -882,6 +1070,87 @@
     elements.moveCount.textContent = String(history.length);
   }
 
+  function clearReview() {
+    elements.reviewPanel.hidden = true;
+    elements.reviewResult.textContent = "-";
+    elements.reviewWinner.textContent = "-";
+    elements.reviewReason.textContent = "-";
+    elements.reviewMoveCount.textContent = "0";
+    elements.reviewMoves.innerHTML = "";
+  }
+
+  function resolveGameSummary() {
+    if (manualResult === "draw" || (!manualResult && chess.in_draw())) {
+      return {
+        result: t("drawResult"),
+        winner: t("noWinner"),
+        reason: manualResult === "draw" ? t("draw") : t("drawResult"),
+        sound: "gameOver",
+      };
+    }
+
+    if (manualResult === "white" || (!manualResult && chess.in_checkmate() && chess.turn() === "b")) {
+      return {
+        result: t("whiteWon"),
+        winner: t("white"),
+        reason: chess.in_checkmate() ? t("checkmate") : t("resign"),
+        sound: chess.in_checkmate() ? "mate" : "gameOver",
+      };
+    }
+
+    if (manualResult === "black" || (!manualResult && chess.in_checkmate() && chess.turn() === "w")) {
+      return {
+        result: t("blackWon"),
+        winner: t("black"),
+        reason: chess.in_checkmate() ? t("checkmate") : t("resign"),
+        sound: chess.in_checkmate() ? "mate" : "gameOver",
+      };
+    }
+
+    if (chess.in_stalemate()) {
+      return {
+        result: t("drawResult"),
+        winner: t("noWinner"),
+        reason: t("stalemate"),
+        sound: "gameOver",
+      };
+    }
+
+    return {
+      result: t("drawResult"),
+      winner: t("noWinner"),
+      reason: t("drawResult"),
+      sound: "gameOver",
+    };
+  }
+
+  function renderReview() {
+    const summary = resolveGameSummary();
+    const history = chess.history({ verbose: true });
+
+    elements.reviewResult.textContent = summary.result;
+    elements.reviewWinner.textContent = summary.winner;
+    elements.reviewReason.textContent = summary.reason;
+    elements.reviewMoveCount.textContent = String(history.length);
+    elements.reviewMoves.innerHTML = "";
+
+    if (history.length === 0) {
+      const item = document.createElement("li");
+      item.textContent = t("noMoves");
+      elements.reviewMoves.appendChild(item);
+    } else {
+      history.forEach((move, index) => {
+        const item = document.createElement("li");
+        const player = move.color === "w" ? t("white") : t("black");
+        item.textContent = `${index + 1}. ${player}: ${move.san}`;
+        elements.reviewMoves.appendChild(item);
+      });
+    }
+
+    elements.reviewPanel.hidden = false;
+    playSound(summary.sound);
+  }
+
   function renderCapturedPieces() {
     const capturedByWhite = {};
     const capturedByBlack = {};
@@ -952,6 +1221,7 @@
 
     resultRecorded = true;
     storeStats(stats);
+    renderReview();
   }
 
   document.addEventListener("DOMContentLoaded", () => {

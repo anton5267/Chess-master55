@@ -12,6 +12,12 @@ Modern chess platform with two editions:
 
 The old Azure App Service URL is not treated as the live site anymore. Azure deployment is kept as an optional manual workflow for anyone who configures their own Azure resources.
 
+## Screenshots
+
+| GitHub Pages static demo | Full ASP.NET Core app |
+| --- | --- |
+| ![Chess Master55 GitHub Pages demo](docs/img/readme/pages-demo.png) | ![Chess Master55 full app](docs/img/readme/full-app.png) |
+
 ## Demo vs Full Version
 
 | Feature | GitHub Pages demo | Full ASP.NET Core app |
@@ -20,7 +26,9 @@ The old Azure App Service URL is not treated as the live site anymore. Azure dep
 | Backend | No backend, static files only | ASP.NET Core MVC + SignalR |
 | Login / Identity | No | Yes |
 | Real-time PvP / lobby / chat | No | Yes |
-| Bot play | Yes, browser-local demo | Yes, server-backed game flow |
+| Bot play | Yes, browser-local Easy/Normal/Hard | Yes, server-backed Easy/Normal/Hard |
+| Sound effects | Browser-local toggle | Browser-local toggle inside full app UI |
+| Game review | Local post-game summary | Client-side post-game summary from SignalR move history |
 | Stats | Browser-local | EF Core + SQL database |
 | Source | `docs/` | `src/` |
 
@@ -93,6 +101,20 @@ https://anton5267.github.io/Chess-master55/
 ```
 
 GitHub Pages cannot run the ASP.NET Core server, SignalR hubs, Identity, or EF Core database. The static edition keeps a free public chess demo available with local play, bot play, move history, board themes, and browser-local stats.
+
+What works on GitHub Pages:
+
+- Local two-player chess in one browser.
+- Play vs bot with Easy, Normal, and Hard demo difficulty.
+- Board/piece themes, promotion choice, undo, flip, draw, resign.
+- Sound effects toggle and post-game review.
+- Browser-local move history and stats.
+
+Requires the full ASP.NET Core app:
+
+- Register/login and Identity account management.
+- Real-time lobby, PvP games, SignalR sync, and chat.
+- SQL-backed users, ELO, historical stats, and server-side game flow.
 
 ### Optional Ngrok Tunnel
 

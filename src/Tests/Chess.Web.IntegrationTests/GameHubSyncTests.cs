@@ -549,6 +549,24 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
     }
 
     [Fact]
+    public async Task StartVsBotWithDifficulty_ShouldAcceptHardDifficulty()
+    {
+        await this.SeedUserAsync("bot-user-difficulty-hard-1", "bot-difficulty-hard-1@example.com");
+        await using var connection = this.CreateHubConnection("bot-user-difficulty-hard-1", "bot-difficulty-hard-1@example.com");
+
+        var startTcs = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        connection.On<JsonElement>("Start", payload => startTcs.TrySetResult(payload));
+
+        await connection.StartAsync();
+
+        await connection.InvokeAsync<JsonElement>("StartVsBotWithDifficulty", "human_bot_hard_1", "hard");
+        var startPayload = await WaitWithTimeout(startTcs.Task);
+
+        startPayload.GetProperty("isBotGame").GetBoolean().Should().BeTrue();
+        startPayload.GetProperty("botDifficulty").GetString().Should().Be("hard");
+    }
+
+    [Fact]
     public async Task StartVsBot_LegacyMethod_ShouldUseDefaultDifficulty()
     {
         await this.SeedUserAsync("bot-user-difficulty-2", "bot-difficulty-2@example.com");
@@ -575,7 +593,7 @@ public class GameHubSyncTests : IClassFixture<ChessWebApplicationFactory>
         await connection.StartAsync();
 
         var exception = await Assert.ThrowsAsync<HubException>(() =>
-            connection.InvokeAsync<JsonElement>("StartVsBotWithDifficulty", "human_bot_bad_difficulty_1", "hard"));
+            connection.InvokeAsync<JsonElement>("StartVsBotWithDifficulty", "human_bot_bad_difficulty_1", "expert"));
 
         exception.Message.Should().NotBeNullOrWhiteSpace();
     }

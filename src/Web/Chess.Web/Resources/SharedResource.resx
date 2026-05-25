@@ -465,6 +465,9 @@
   <data name="Game_BotDifficulty_Normal" xml:space="preserve">
     <value>Normal</value>
   </data>
+  <data name="Game_BotDifficulty_Hard" xml:space="preserve">
+    <value>Hard</value>
+  </data>
   <data name="Game_BotEloNotice" xml:space="preserve">
     <value>Bot matches do not affect your PvP ELO or statistics.</value>
   </data>
@@ -500,6 +503,12 @@
   </data>
   <data name="Js_GameResult_Draw" xml:space="preserve">
     <value>Draw:</value>
+  </data>
+  <data name="Js_GameReview_NoWinner" xml:space="preserve">
+    <value>No winner</value>
+  </data>
+  <data name="Js_GameReview_MovesEmpty" xml:space="preserve">
+    <value>No moves recorded.</value>
   </data>
   <data name="Js_PlayerTurnFormat" xml:space="preserve">
     <value>{name}'s turn!</value>
@@ -1235,6 +1244,27 @@
   </data>
   <data name="Game_Hint_LegalMoves" xml:space="preserve">
     <value>Show legal move hints</value>
+  </data>
+  <data name="Game_SoundToggle" xml:space="preserve">
+    <value>Sound effects</value>
+  </data>
+  <data name="Game_ReviewTitle" xml:space="preserve">
+    <value>Game review</value>
+  </data>
+  <data name="Game_ReviewResult" xml:space="preserve">
+    <value>Result</value>
+  </data>
+  <data name="Game_ReviewWinner" xml:space="preserve">
+    <value>Winner</value>
+  </data>
+  <data name="Game_ReviewReason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="Game_ReviewMoveCount" xml:space="preserve">
+    <value>Moves</value>
+  </data>
+  <data name="Game_ReviewMoves" xml:space="preserve">
+    <value>Move list</value>
   </data>
   <data name="Hub_GameOver_FivefoldDraw" xml:space="preserve">
     <value>FIVEFOLD REPETITION DRAW!</value>

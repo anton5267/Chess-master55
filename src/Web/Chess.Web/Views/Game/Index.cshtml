@@ -77,6 +77,8 @@
         ["gameResultWin"] = Localizer["Js_GameResult_Win"],
         ["gameResultLoss"] = Localizer["Js_GameResult_Loss"],
         ["gameResultDraw"] = Localizer["Js_GameResult_Draw"],
+        ["gameReviewNoWinner"] = Localizer["Js_GameReview_NoWinner"],
+        ["gameReviewMovesEmpty"] = Localizer["Js_GameReview_MovesEmpty"],
         ["connectionReconnecting"] = Localizer["Js_ConnectionReconnecting"],
         ["connectionSyncing"] = Localizer["Js_ConnectionSyncing"],
         ["connectionDisconnected"] = Localizer["Js_ConnectionDisconnected"],
@@ -156,6 +158,10 @@
                     <input id="legal-moves-toggle" type="checkbox" />
                     <span>@Localizer["Game_Hint_LegalMoves"]</span>
                 </label>
+                <label class="board-hint-option" for="sound-toggle">
+                    <input id="sound-toggle" type="checkbox" />
+                    <span>@Localizer["Game_SoundToggle"]</span>
+                </label>
             </div>
             <div class="game-live-meta" aria-live="polite">
                 <span class="game-live-meta-item game-live-bot-difficulty" hidden>
@@ -171,12 +177,37 @@
             </div>
             <div class="game-result-banner game-result-hidden" role="status" aria-live="polite"></div>
             <h6 class="status-bar-container"><i class="fas fa-arrow-alt-circle-right"></i> <span class="status-bar-text"></span> <span class="status-bar-check-notification"></span></h6>
+            <section class="game-review-panel game-review-hidden" hidden aria-live="polite">
+                <div class="game-review-header">
+                    <h2>@Localizer["Game_ReviewTitle"]</h2>
+                    <button type="button" class="game-play-again-btn game-review-play-again-btn game-btn btn" hidden><i class="fas fa-rotate-right"></i> @Localizer["Game_PlayAgainVsBot"]</button>
+                </div>
+                <dl class="game-review-summary">
+                    <div>
+                        <dt>@Localizer["Game_ReviewResult"]</dt>
+                        <dd class="game-review-result-value"></dd>
+                    </div>
+                    <div>
+                        <dt>@Localizer["Game_ReviewWinner"]</dt>
+                        <dd class="game-review-winner-value"></dd>
+                    </div>
+                    <div>
+                        <dt>@Localizer["Game_ReviewReason"]</dt>
+                        <dd class="game-review-reason-value"></dd>
+                    </div>
+                    <div>
+                        <dt>@Localizer["Game_ReviewMoveCount"]</dt>
+                        <dd class="game-review-move-count-value">0</dd>
+                    </div>
+                </dl>
+                <div class="game-review-moves-heading">@Localizer["Game_ReviewMoves"]</div>
+                <ol class="game-review-moves"></ol>
+            </section>
             <div id="board"></div>
             <div class="game-btn-container game-control-row">
                 <button type="submit" class="threefold-draw-btn option-btn game-btn btn" disabled><i class="fas fa-equals"></i> @Localizer["Game_DeclareThreefold"]</button>
                 <button type="submit" class="offer-draw-btn option-btn game-btn btn"><i class="far fa-handshake"></i> @Localizer["Game_OfferDraw"]</button>
                 <button type="submit" class="resign-btn option-btn game-btn btn"><i class="far fa-flag"></i> @Localizer["Game_Resign"]</button>
-                <button type="button" class="game-play-again-btn game-btn btn"><i class="fas fa-rotate-right"></i> @Localizer["Game_PlayAgainVsBot"]</button>
             </div>
             <div class="game-chat-container chat-container">
                 <div class="game-chat-window-wrapper chat-window-wrapper">
@@ -240,6 +271,7 @@
                     <label class="game-lobby-input-bot-difficulty-label" for="bot-difficulty-select">@Localizer["Game_BotDifficultyLabel"]</label>
                     <select class="game-lobby-input-bot-difficulty" id="bot-difficulty-select">
                         <option value="normal">@Localizer["Game_BotDifficulty_Normal"]</option>
+                        <option value="hard">@Localizer["Game_BotDifficulty_Hard"]</option>
                         <option value="easy">@Localizer["Game_BotDifficulty_Easy"]</option>
                     </select>
                     <button type="button" class="game-lobby-input-vs-bot-btn game-btn">@Localizer["Game_PlayVsBot"]</button>

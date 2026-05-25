@@ -155,8 +155,11 @@ export function bindGameOptionHandlers(connection, elements, state) {
         runGameAction(() => connection.invoke('Resign'));
     });
 
-    if (elements.playAgainVsBotBtn) {
-        elements.playAgainVsBotBtn.addEventListener('click', function onPlayAgainVsBotClick() {
+    const playAgainButtons = elements.playAgainVsBotBtns && elements.playAgainVsBotBtns.length
+        ? elements.playAgainVsBotBtns
+        : (elements.playAgainVsBotBtn ? [elements.playAgainVsBotBtn] : []);
+    playAgainButtons.forEach((button) => {
+        button.addEventListener('click', function onPlayAgainVsBotClick() {
             if (!state.isBotGame || !state.hasGameEnded) {
                 return;
             }
@@ -169,8 +172,8 @@ export function bindGameOptionHandlers(connection, elements, state) {
                 return;
             }
 
-            const difficulty = state.botDifficulty === 'easy'
-                ? 'easy'
+            const difficulty = state.botDifficulty === 'easy' || state.botDifficulty === 'hard'
+                ? state.botDifficulty
                 : 'normal';
 
             runGameAction(() => connection.invoke('StartVsBotWithDifficulty', playerName, difficulty)
@@ -178,7 +181,7 @@ export function bindGameOptionHandlers(connection, elements, state) {
                     state.playerId = player.id;
                 }));
         });
-    }
+    });
 
     updateReplayControls(elements, state);
 }

@@ -23,6 +23,7 @@
 ### UX
 - Fixed full app game layout so the fixed navbar does not cover the board/status area on desktop or mobile.
 - Added smoother chessboard movement, turn/status pulses, move-history entry animation, and captured-piece counter feedback in both the full app and static demo.
+- Added UX v1 polish: Hard bot difficulty, optional sound effects, post-game review, and README screenshots for demo/full app.
 
 ### Verified
 - `libman restore`

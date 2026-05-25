@@ -20,6 +20,7 @@ import {
     storeBoolean,
     storeValue,
 } from './state.js';
+import { primeGameAudio } from './sound.js';
 import {
     purgeLegacyReplayUi,
     updateBotDifficultyBadge,
@@ -149,6 +150,10 @@ $(function bootstrapGameLobby() {
         elements.legalMovesToggle.checked = state.legalHintsEnabled;
     }
 
+    if (elements.soundToggle) {
+        elements.soundToggle.checked = state.soundEnabled;
+    }
+
     elements.boardThemeSelect.addEventListener('change', function onBoardThemeChange(e) {
         state.selectedBoardTheme = e.target.value;
         applyBoardTheme(elements, boardThemes, state.selectedBoardTheme);
@@ -190,6 +195,16 @@ $(function bootstrapGameLobby() {
             storeBoolean(storageKeys.legalMoveHints, state.legalHintsEnabled);
             if (!state.legalHintsEnabled) {
                 clearHintSquares();
+            }
+        });
+    }
+
+    if (elements.soundToggle) {
+        elements.soundToggle.addEventListener('change', function onSoundToggleChange(e) {
+            state.soundEnabled = !!e.target.checked;
+            storeBoolean(storageKeys.soundEnabled, state.soundEnabled);
+            if (state.soundEnabled) {
+                primeGameAudio();
             }
         });
     }

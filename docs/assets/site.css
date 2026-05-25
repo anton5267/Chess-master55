@@ -147,6 +147,7 @@ a {
 .player-panel,
 .board-panel,
 .history-panel,
+.review-panel,
 .stats-panel {
   border: 1px solid rgba(255, 250, 240, 0.28);
   border-radius: var(--radius);
@@ -171,6 +172,18 @@ a {
   font-size: 0.8rem;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+.check-label {
+  align-content: end;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  min-height: 42px;
+}
+
+.check-label input {
+  width: 18px;
+  height: 18px;
 }
 
 .control-actions {
@@ -411,6 +424,7 @@ a {
 }
 
 .history-panel,
+.review-panel,
 .stats-panel {
   padding: 18px;
 }
@@ -463,6 +477,52 @@ a {
 
 .move-index {
   color: var(--muted);
+  font-weight: 800;
+}
+
+.review-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 12px;
+}
+
+.review-summary div {
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.review-summary dt {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.review-summary dd {
+  margin: 3px 0 0;
+  font-weight: 900;
+}
+
+.review-move-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+  max-height: 230px;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review-move-list li {
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.58);
   font-weight: 800;
 }
 
@@ -620,6 +680,10 @@ a {
   }
 
   .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .review-summary {
     grid-template-columns: 1fr;
   }
 }

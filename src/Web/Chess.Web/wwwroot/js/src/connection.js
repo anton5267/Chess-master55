@@ -22,7 +22,9 @@ import {
     updateChat,
     updateReplayControls,
     updateStatus,
+    renderGameReview,
 } from './ui.js';
+import { playGameSound, resolveMoveSoundType } from './sound.js';
 import { t } from './i18n.js';
 
 export function createConnection() {
@@ -461,6 +463,36 @@ function resolveGameResultTone(state, player, gameOver) {
     }
 }
 
+function resolveOpponentName(state, actorName) {
+    if (!actorName) {
+        return null;
+    }
+
+    if (state.playerOneName === actorName) {
+        return state.playerTwoName || null;
+    }
+
+    if (state.playerTwoName === actorName) {
+        return state.playerOneName || null;
+    }
+
+    return null;
+}
+
+function resolveGameReviewWinnerName(state, player, gameOver) {
+    const playerName = player && player.name ? player.name : null;
+
+    switch (gameOver) {
+        case 1:
+            return playerName;
+        case 6:
+        case 7:
+            return resolveOpponentName(state, playerName);
+        default:
+            return null;
+    }
+}
+
 export function registerConnectionHandlers(connection, elements, state) {
     window.addEventListener('offline', () => {
         applyOfflineState(elements, state);
@@ -596,8 +628,8 @@ export function registerConnectionHandlers(connection, elements, state) {
         state.botPlayerId = normalizedPayload.botPlayerId;
         state.botPlayerName = normalizedPayload.botPlayerName;
         if (state.isBotGame) {
-            state.botDifficulty = normalizedPayload.botDifficulty === 'easy'
-                ? 'easy'
+            state.botDifficulty = normalizedPayload.botDifficulty === 'easy' || normalizedPayload.botDifficulty === 'hard'
+                ? normalizedPayload.botDifficulty
                 : 'normal';
         }
 
@@ -745,7 +777,7 @@ export function registerConnectionHandlers(connection, elements, state) {
         state.isGameStarted = false;
         state.hasGameEnded = true;
         state.gameOverCode = gameOver;
-        state.gameOverWinnerName = player && player.name ? player.name : null;
+        state.gameOverWinnerName = resolveGameReviewWinnerName(state, player, gameOver);
         state.isYourTurn = false;
         state.legalMoves = [];
         state.legalMovesRequestId += 1;
@@ -821,6 +853,8 @@ export function registerConnectionHandlers(connection, elements, state) {
             : resultPrefix;
 
         setGameResultBanner(elements, resultMessage, resultTone);
+        renderGameReview(elements, state, resultMessage, elements.statusText.innerText);
+        playGameSound(state, gameOver === 1 ? 'mate' : 'gameOver');
 
         $('.option-btn').prop('disabled', true);
         setPlayAgainVsBotVisibility(elements, state.isBotGame);
@@ -1015,6 +1049,11 @@ export function registerConnectionHandlers(connection, elements, state) {
     });
 
     connection.on('UpdateMoveHistory', function onUpdateMoveHistory(movingPlayer, moveNotation) {
+        state.reviewMoves.push({
+            playerName: movingPlayer && movingPlayer.name ? movingPlayer.name : '',
+            notation: moveNotation,
+        });
+
         const li = document.createElement('li');
         li.classList.add('list-group-item');
         li.classList.add('is-new-move');
@@ -1032,6 +1071,7 @@ export function registerConnectionHandlers(connection, elements, state) {
             }
         }
 
+        playGameSound(state, resolveMoveSoundType(moveNotation));
         updateReplayControls(elements, state);
     });
 

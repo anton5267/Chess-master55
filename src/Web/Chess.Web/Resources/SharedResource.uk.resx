@@ -441,6 +441,9 @@
   <data name="Game_BotDifficulty_Normal" xml:space="preserve">
     <value>Нормальна</value>
   </data>
+  <data name="Game_BotDifficulty_Hard" xml:space="preserve">
+    <value>Складна</value>
+  </data>
   <data name="Game_BotEloNotice" xml:space="preserve">
     <value>Матчі проти бота не впливають на ваш PvP ELO та статистику.</value>
   </data>
@@ -476,6 +479,12 @@
   </data>
   <data name="Js_GameResult_Draw" xml:space="preserve">
     <value>Нічия:</value>
+  </data>
+  <data name="Js_GameReview_NoWinner" xml:space="preserve">
+    <value>Без переможця</value>
+  </data>
+  <data name="Js_GameReview_MovesEmpty" xml:space="preserve">
+    <value>Ходи не записані.</value>
   </data>
   <data name="Js_PlayerTurnFormat" xml:space="preserve">
     <value>Черга {name}!</value>
@@ -1235,6 +1244,27 @@
   </data>
   <data name="Game_Hint_LegalMoves" xml:space="preserve">
     <value>Показувати легальні ходи</value>
+  </data>
+  <data name="Game_SoundToggle" xml:space="preserve">
+    <value>Звукові ефекти</value>
+  </data>
+  <data name="Game_ReviewTitle" xml:space="preserve">
+    <value>Огляд партії</value>
+  </data>
+  <data name="Game_ReviewResult" xml:space="preserve">
+    <value>Результат</value>
+  </data>
+  <data name="Game_ReviewWinner" xml:space="preserve">
+    <value>Переможець</value>
+  </data>
+  <data name="Game_ReviewReason" xml:space="preserve">
+    <value>Причина</value>
+  </data>
+  <data name="Game_ReviewMoveCount" xml:space="preserve">
+    <value>Ходи</value>
+  </data>
+  <data name="Game_ReviewMoves" xml:space="preserve">
+    <value>Список ходів</value>
   </data>
   <data name="Hub_GameOver_FivefoldDraw" xml:space="preserve">
     <value>НІЧИЯ ЗА П'ЯТИРАЗОВИМ ПОВТОРЕННЯМ!</value>

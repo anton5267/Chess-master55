@@ -101,7 +101,11 @@ function runLobbyAction(elements, state, action) {
 }
 
 function normalizeDifficulty(value) {
-    return value === 'easy' ? 'easy' : 'normal';
+    if (value === 'easy' || value === 'hard') {
+        return value;
+    }
+
+    return 'normal';
 }
 
 function getSelectedBotDifficulty(elements, state) {

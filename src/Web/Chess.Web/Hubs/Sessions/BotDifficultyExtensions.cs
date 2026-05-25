@@ -6,12 +6,16 @@ namespace Chess.Web.Hubs.Sessions
     {
         public const string EasyValue = "easy";
         public const string NormalValue = "normal";
+        public const string HardValue = "hard";
 
         public static string ToClientValue(this BotDifficulty difficulty)
         {
-            return difficulty == BotDifficulty.Easy
-                ? EasyValue
-                : NormalValue;
+            return difficulty switch
+            {
+                BotDifficulty.Easy => EasyValue,
+                BotDifficulty.Hard => HardValue,
+                _ => NormalValue,
+            };
         }
 
         public static bool TryParseClientValue(string value, out BotDifficulty difficulty)
@@ -25,6 +29,12 @@ namespace Chess.Web.Hubs.Sessions
             if (string.Equals(value, NormalValue, StringComparison.OrdinalIgnoreCase))
             {
                 difficulty = BotDifficulty.Normal;
+                return true;
+            }
+
+            if (string.Equals(value, HardValue, StringComparison.OrdinalIgnoreCase))
+            {
+                difficulty = BotDifficulty.Hard;
                 return true;
             }
 

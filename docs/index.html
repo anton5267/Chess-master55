@@ -42,6 +42,7 @@
         <span data-i18n="difficulty">Difficulty</span>
         <select id="difficultySelect">
           <option value="normal" data-i18n="normal">Normal</option>
+          <option value="hard" data-i18n="hard">Hard</option>
           <option value="easy" data-i18n="easy">Easy</option>
         </select>
       </label>
@@ -69,6 +70,10 @@
           <option value="b" data-i18n="bishop">Bishop</option>
           <option value="n" data-i18n="knight">Knight</option>
         </select>
+      </label>
+      <label class="check-label">
+        <input id="soundToggle" type="checkbox">
+        <span data-i18n="sound">Sound</span>
       </label>
       <div class="control-actions">
         <button id="newGameBtn" type="button" data-i18n="newGame">New game</button>
@@ -131,6 +136,32 @@
           <span id="moveCount">0</span>
         </div>
         <ol id="moveHistory" class="move-list"></ol>
+      </section>
+
+      <section class="review-panel" id="reviewPanel" aria-label="Game review" hidden>
+        <div class="section-heading">
+          <h2 data-i18n="gameReview">Game review</h2>
+          <button id="reviewPlayAgainBtn" type="button" class="subtle-button" data-i18n="playAgain">Play again</button>
+        </div>
+        <dl class="review-summary">
+          <div>
+            <dt data-i18n="result">Result</dt>
+            <dd id="reviewResult">-</dd>
+          </div>
+          <div>
+            <dt data-i18n="winner">Winner</dt>
+            <dd id="reviewWinner">-</dd>
+          </div>
+          <div>
+            <dt data-i18n="reason">Reason</dt>
+            <dd id="reviewReason">-</dd>
+          </div>
+          <div>
+            <dt data-i18n="moves">Moves</dt>
+            <dd id="reviewMoveCount">0</dd>
+          </div>
+        </dl>
+        <ol id="reviewMoves" class="review-move-list"></ol>
       </section>
 
       <section class="stats-panel" aria-label="Local stats">

@@ -99,6 +99,25 @@ public class BotMoveSelectorTests
         selectedMove.Target.Should().Be("a8");
     }
 
+    [Fact]
+    public void RandomLegalMoveSelector_HardDifficulty_ShouldPreferLikelyMateOverQueenCapture()
+    {
+        var game = CreateEmptyGame(movingColor: Color.White);
+        var board = game.ChessBoard;
+
+        board.GetSquareByName("f6").Piece = Factory.GetKing(Color.White);
+        board.GetSquareByName("g6").Piece = Factory.GetQueen(Color.White);
+        board.GetSquareByName("h8").Piece = Factory.GetKing(Color.Black);
+        board.GetSquareByName("g2").Piece = Factory.GetQueen(Color.Black);
+        board.CalculateAttackedSquares();
+
+        var selector = new RandomLegalMoveSelector();
+        selector.TrySelectMove(game, BotDifficulty.Hard, out var selectedMove).Should().BeTrue();
+        selectedMove.Should().NotBeNull();
+        selectedMove.Source.Should().Be("g6");
+        selectedMove.Target.Should().Be("g7");
+    }
+
     private static Game CreateEmptyGame(Color movingColor)
     {
         var services = new ServiceCollection()

@@ -3,6 +3,7 @@ export const storageKeys = {
     pieceTheme: "chess.pieceTheme",
     checkHints: "chess.checkHints",
     legalMoveHints: "chess.legalMoveHints",
+    soundEnabled: "chess.soundEnabled",
     botDifficulty: "chess.botDifficulty",
     lobbyName: "chess.lobbyName",
 };
@@ -22,6 +23,7 @@ export const pieceThemes = {
 export const botDifficulties = {
     easy: "easy",
     normal: "normal",
+    hard: "hard",
 };
 
 export function getElements() {
@@ -34,6 +36,12 @@ export function getElements() {
         botDifficultyMetaValue: document.querySelector('.game-live-bot-difficulty-value'),
         connectionPill: document.querySelector('.game-connection-pill'),
         gameResultBanner: document.querySelector('.game-result-banner'),
+        gameReviewPanel: document.querySelector('.game-review-panel'),
+        gameReviewResult: document.querySelector('.game-review-result-value'),
+        gameReviewWinner: document.querySelector('.game-review-winner-value'),
+        gameReviewReason: document.querySelector('.game-review-reason-value'),
+        gameReviewMoveCount: document.querySelector('.game-review-move-count-value'),
+        gameReviewMoves: document.querySelector('.game-review-moves'),
         statusText: document.querySelector('.status-bar-text'),
         statusCheck: document.querySelector('.status-bar-check-notification'),
         whiteName: document.querySelector('.main-playground-white-name'),
@@ -75,8 +83,10 @@ export function getElements() {
         pieceThemeSelect: document.querySelector('#piece-theme-select'),
         checkHintsToggle: document.querySelector('#check-hints-toggle'),
         legalMovesToggle: document.querySelector('#legal-moves-toggle'),
+        soundToggle: document.querySelector('#sound-toggle'),
         lobbyContainer: document.querySelector('.game-lobby'),
         playAgainVsBotBtn: document.querySelector('.game-play-again-btn'),
+        playAgainVsBotBtns: Array.from(document.querySelectorAll('.game-play-again-btn')),
     };
 }
 
@@ -98,6 +108,7 @@ export function createState() {
         hasGameEnded: false,
         gameOverCode: null,
         gameOverWinnerName: null,
+        reviewMoves: [],
         mobilePanel: 'board',
         connectionState: 'disconnected',
         turnNumber: 1,
@@ -118,6 +129,7 @@ export function createState() {
         selectedPieceTheme: getStoredValue(storageKeys.pieceTheme, "wikipedia", pieceThemes),
         hintsEnabled: getStoredBoolean(storageKeys.checkHints, true),
         legalHintsEnabled: getStoredBoolean(storageKeys.legalMoveHints, true),
+        soundEnabled: getStoredBoolean(storageKeys.soundEnabled, false),
         botDifficulty: getStoredValue(storageKeys.botDifficulty, "normal", botDifficulties),
         lobbyNameValid: false,
         lobbyActionInFlight: false,

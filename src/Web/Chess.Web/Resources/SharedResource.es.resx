@@ -186,6 +186,9 @@
   <data name="Game_BotDifficulty_Normal" xml:space="preserve">
     <value>Normal</value>
   </data>
+  <data name="Game_BotDifficulty_Hard" xml:space="preserve">
+    <value>Difícil</value>
+  </data>
   <data name="Game_BotEloNotice" xml:space="preserve">
     <value>Las partidas contra bots no afectan tu ELO PvP ni tus estadísticas.</value>
   </data>
@@ -221,6 +224,12 @@
   </data>
   <data name="Js_GameResult_Draw" xml:space="preserve">
     <value>Tablas:</value>
+  </data>
+  <data name="Js_GameReview_NoWinner" xml:space="preserve">
+    <value>Sin ganador</value>
+  </data>
+  <data name="Js_GameReview_MovesEmpty" xml:space="preserve">
+    <value>No hay movimientos registrados.</value>
   </data>
   <data name="Js_PlayerTurnFormat" xml:space="preserve">
     <value>¡El turno de {name}!</value>
@@ -1235,6 +1244,27 @@
   </data>
   <data name="Game_Hint_LegalMoves" xml:space="preserve">
     <value>Mostrar movimientos legales</value>
+  </data>
+  <data name="Game_SoundToggle" xml:space="preserve">
+    <value>Efectos de sonido</value>
+  </data>
+  <data name="Game_ReviewTitle" xml:space="preserve">
+    <value>Resumen de partida</value>
+  </data>
+  <data name="Game_ReviewResult" xml:space="preserve">
+    <value>Resultado</value>
+  </data>
+  <data name="Game_ReviewWinner" xml:space="preserve">
+    <value>Ganador</value>
+  </data>
+  <data name="Game_ReviewReason" xml:space="preserve">
+    <value>Motivo</value>
+  </data>
+  <data name="Game_ReviewMoveCount" xml:space="preserve">
+    <value>Movimientos</value>
+  </data>
+  <data name="Game_ReviewMoves" xml:space="preserve">
+    <value>Lista de movimientos</value>
   </data>
   <data name="Hub_GameOver_FivefoldDraw" xml:space="preserve">
     <value>¡TABLAS POR QUÍNTUPLE REPETICIÓN!</value>
