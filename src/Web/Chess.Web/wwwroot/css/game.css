@@ -11,6 +11,18 @@
     box-shadow: var(--shadow-lg);
 }
 
+#board [class*="square-"] {
+    transition: box-shadow var(--motion-normal), filter var(--motion-fast);
+}
+
+#board img {
+    will-change: transform;
+}
+
+#board .is-piece-landing img {
+    animation: piece-land 300ms cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
 .main-playground {
     display: none;
     width: 100%;
@@ -18,6 +30,7 @@
     gap: var(--game-gap);
     grid-template-columns: minmax(220px, 1fr) minmax(520px, 760px) minmax(220px, 1fr);
     align-items: stretch;
+    scroll-margin-top: calc(var(--navbar-height) + 12px);
 }
 
 .main-playground.row {
@@ -211,6 +224,10 @@
     padding: 0.25rem 0.55rem;
 }
 
+.status-bar-container.is-status-updating {
+    animation: status-soft-pop 300ms ease-out;
+}
+
 .status-bar-text {
     font-weight: 700;
 }
@@ -265,6 +282,11 @@
     margin: 0.5rem 0;
 }
 
+.player-points-value,
+.taken-pieces span {
+    display: inline-block;
+}
+
 .taken-pieces-container {
     display: flex;
     justify-content: center;
@@ -287,6 +309,16 @@
     width: 100%;
     max-width: 2rem;
     height: auto;
+}
+
+.taken-pieces.is-counter-updating img {
+    animation: captured-piece-pop 340ms ease-out;
+}
+
+.player-points.is-counter-updating,
+.player-points-value.is-counter-updating,
+.taken-pieces span.is-counter-updating {
+    animation: counter-pop 360ms ease-out;
 }
 
 .player-move-history {
@@ -312,6 +344,10 @@
     border-right: 0;
 }
 
+.list-group-item.is-new-move {
+    animation: move-history-in 320ms ease-out;
+}
+
 .main-playground-black-move-history .list-group-item {
     background-color: #1f2937;
     color: #ffffff;
@@ -320,10 +356,12 @@
 
 .highlight-white {
     box-shadow: inset 0 0 0 3px rgba(253, 224, 71, 0.78);
+    animation: move-highlight-pop 420ms ease-out;
 }
 
 .highlight-black {
     box-shadow: inset 0 0 0 3px rgba(59, 130, 246, 0.75);
+    animation: move-highlight-pop 420ms ease-out;
 }
 
 #board .hint-move {
@@ -332,6 +370,78 @@
 
 #board .hint-capture {
     box-shadow: inset 0 0 0 9999px rgba(217, 74, 74, 0.14);
+}
+
+@keyframes piece-land {
+    0% {
+        transform: scale(1.04);
+        filter: drop-shadow(0 6px 8px rgba(18, 32, 52, 0.25));
+    }
+
+    100% {
+        transform: scale(1);
+        filter: none;
+    }
+}
+
+@keyframes move-highlight-pop {
+    0% {
+        filter: brightness(1.08);
+    }
+
+    100% {
+        filter: brightness(1);
+    }
+}
+
+@keyframes status-soft-pop {
+    0% {
+        transform: translateY(-1px);
+        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.18);
+    }
+
+    100% {
+        transform: translateY(0);
+        box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
+    }
+}
+
+@keyframes captured-piece-pop {
+    0% {
+        transform: translateY(2px) scale(0.92);
+        opacity: 0.74;
+    }
+
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes counter-pop {
+    0% {
+        transform: scale(1);
+    }
+
+    45% {
+        transform: scale(1.16);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes move-history-in {
+    0% {
+        transform: translateY(-4px);
+        opacity: 0.35;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 #board.board-theme-classic .white-1e1d7 {

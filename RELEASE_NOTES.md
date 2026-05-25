@@ -1,5 +1,39 @@
 # Release Notes
 
+## 2026-05-25
+
+### Hosting and Documentation
+- Split the public documentation into two clear editions:
+  - GitHub Pages static demo at `https://anton5267.github.io/Chess-master55/`
+  - full ASP.NET Core app for local or server hosting.
+- Marked Azure App Service deployment as optional/manual instead of the main live target.
+- Updated local setup instructions for `libman restore`, `npm ci`, frontend asset build, .NET restore/build/test, and local run.
+- Refreshed contributor guidance and issue template wording for the GitHub Pages demo + full app model.
+
+### Gameplay
+- Fixed terminal-state resolution so a checked king with no legal moves is checkmate, not stalemate.
+- Added regression tests for the reported checkmate position and for moves that produce checkmate.
+
+### Build and Dependencies
+- Restored stable client library setup for chessboard.js and SignalR through LibMan.
+- Updated vulnerable/outdated .NET package references, including AutoMapper.
+- Verified package vulnerability scan reports no vulnerable packages.
+
+### UX
+- Fixed full app game layout so the fixed navbar does not cover the board/status area on desktop or mobile.
+- Added smoother chessboard movement, turn/status pulses, move-history entry animation, and captured-piece counter feedback in both the full app and static demo.
+
+### Verified
+- `libman restore`
+- `npm ci`
+- `npm run build:assets`
+- `dotnet restore src/Chess.sln`
+- `dotnet build src/Chess.sln --nologo`
+- `dotnet test src/Chess.sln --no-build --nologo --verbosity normal`
+- `dotnet list src/Chess.sln package --vulnerable --include-transitive`
+
+---
+
 ## 2026-03-07
 
 ### Platform and Deployment
@@ -29,7 +63,8 @@
 ---
 
 ## Notes
-- For Azure OIDC setup, use `scripts/bootstrap-azure-oidc.ps1` and README CI/CD section.
+- For GitHub Pages and full local setup, use the Demo vs Full section in README.
+- For optional Azure OIDC setup, use `scripts/bootstrap-azure-oidc.ps1` and the README Azure section.
 - If deployment summary reports missing configuration, set:
   - Secrets: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`
   - Variable: `AZURE_WEBAPP_NAME`

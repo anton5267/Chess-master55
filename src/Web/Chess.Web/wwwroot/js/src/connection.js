@@ -1,5 +1,6 @@
 import {
     clearHintSquares,
+    positionBoard,
     safeResizeBoard,
     syncBoardState,
 } from './board.js';
@@ -15,6 +16,8 @@ import {
     setConnectionStatus,
     updateBotDifficultyBadge,
     setPlayAgainVsBotVisibility,
+    pulseCounter,
+    pulseStatus,
     sleep,
     updateChat,
     updateReplayControls,
@@ -24,6 +27,49 @@ import { t } from './i18n.js';
 
 export function createConnection() {
     return new signalR.HubConnectionBuilder().withUrl('/hub').withAutomaticReconnect().build();
+}
+
+function focusWithoutScrolling(element) {
+    if (!element || typeof element.focus !== 'function') {
+        return;
+    }
+
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+
+    try {
+        element.focus({ preventScroll: true });
+    } catch {
+        element.focus();
+        window.scrollTo(scrollX, scrollY);
+    }
+}
+
+function getNavbarOffset() {
+    const rootStyles = window.getComputedStyle(document.documentElement);
+    const navbarHeight = Number.parseFloat(rootStyles.getPropertyValue('--navbar-height')) || 0;
+    return navbarHeight + 12;
+}
+
+function scrollGameIntoView(elements) {
+    const target = elements.playground || elements.board;
+    if (!target || typeof target.getBoundingClientRect !== 'function') {
+        return;
+    }
+
+    const targetTop = target.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({
+        top: Math.max(0, targetTop - getNavbarOffset()),
+        left: window.scrollX,
+        behavior: 'auto',
+    });
+}
+
+function scheduleGameViewportSync(elements, state) {
+    window.requestAnimationFrame(() => {
+        safeResizeBoard(state);
+        scrollGameIntoView(elements);
+    });
 }
 
 function normalizeStartPayload(payload) {
@@ -305,7 +351,7 @@ function applySyncPosition(state, elements, fen, movingPlayerId, movingPlayerNam
     state.currentFen = fen;
 
     if (state.board && state.board.fen() !== fen) {
-        state.board.position(fen, false);
+        positionBoard(state, fen, true);
     }
 
     state.displayFen = fen;
@@ -606,11 +652,12 @@ export function registerConnectionHandlers(connection, elements, state) {
         elements.blackRating.textContent = game.player2.rating;
         applyGameStats(elements, game);
         if (elements.gameChatInput) {
-            setTimeout(() => elements.gameChatInput.focus(), 0);
+            setTimeout(() => focusWithoutScrolling(elements.gameChatInput), 0);
         }
 
         syncBoardState(state);
         safeResizeBoard(state);
+        scheduleGameViewportSync(elements, state);
         syncTurnDependentState(
             connection,
             elements,
@@ -645,7 +692,7 @@ export function registerConnectionHandlers(connection, elements, state) {
         }
 
         clearHintSquares();
-        state.board.position(fen, false);
+        positionBoard(state, fen, false);
         state.displayFen = state.board.fen();
         state.liveFen = state.displayFen;
         state.currentFen = state.liveFen;
@@ -658,7 +705,7 @@ export function registerConnectionHandlers(connection, elements, state) {
         }
 
         clearHintSquares();
-        state.board.position(fen, false);
+        positionBoard(state, fen, true);
         state.displayFen = state.board.fen();
         state.liveFen = state.displayFen;
         state.currentFen = state.liveFen;
@@ -759,6 +806,8 @@ export function registerConnectionHandlers(connection, elements, state) {
                 break;
         }
 
+        pulseStatus(elements);
+
         const resultTone = resolveGameResultTone(state, player, gameOver);
         let resultPrefix = t('gameResultDraw');
         if (resultTone === 'win') {
@@ -800,6 +849,8 @@ export function registerConnectionHandlers(connection, elements, state) {
             elements.statusCheck.innerText = '';
             clearHintSquares();
         }
+
+        pulseStatus(elements);
     });
 
     connection.on('InvalidMove', function onInvalidMove(type) {
@@ -820,6 +871,8 @@ export function registerConnectionHandlers(connection, elements, state) {
                 elements.statusText.innerText = t('invalidMove');
                 break;
         }
+
+        pulseStatus(elements);
 
         sleep(1200).then(() => {
             if (state.hasGameEnded) {
@@ -907,49 +960,64 @@ export function registerConnectionHandlers(connection, elements, state) {
             switch (pieceName) {
                 case 'Pawn':
                     elements.blackPawnsTaken.innerText++;
+                    pulseCounter(elements.blackPawnsTaken);
                     break;
                 case 'Knight':
                     elements.blackKnightsTaken.innerText++;
+                    pulseCounter(elements.blackKnightsTaken);
                     break;
                 case 'Bishop':
                     elements.blackBishopsTaken.innerText++;
+                    pulseCounter(elements.blackBishopsTaken);
                     break;
                 case 'Rook':
                     elements.blackRooksTaken.innerText++;
+                    pulseCounter(elements.blackRooksTaken);
                     break;
                 case 'Queen':
                     elements.blackQueensTaken.innerText++;
+                    pulseCounter(elements.blackQueensTaken);
                     break;
                 default:
                     break;
             }
+
+            pulseCounter(elements.whitePointsValue);
         } else {
             elements.blackPointsValue.innerText = points;
             switch (pieceName) {
                 case 'Pawn':
                     elements.whitePawnsTaken.innerText++;
+                    pulseCounter(elements.whitePawnsTaken);
                     break;
                 case 'Knight':
                     elements.whiteKnightsTaken.innerText++;
+                    pulseCounter(elements.whiteKnightsTaken);
                     break;
                 case 'Bishop':
                     elements.whiteBishopsTaken.innerText++;
+                    pulseCounter(elements.whiteBishopsTaken);
                     break;
                 case 'Rook':
                     elements.whiteRooksTaken.innerText++;
+                    pulseCounter(elements.whiteRooksTaken);
                     break;
                 case 'Queen':
                     elements.whiteQueensTaken.innerText++;
+                    pulseCounter(elements.whiteQueensTaken);
                     break;
                 default:
                     break;
             }
+
+            pulseCounter(elements.blackPointsValue);
         }
     });
 
     connection.on('UpdateMoveHistory', function onUpdateMoveHistory(movingPlayer, moveNotation) {
         const li = document.createElement('li');
         li.classList.add('list-group-item');
+        li.classList.add('is-new-move');
         li.innerText = moveNotation;
 
         if (movingPlayer.name === state.playerOneName) {
@@ -991,12 +1059,17 @@ export function registerConnectionHandlers(connection, elements, state) {
         if (player.name === state.playerOneName) {
             sourceSquare[0].classList.add('highlight-white');
             targetSquare[0].classList.add('highlight-white');
+            targetSquare[0].classList.add('is-piece-landing');
         } else {
             sourceSquare[0].classList.add('highlight-black');
             targetSquare[0].classList.add('highlight-black');
+            targetSquare[0].classList.add('is-piece-landing');
         }
 
         scheduleHighlightCleanup(state);
+        setTimeout(() => {
+            targetSquare[0].classList.remove('is-piece-landing');
+        }, 420);
     });
 
     connection.on('UpdateGameChat', function onUpdateGameChat(message, player) {

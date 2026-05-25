@@ -1,6 +1,7 @@
 namespace Chess.Services.Data.Tests;
 
 using System.Linq;
+using System.Threading.Tasks;
 
 using Chess.Common.Enums;
 using Chess.Services.Data.Models;
@@ -49,6 +50,62 @@ public class GameTerminalStateTests
         result.GameOver.Should().Be(GameOver.Stalemate);
         result.WinnerOrActor.Should().BeNull();
         game.GameOver.Should().Be(GameOver.Stalemate);
+    }
+
+    [Fact]
+    public void ResolveTerminalStateForOpponentAfterMove_ShouldReturnCheckmate_WhenOpponentKingIsCheckedAndHasNoLegalMoves()
+    {
+        var game = CreateEmptyGame(movingColor: Color.Black);
+        var board = game.ChessBoard;
+
+        board.GetSquareByName("g5").Piece = Factory.GetKing(Color.White);
+        board.GetSquareByName("f7").Piece = Factory.GetKing(Color.Black);
+        board.GetSquareByName("c7").Piece = Factory.GetBishop(Color.Black);
+        board.GetSquareByName("g8").Piece = Factory.GetKnight(Color.Black);
+        board.GetSquareByName("g7").Piece = Factory.GetPawn(Color.Black);
+        board.GetSquareByName("g6").Piece = Factory.GetBishop(Color.Black);
+        board.GetSquareByName("c5").Piece = Factory.GetPawn(Color.Black);
+        board.GetSquareByName("h2").Piece = Factory.GetRook(Color.Black);
+        board.GetSquareByName("b1").Piece = Factory.GetRook(Color.Black);
+        board.GetSquareByName("g1").Piece = Factory.GetQueen(Color.Black);
+        board.CalculateAttackedSquares();
+
+        game.GetLegalMovesForPlayer(game.Opponent).Should().BeEmpty();
+
+        var result = game.ResolveTerminalStateForOpponentAfterMove();
+
+        result.Resolved.Should().BeTrue();
+        result.GameOver.Should().Be(GameOver.Checkmate);
+        result.WinnerOrActor.Should().NotBeNull();
+        result.WinnerOrActor!.Color.Should().Be(Color.Black);
+        game.GameOver.Should().Be(GameOver.Checkmate);
+    }
+
+    [Fact]
+    public async Task MakeMoveAsync_ShouldKeepCheckmate_WhenMoveChecksOpponentKingWithNoLegalMoves()
+    {
+        var game = CreateEmptyGame(movingColor: Color.Black);
+        var board = game.ChessBoard;
+
+        board.GetSquareByName("g5").Piece = Factory.GetKing(Color.White);
+        board.GetSquareByName("f7").Piece = Factory.GetKing(Color.Black);
+        board.GetSquareByName("c7").Piece = Factory.GetBishop(Color.Black);
+        board.GetSquareByName("g8").Piece = Factory.GetKnight(Color.Black);
+        board.GetSquareByName("g7").Piece = Factory.GetPawn(Color.Black);
+        board.GetSquareByName("g6").Piece = Factory.GetBishop(Color.Black);
+        board.GetSquareByName("c5").Piece = Factory.GetPawn(Color.Black);
+        board.GetSquareByName("h2").Piece = Factory.GetRook(Color.Black);
+        board.GetSquareByName("b1").Piece = Factory.GetRook(Color.Black);
+        board.GetSquareByName("h1").Piece = Factory.GetQueen(Color.Black);
+        board.CalculateAttackedSquares();
+
+        var moved = await game.MakeMoveAsync("h1", "g1", targetFen: null, persistHistory: false);
+
+        moved.Should().BeTrue();
+        game.GameOver.Should().Be(GameOver.Checkmate);
+        game.Player1.HasToMove.Should().BeTrue();
+        game.Player2.HasToMove.Should().BeFalse();
+        game.GetLegalMovesForPlayer(game.Player1).Should().BeEmpty();
     }
 
     private static Game CreateEmptyGame(Color movingColor)

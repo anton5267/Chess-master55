@@ -1,10 +1,10 @@
-name: chess-ci-cd
+name: manual-azure-deploy
 
 on:
   workflow_dispatch:
 
 concurrency:
-  group: chess-ci-cd-${{ github.ref }}
+  group: manual-azure-deploy-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -89,7 +89,7 @@ jobs:
           path: ${{ github.workspace }}/publish
 
   deploy_precheck:
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs:
       - terraform_validate
@@ -259,7 +259,7 @@ jobs:
           } >> "${GITHUB_STEP_SUMMARY}"
 
   deploy_skipped:
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && needs.deploy_precheck.outputs.configured != 'true'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && needs.deploy_precheck.outputs.configured != 'true'
     runs-on: ubuntu-latest
     needs:
       - terraform_validate

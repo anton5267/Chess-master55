@@ -22,6 +22,19 @@ function normalizeLegalMove(move) {
     };
 }
 
+function isBoardMotionEnabled() {
+    const root = document.documentElement;
+    const motionDisabled = root.dataset.motion === 'off' || root.dataset.reducedMotion === 'true';
+    const prefersReducedMotion = window.matchMedia
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    return !motionDisabled && !prefersReducedMotion;
+}
+
+function getBoardAnimationSpeed(durationMs) {
+    return isBoardMotionEnabled() ? durationMs : 0;
+}
+
 export function applyBoardTheme(elements, boardThemes, theme) {
     const themeClass = boardThemes[theme] || boardThemes.classic;
     Object.values(boardThemes).forEach((className) => elements.board.classList.remove(className));
@@ -34,6 +47,14 @@ export function clearHintSquares() {
         square.classList.remove('hint-move');
         square.classList.remove('hint-capture');
     });
+}
+
+export function positionBoard(state, position, animate = false) {
+    if (!state.board) {
+        return;
+    }
+
+    state.board.position(position, animate && isBoardMotionEnabled());
 }
 
 export function highlightLegalMovesForSource(state, sourceSquare) {
@@ -141,7 +162,7 @@ export function createOnDropHandler(state, connection) {
         const liveFen = state.liveFen || state.currentFen;
         if (liveFen && sourceFen !== liveFen) {
             if (state.board) {
-                state.board.position(liveFen, false);
+                positionBoard(state, liveFen, false);
                 state.displayFen = liveFen;
             }
 
@@ -167,7 +188,7 @@ export function createOnDropHandler(state, connection) {
                 }
 
                 if (state.board) {
-                    state.board.position(sourceFen, false);
+                    positionBoard(state, sourceFen, false);
                     state.currentFen = sourceFen;
                     state.liveFen = sourceFen;
                     state.displayFen = sourceFen;
@@ -185,7 +206,7 @@ export function syncBoardState(state) {
 
     const fenToDisplay = state.displayFen || state.liveFen || state.currentFen || 'start';
     state.board.orientation(getOrientation(state));
-    state.board.position(fenToDisplay, false);
+    positionBoard(state, fenToDisplay, false);
     state.displayFen = state.board.fen();
     if (!state.liveFen) {
         state.liveFen = state.displayFen;
@@ -206,7 +227,7 @@ export function safeResizeBoard(state) {
 
         state.board.resize();
         const fenToDisplay = state.displayFen || state.liveFen || state.currentFen || 'start';
-        state.board.position(fenToDisplay, false);
+        positionBoard(state, fenToDisplay, false);
         state.displayFen = state.board.fen();
         if (!state.liveFen) {
             state.liveFen = state.displayFen;
@@ -229,7 +250,11 @@ export function ensureBoardInitialized(state, pieceThemes, onDrop, onDragStart) 
         onDragStart,
         onDrop,
         onSnapEnd: clearHintSquares,
-        moveSpeed: 50,
+        appearSpeed: getBoardAnimationSpeed(150),
+        moveSpeed: getBoardAnimationSpeed(220),
+        snapbackSpeed: getBoardAnimationSpeed(160),
+        snapSpeed: getBoardAnimationSpeed(120),
+        trashSpeed: getBoardAnimationSpeed(120),
         position: state.currentFen || 'start',
     };
 
@@ -257,7 +282,7 @@ export function rebuildBoard(state, pieceThemes, onDrop, onDragStart) {
     ensureBoardInitialized(state, pieceThemes, onDrop, onDragStart);
     if (state.board) {
         state.board.orientation(orientation);
-        state.board.position(position, false);
+        positionBoard(state, position, false);
         state.displayFen = state.board.fen();
         if (!state.liveFen) {
             state.liveFen = state.displayFen;

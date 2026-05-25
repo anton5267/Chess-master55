@@ -13,6 +13,7 @@ using Chess.Services.Data.Services;
 using Chess.Services.Mapping;
 using Chess.Web.ViewModels;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 public class StatsServiceTests
@@ -166,7 +167,7 @@ public class StatsServiceTests
         var viewModel = new UserStatsViewModel();
         viewModel.CreateMappings(expression);
 
-        var mapper = new Mapper(new MapperConfiguration(expression));
+        var mapper = new Mapper(new MapperConfiguration(expression, NullLoggerFactory.Instance));
         var entity = new StatisticEntity
         {
             Played = 31,

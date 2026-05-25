@@ -41,13 +41,19 @@
       ]
     },
     {
-      "provider": "cdnjs",
-      "library": "chessboard-js@1.0.0",
-      "destination": "wwwroot/lib/chessboard-js/"
+      "provider": "unpkg",
+      "library": "@chrisoakman/chessboardjs@1.0.0",
+      "destination": "wwwroot/lib/chessboard-js/",
+      "files": [
+        "dist/chessboard-1.0.0.css",
+        "dist/chessboard-1.0.0.min.css",
+        "dist/chessboard-1.0.0.js",
+        "dist/chessboard-1.0.0.min.js"
+      ]
     },
     {
       "provider": "unpkg",
-      "library": "@microsoft/signalr@latest",
+      "library": "@microsoft/signalr@8.0.17",
       "destination": "wwwroot/lib/microsoft/signalr/",
       "files": [
         "dist/browser/signalr.js",

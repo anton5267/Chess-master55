@@ -1,273 +1,239 @@
 # Chess-master55
 
-[![CI/CD](https://github.com/anton5267/Chess-master55/actions/workflows/master_chess-bg.yml/badge.svg)](https://github.com/anton5267/Chess-master55/actions/workflows/master_chess-bg.yml)
+[![GitHub Pages](https://github.com/anton5267/Chess-master55/actions/workflows/github-pages.yml/badge.svg)](https://github.com/anton5267/Chess-master55/actions/workflows/github-pages.yml)
 ![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-Modern multiplayer chess platform built with ASP.NET Core MVC + SignalR.
-Supports real-time PvP, bot mode, localization (EN/UK/DE/PL/ES), ELO stats, and Azure deployment.
+Modern chess platform with two editions:
 
----
+- **Static demo** on GitHub Pages: `https://anton5267.github.io/Chess-master55/`
+- **Full ASP.NET Core app** for local or server hosting: MVC, SignalR, Identity, EF Core, SQL database, lobby, multiplayer, bot games, chat, localization, and ELO stats.
 
-## Live
-- GitHub Pages: `https://anton5267.github.io/Chess-master55/`
-- Azure App Service: `https://chess-master55-prod-4a93e5e5.azurewebsites.net`
-- Ngrok-first dev: `https://nonhostilely-unhampered-noah.ngrok-free.dev`
+The old Azure App Service URL is not treated as the live site anymore. Azure deployment is kept as an optional manual workflow for anyone who configures their own Azure resources.
 
-## Release Notes
-- See [RELEASE_NOTES.md](./RELEASE_NOTES.md) for the latest production changes.
+## Demo vs Full Version
 
----
+| Feature | GitHub Pages demo | Full ASP.NET Core app |
+| --- | --- | --- |
+| Hosting cost | Free GitHub Pages | Needs an ASP.NET Core host + SQL database |
+| Backend | No backend, static files only | ASP.NET Core MVC + SignalR |
+| Login / Identity | No | Yes |
+| Real-time PvP / lobby / chat | No | Yes |
+| Bot play | Yes, browser-local demo | Yes, server-backed game flow |
+| Stats | Browser-local | EF Core + SQL database |
+| Source | `docs/` | `src/` |
 
 ## English
 
 ### Product Overview
+
 - Real-time multiplayer chess over SignalR.
 - Bot mode with selectable difficulty.
-- Full identity flow (register/login/manage).
+- Full Identity flow: register, login, account management.
 - Stats page with ELO and historical game metrics.
-- Production CI/CD workflow for Azure App Service.
-- Static GitHub Pages edition in `docs/` for no-cost hosting without the ASP.NET Core backend.
+- Multi-language UI: English, Ukrainian, German, Polish, Spanish.
+- Static GitHub Pages demo in `docs/` for free public access.
+- Optional manual Azure App Service deployment workflow.
 
-### Architecture at a Glance
+### Architecture
+
 - **Web**: ASP.NET Core MVC + Razor Views
 - **Realtime**: SignalR hubs (`/hub`)
-- **Data**: EF Core + SQL database
+- **Data**: EF Core + SQL Server
 - **Game state**: in-memory session store with synchronization hardening
-- **Frontend build**: esbuild (game/stats bundles)
+- **Frontend build**: esbuild bundles for game and stats scripts
+- **Client libraries**: LibMan restores Bootstrap, jQuery, SignalR, and chessboard.js
 
-### Key Features
-- Move validation, check, checkmate, stalemate
-- Castling, en passant, promotion
-- Draw offer, resign, repetition and 50-move draw rules
-- Lobby + room system + live chat
-- Multi-language UI: English, Ukrainian, German, Polish, Spanish
-- Board/piece themes and modernized UI
+### Prerequisites
 
-### Local Development
+- .NET 8 SDK/runtime
+- Node.js with npm
+- SQL Server Express, LocalDB, or another SQL Server connection string
+- LibMan CLI:
+
+```bash
+dotnet tool install --global Microsoft.Web.LibraryManager.Cli
+```
+
+If tests fail because .NET 8 runtime is missing, install the .NET 8 runtime/SDK. On this machine, a temporary fallback is:
+
+```powershell
+$env:DOTNET_ROLL_FORWARD = "Major"
+```
+
+### Full Local Development
+
+Run from the repository root:
+
 ```bash
 cd src/Web/Chess.Web
+libman restore
 npm ci
 npm run build:assets
-cd ../..
+cd ../../..
 dotnet restore src/Chess.sln
-dotnet build src/Chess.sln
+dotnet build src/Chess.sln --nologo
 dotnet test src/Chess.sln --nologo
-dotnet run --project src/Web/Chess.Web/Chess.Web.csproj
+dotnet run --project src/Web/Chess.Web/Chess.Web.csproj --urls http://localhost:5000
 ```
 
-### Ngrok-First Development
-Use this when you want to open the app via a public URL only:
-`https://nonhostilely-unhampered-noah.ngrok-free.dev`
+Open: `http://localhost:5000`
+
+The app reads `CONNECTION_STRING` first. If it is not set, it uses `appsettings.Development.json` when `ASPNETCORE_ENVIRONMENT=Development`.
+
+### Static GitHub Pages Demo
+
+Workflow: `.github/workflows/github-pages.yml`
+
+The Pages workflow publishes `docs/` to:
+
+```text
+https://anton5267.github.io/Chess-master55/
+```
+
+GitHub Pages cannot run the ASP.NET Core server, SignalR hubs, Identity, or EF Core database. The static edition keeps a free public chess demo available with local play, bot play, move history, board themes, and browser-local stats.
+
+### Optional Ngrok Tunnel
+
+Use this only when you already run the full app locally and need a temporary public URL:
 
 ```bash
 cd src/Web/Chess.Web
-npm ci
-npm run dev:remote
+npm run dev:remote:http
 ```
 
-Troubleshooting:
-- `ERR_NGROK_8012`: local upstream is not running (`https://localhost:5001`)
-- `ConnectionString not initialized`: set `ASPNETCORE_ENVIRONMENT=Development`
-- Certificate warning: run `dotnet dev-certs https --trust` or use `dev:remote:http`
+Or directly:
+
+```bash
+ngrok http http://localhost:5000
+```
+
+Do not treat an ngrok URL as a permanent production URL unless it is configured in your own ngrok account.
 
 ### Testing
+
 ```bash
 cd src/Web/Chess.Web
 npm run check:full
 ```
 
-Windows-safe test mode (auto-stops running web process before tests):
+Windows-safe test mode stops a running web process first:
+
 ```bash
 cd src/Web/Chess.Web
 npm run check:full:safe
 ```
 
-If you see `CS2012` (`cannot open ... because it is being used by another process`):
-- stop running `dotnet watch` / `dotnet run` instances first
-- then run `npm run check:full:safe`
+If you see `CS2012` (`cannot open ... because it is being used by another process`), stop active `dotnet watch` / `dotnet run` instances and rerun `npm run check:full:safe`.
 
-### Manual Azure CI/CD (GitHub Actions -> Azure App Service)
+### Optional Manual Azure Deployment
+
 Workflow: `.github/workflows/master_chess-bg.yml`
 
+This workflow is manual (`workflow_dispatch`) and is not the primary live target. It requires your own Azure App Service and GitHub configuration.
+
 Required secrets for OIDC deployment:
+
 - `AZURE_CLIENT_ID`
 - `AZURE_TENANT_ID`
 - `AZURE_SUBSCRIPTION_ID`
 - `AZURE_WEBAPP_URL` (optional, recommended for explicit health check URL)
 
 Required repository variable:
-- `AZURE_WEBAPP_NAME` (example: `your-app-name` without `.azurewebsites.net`)
 
-Deploy runs on:
-- manual `workflow_dispatch` for `main`
-
-Pipeline jobs:
-- `terraform_validate`
-- `build_test_publish`
-- `deploy_precheck`
-- `deploy` (runs only when OIDC config is complete)
-- `deploy_skipped` (writes summary when config is incomplete)
-
-OIDC bootstrap (recommended one-time flow):
-```bash
-az login --scope https://management.core.windows.net//.default
-az login --scope https://graph.microsoft.com//.default
-az webapp list --query "[].{name:name,rg:resourceGroup,host:defaultHostName}" -o table
-# create/find App Registration + federated credential for:
-# repo:anton5267/Chess-master55:ref:refs/heads/main
-gh secret set AZURE_CLIENT_ID --repo anton5267/Chess-master55 --body "<app-client-id>"
-gh secret set AZURE_TENANT_ID --repo anton5267/Chess-master55 --body "<tenant-id>"
-gh secret set AZURE_SUBSCRIPTION_ID --repo anton5267/Chess-master55 --body "<subscription-id>"
-gh variable set AZURE_WEBAPP_NAME --repo anton5267/Chess-master55 --body "<webapp-name>"
-gh secret set AZURE_WEBAPP_URL --repo anton5267/Chess-master55 --body "https://<webapp-name>.azurewebsites.net"
-```
-
-If the deployment summary shows `deploy_skipped_missing_secrets`, configure all required values above and rerun the workflow.
-Quick check:
-```bash
-gh secret list --repo anton5267/Chess-master55
-gh variable list --repo anton5267/Chess-master55
-```
-
-PowerShell helper (idempotent):
-```powershell
-pwsh ./scripts/bootstrap-azure-oidc.ps1 -Repo anton5267/Chess-master55 -WebAppName "<webapp-name>" -ResourceGroup "<resource-group>"
-```
-If scoped Azure tokens are missing, the helper now opens `az login --use-device-code` automatically.
+- `AZURE_WEBAPP_NAME` without `.azurewebsites.net`
 
 Health endpoints:
+
 - `/healthz`
 - `/healthz/live`
 - `/healthz/ready`
 
-### GitHub Pages
-Workflow: `.github/workflows/github-pages.yml`
-
-The Pages build publishes the static site from `docs/` to:
-`https://anton5267.github.io/Chess-master55/`
-
-GitHub Pages cannot run the ASP.NET Core server, SignalR hubs, Identity, or EF Core database. The static edition keeps the site available for free with local play, bot play, move history, board themes, and browser-local stats.
-
----
-
 ## Українська
 
-### Опис продукту
-- Онлайн-шахи в реальному часі на SignalR.
-- Режим гри проти бота з вибором складності.
-- Повний Identity flow (реєстрація, логін, керування акаунтом).
-- Сторінка статистики з ELO та метриками партій.
-- Production CI/CD деплой в Azure App Service.
-- Статична GitHub Pages-версія в `docs/` для безкоштовного хостингу без ASP.NET Core backend.
+### Що це за проєкт
 
-### Архітектура (коротко)
-- **Web**: ASP.NET Core MVC + Razor Views
-- **Realtime**: SignalR hubs (`/hub`)
-- **Data**: EF Core + SQL БД
-- **Стан гри**: in-memory session store із захистом від десинхрону
-- **Фронтенд-білд**: esbuild (бандли гри і статистики)
+- Онлайн-шахи в реальному часі через SignalR.
+- Гра проти бота з вибором складності.
+- Повний Identity flow: реєстрація, логін, керування акаунтом.
+- Сторінка статистики з ELO та історією партій.
+- 5 мов інтерфейсу: EN/UK/DE/PL/ES.
+- Безкоштовна статична demo-версія на GitHub Pages у `docs/`.
+- Опційний ручний деплой повної версії в Azure App Service.
 
-### Основні можливості
-- Валідація ходів, шах, мат, пат
-- Рокіровка, en passant, перетворення пішака
-- Нічия, пропозиція нічиєї, здача
-- Лобі, кімнати, живий чат
-- 5 мов інтерфейсу: EN/UK/DE/PL/ES
-- Теми дошки/фігур та оновлений UI
+### Важливо про версії
 
-### Локальний запуск
+GitHub Pages запускає тільки статичний сайт. Там не буде логіна, SQL бази, SignalR backend, live multiplayer lobby або серверної статистики. Це demo-версія, щоб сайт був доступний безкоштовно.
+
+Повна версія знаходиться у `src/` і потребує ASP.NET Core hosting + SQL Server.
+
+### Локальний запуск повної версії
+
+Запускати з кореня репозиторію:
+
 ```bash
 cd src/Web/Chess.Web
+libman restore
 npm ci
 npm run build:assets
-cd ../..
+cd ../../..
 dotnet restore src/Chess.sln
-dotnet build src/Chess.sln
+dotnet build src/Chess.sln --nologo
 dotnet test src/Chess.sln --nologo
-dotnet run --project src/Web/Chess.Web/Chess.Web.csproj
+dotnet run --project src/Web/Chess.Web/Chess.Web.csproj --urls http://localhost:5000
 ```
 
-### Режим Ngrok-first
-Публічний URL для перевірки:
-`https://nonhostilely-unhampered-noah.ngrok-free.dev`
+Відкрити: `http://localhost:5000`
+
+Для локальної бази потрібен SQL Server Express/LocalDB або змінна `CONNECTION_STRING`.
+
+### GitHub Pages demo
+
+Workflow: `.github/workflows/github-pages.yml`
+
+Статична версія публікується з `docs/` сюди:
+
+```text
+https://anton5267.github.io/Chess-master55/
+```
+
+### Ngrok
+
+Ngrok залишений тільки як опційний локальний tunnel:
 
 ```bash
 cd src/Web/Chess.Web
-npm ci
-npm run dev:remote
+npm run dev:remote:http
+```
+
+Або напряму:
+
+```bash
+ngrok http http://localhost:5000
 ```
 
 ### Перевірка якості
+
 ```bash
 cd src/Web/Chess.Web
 npm run check:full
 ```
 
-Якщо з’являється `CS2012` (файл зайнятий іншим процесом):
-- зупиніть активний `dotnet watch` / `dotnet run`
-- використайте безпечний режим:
+Безпечний Windows-режим, який спочатку зупиняє запущений web process:
+
 ```bash
 cd src/Web/Chess.Web
 npm run check:full:safe
 ```
 
-### Ручний CI/CD деплой в Azure (OIDC)
-Workflow: `.github/workflows/master_chess-bg.yml`
+### Azure
 
-Необхідні GitHub Secrets:
-- `AZURE_CLIENT_ID`
-- `AZURE_TENANT_ID`
-- `AZURE_SUBSCRIPTION_ID`
-- `AZURE_WEBAPP_URL` (опційно, рекомендовано)
+Azure workflow залишений як ручний legacy/optional deploy. Він не є основною live-версією. Щоб ним користуватися, треба мати власний Azure App Service і налаштувати GitHub secrets/variables.
 
-Необхідна Repository Variable:
-- `AZURE_WEBAPP_NAME` (наприклад: `your-app-name`, без `.azurewebsites.net`)
+## Release Notes
 
-Pipeline запускається:
-- вручну через `workflow_dispatch` для `main`
-
-Склад pipeline:
-- `terraform_validate`
-- `build_test_publish`
-- `deploy_precheck`
-- `deploy` (запускається лише коли OIDC налаштований повністю)
-- `deploy_skipped` (пише summary, якщо OIDC конфіг неповний)
-
-Базовий OIDC bootstrap (одноразово):
-```bash
-az login --scope https://management.core.windows.net//.default
-az login --scope https://graph.microsoft.com//.default
-az webapp list --query "[].{name:name,rg:resourceGroup,host:defaultHostName}" -o table
-gh secret set AZURE_CLIENT_ID --repo anton5267/Chess-master55 --body "<app-client-id>"
-gh secret set AZURE_TENANT_ID --repo anton5267/Chess-master55 --body "<tenant-id>"
-gh secret set AZURE_SUBSCRIPTION_ID --repo anton5267/Chess-master55 --body "<subscription-id>"
-gh variable set AZURE_WEBAPP_NAME --repo anton5267/Chess-master55 --body "<webapp-name>"
-gh secret set AZURE_WEBAPP_URL --repo anton5267/Chess-master55 --body "https://<webapp-name>.azurewebsites.net"
-```
-
-Якщо в summary бачиш `deploy_skipped_missing_secrets`, додай усі обовʼязкові значення вище та перезапусти workflow.
-Швидка перевірка:
-```bash
-gh secret list --repo anton5267/Chess-master55
-gh variable list --repo anton5267/Chess-master55
-```
-
-PowerShell helper (ідемпотентний):
-```powershell
-pwsh ./scripts/bootstrap-azure-oidc.ps1 -Repo anton5267/Chess-master55 -WebAppName "<webapp-name>" -ResourceGroup "<resource-group>"
-```
-Якщо бракує scoped token, helper автоматично запустить `az login --use-device-code`.
-
-### GitHub Pages
-Workflow: `.github/workflows/github-pages.yml`
-
-Статична версія публікується з `docs/` сюди:
-`https://anton5267.github.io/Chess-master55/`
-
-GitHub Pages не запускає ASP.NET Core server, SignalR hubs, Identity або EF Core базу. Тому Pages-версія працює як безкоштовний статичний сайт: локальна гра, гра проти бота, історія ходів, теми дошки та локальна статистика в браузері.
-
----
+See [RELEASE_NOTES.md](./RELEASE_NOTES.md) for production change history.
 
 ## License
+
 MIT License. See [LICENSE](./LICENSE).

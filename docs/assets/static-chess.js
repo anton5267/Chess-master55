@@ -474,11 +474,40 @@
     return window.Chessboard || window.ChessBoard;
   }
 
+  function shouldAnimateBoard() {
+    return !window.matchMedia || !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function positionBoard(position, animate) {
+    if (!board) {
+      return;
+    }
+
+    board.position(position, !!animate && shouldAnimateBoard());
+  }
+
+  function pulseStatus() {
+    const strip = elements.statusText && elements.statusText.closest(".status-strip");
+    if (!strip) {
+      return;
+    }
+
+    strip.classList.remove("is-status-updating");
+    void strip.offsetWidth;
+    strip.classList.add("is-status-updating");
+    window.setTimeout(() => strip.classList.remove("is-status-updating"), 320);
+  }
+
   function createBoardConfig() {
     return {
       draggable: true,
       position: "start",
       pieceTheme: pieceThemes[elements.pieceThemeSelect.value],
+      appearSpeed: shouldAnimateBoard() ? 150 : 0,
+      moveSpeed: shouldAnimateBoard() ? 210 : 0,
+      snapbackSpeed: shouldAnimateBoard() ? 150 : 0,
+      snapSpeed: shouldAnimateBoard() ? 120 : 0,
+      trashSpeed: shouldAnimateBoard() ? 120 : 0,
       onDragStart,
       onDrop,
       onSnapEnd,
@@ -565,7 +594,7 @@
 
   function onSnapEnd() {
     if (board) {
-      board.position(chess.fen());
+      positionBoard(chess.fen(), false);
     }
   }
 
@@ -586,7 +615,7 @@
 
     selectedSquare = null;
     lastMoveSquares = [move.from, move.to];
-    board.position(chess.fen());
+    positionBoard(chess.fen(), true);
     updateUi();
 
     if (!isGameFinished() && isBotMode()) {
@@ -605,7 +634,7 @@
       if (move) {
         chess.move(move);
         lastMoveSquares = [move.from, move.to];
-        board.position(chess.fen());
+        positionBoard(chess.fen(), true);
       }
       updateUi();
     }, elements.difficultySelect.value === "easy" ? 360 : 520);
@@ -662,7 +691,7 @@
     manualResult = null;
     selectedSquare = null;
     lastMoveSquares = [];
-    board.position(chess.fen());
+    positionBoard(chess.fen(), true);
     updateUi();
   }
 
@@ -826,8 +855,12 @@
       status = `${status} · ${t("check")}`;
     }
 
+    const previousStatus = elements.statusText.textContent;
     elements.statusText.textContent = status;
     elements.turnBadge.textContent = badge;
+    if (previousStatus !== status) {
+      pulseStatus();
+    }
   }
 
   function renderMoveHistory() {
@@ -840,6 +873,9 @@
       index.className = "move-index";
       index.textContent = `${Math.floor(i / 2) + 1}.`;
       moves.textContent = history[i + 1] ? `${history[i].san} ${history[i + 1].san}` : history[i].san;
+      if (i >= history.length - 2) {
+        item.classList.add("is-new-move");
+      }
       item.append(index, moves);
       elements.moveHistory.appendChild(item);
     }

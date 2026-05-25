@@ -19,6 +19,15 @@
       isCapture: typeof move.isCapture === "boolean" ? move.isCapture : !!move.IsCapture
     };
   }
+  function isBoardMotionEnabled() {
+    const root = document.documentElement;
+    const motionDisabled = root.dataset.motion === "off" || root.dataset.reducedMotion === "true";
+    const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    return !motionDisabled && !prefersReducedMotion;
+  }
+  function getBoardAnimationSpeed(durationMs) {
+    return isBoardMotionEnabled() ? durationMs : 0;
+  }
   function applyBoardTheme(elements, boardThemes2, theme) {
     const themeClass = boardThemes2[theme] || boardThemes2.classic;
     Object.values(boardThemes2).forEach((className) => elements.board.classList.remove(className));
@@ -30,6 +39,12 @@
       square.classList.remove("hint-move");
       square.classList.remove("hint-capture");
     });
+  }
+  function positionBoard(state, position, animate = false) {
+    if (!state.board) {
+      return;
+    }
+    state.board.position(position, animate && isBoardMotionEnabled());
   }
   function highlightLegalMovesForSource(state, sourceSquare) {
     clearHintSquares();
@@ -92,7 +107,7 @@
       const liveFen = state.liveFen || state.currentFen;
       if (liveFen && sourceFen !== liveFen) {
         if (state.board) {
-          state.board.position(liveFen, false);
+          positionBoard(state, liveFen, false);
           state.displayFen = liveFen;
         }
         if (connection.state === signalR.HubConnectionState.Connected && !state.syncRequestInFlight) {
@@ -111,7 +126,7 @@
           state.pendingSyncTimeoutId = null;
         }
         if (state.board) {
-          state.board.position(sourceFen, false);
+          positionBoard(state, sourceFen, false);
           state.currentFen = sourceFen;
           state.liveFen = sourceFen;
           state.displayFen = sourceFen;
@@ -126,7 +141,7 @@
     }
     const fenToDisplay = state.displayFen || state.liveFen || state.currentFen || "start";
     state.board.orientation(getOrientation(state));
-    state.board.position(fenToDisplay, false);
+    positionBoard(state, fenToDisplay, false);
     state.displayFen = state.board.fen();
     if (!state.liveFen) {
       state.liveFen = state.displayFen;
@@ -143,7 +158,7 @@
       }
       state.board.resize();
       const fenToDisplay = state.displayFen || state.liveFen || state.currentFen || "start";
-      state.board.position(fenToDisplay, false);
+      positionBoard(state, fenToDisplay, false);
       state.displayFen = state.board.fen();
       if (!state.liveFen) {
         state.liveFen = state.displayFen;
@@ -163,7 +178,11 @@
       onDragStart,
       onDrop,
       onSnapEnd: clearHintSquares,
-      moveSpeed: 50,
+      appearSpeed: getBoardAnimationSpeed(150),
+      moveSpeed: getBoardAnimationSpeed(220),
+      snapbackSpeed: getBoardAnimationSpeed(160),
+      snapSpeed: getBoardAnimationSpeed(120),
+      trashSpeed: getBoardAnimationSpeed(120),
       position: state.currentFen || "start"
     };
     state.board = ChessBoard("board", config);
@@ -186,7 +205,7 @@
     ensureBoardInitialized(state, pieceThemes2, onDrop, onDragStart);
     if (state.board) {
       state.board.orientation(orientation);
-      state.board.position(position, false);
+      positionBoard(state, position, false);
       state.displayFen = state.board.fen();
       if (!state.liveFen) {
         state.liveFen = state.displayFen;
@@ -263,6 +282,29 @@
   var legacyReplayTextOnlySelectors = ["div", "span", "p", "small", "strong", "label", "h6"];
   var legacyReplayCleanupObserver = null;
   var legacyReplayCleanupScheduled = false;
+  function restartTransientClass(element, className, durationMs) {
+    if (!element) {
+      return;
+    }
+    const timeoutKey = `__${className}Timeout`;
+    if (element[timeoutKey]) {
+      window.clearTimeout(element[timeoutKey]);
+    }
+    element.classList.remove(className);
+    void element.offsetWidth;
+    element.classList.add(className);
+    element[timeoutKey] = window.setTimeout(() => {
+      element.classList.remove(className);
+      element[timeoutKey] = null;
+    }, durationMs);
+  }
+  function pulseStatus(elements) {
+    restartTransientClass(elements.statusText?.closest(".status-bar-container"), "is-status-updating", 320);
+  }
+  function pulseCounter(element) {
+    restartTransientClass(element, "is-counter-updating", 420);
+    restartTransientClass(element?.closest(".taken-pieces, .player-points"), "is-counter-updating", 420);
+  }
   function scheduleLegacyReplayCleanup() {
     if (legacyReplayCleanupScheduled) {
       return;
@@ -405,6 +447,7 @@
     if (!activeMovingPlayerName) {
       elements.statusText.innerText = "";
       elements.statusText.style.color = "inherit";
+      pulseStatus(elements);
       return;
     }
     if (state.isYourTurn) {
@@ -417,6 +460,7 @@
       elements.statusText.innerText = t("playerTurnFormat", { name: activeMovingPlayerName });
       elements.statusText.style.color = "red";
     }
+    pulseStatus(elements);
   }
   function updateChat(elements, message, chat, isInternalMessage, isBlack) {
     const normalizedMessage = `${message || ""}`.trim();
@@ -996,6 +1040,42 @@
   function createConnection() {
     return new signalR.HubConnectionBuilder().withUrl("/hub").withAutomaticReconnect().build();
   }
+  function focusWithoutScrolling(element) {
+    if (!element || typeof element.focus !== "function") {
+      return;
+    }
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    try {
+      element.focus({ preventScroll: true });
+    } catch {
+      element.focus();
+      window.scrollTo(scrollX, scrollY);
+    }
+  }
+  function getNavbarOffset() {
+    const rootStyles = window.getComputedStyle(document.documentElement);
+    const navbarHeight = Number.parseFloat(rootStyles.getPropertyValue("--navbar-height")) || 0;
+    return navbarHeight + 12;
+  }
+  function scrollGameIntoView(elements) {
+    const target = elements.playground || elements.board;
+    if (!target || typeof target.getBoundingClientRect !== "function") {
+      return;
+    }
+    const targetTop = target.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({
+      top: Math.max(0, targetTop - getNavbarOffset()),
+      left: window.scrollX,
+      behavior: "auto"
+    });
+  }
+  function scheduleGameViewportSync(elements, state) {
+    window.requestAnimationFrame(() => {
+      safeResizeBoard(state);
+      scrollGameIntoView(elements);
+    });
+  }
   function normalizeStartPayload(payload) {
     const game = payload && payload.game ? payload.game : payload;
     const botPlayerId = payload && payload.botPlayerId ? payload.botPlayerId : null;
@@ -1207,7 +1287,7 @@
     state.liveFen = fen;
     state.currentFen = fen;
     if (state.board && state.board.fen() !== fen) {
-      state.board.position(fen, false);
+      positionBoard(state, fen, true);
     }
     state.displayFen = fen;
     updateReplayControls(elements, state);
@@ -1457,10 +1537,11 @@
       elements.blackRating.textContent = game.player2.rating;
       applyGameStats(elements, game);
       if (elements.gameChatInput) {
-        setTimeout(() => elements.gameChatInput.focus(), 0);
+        setTimeout(() => focusWithoutScrolling(elements.gameChatInput), 0);
       }
       syncBoardState(state);
       safeResizeBoard(state);
+      scheduleGameViewportSync(elements, state);
       syncTurnDependentState(
         connection,
         elements,
@@ -1492,7 +1573,7 @@
         return;
       }
       clearHintSquares();
-      state.board.position(fen, false);
+      positionBoard(state, fen, false);
       state.displayFen = state.board.fen();
       state.liveFen = state.displayFen;
       state.currentFen = state.liveFen;
@@ -1503,7 +1584,7 @@
         return;
       }
       clearHintSquares();
-      state.board.position(fen, false);
+      positionBoard(state, fen, true);
       state.displayFen = state.board.fen();
       state.liveFen = state.displayFen;
       state.currentFen = state.liveFen;
@@ -1594,6 +1675,7 @@
         default:
           break;
       }
+      pulseStatus(elements);
       const resultTone = resolveGameResultTone(state, player, gameOver);
       let resultPrefix = t("gameResultDraw");
       if (resultTone === "win") {
@@ -1626,6 +1708,7 @@
         elements.statusCheck.innerText = "";
         clearHintSquares();
       }
+      pulseStatus(elements);
     });
     connection.on("InvalidMove", function onInvalidMove(type) {
       if (state.hasGameEnded) {
@@ -1643,6 +1726,7 @@
           elements.statusText.innerText = t("invalidMove");
           break;
       }
+      pulseStatus(elements);
       sleep(1200).then(() => {
         if (state.hasGameEnded) {
           return;
@@ -1714,48 +1798,61 @@
         switch (pieceName) {
           case "Pawn":
             elements.blackPawnsTaken.innerText++;
+            pulseCounter(elements.blackPawnsTaken);
             break;
           case "Knight":
             elements.blackKnightsTaken.innerText++;
+            pulseCounter(elements.blackKnightsTaken);
             break;
           case "Bishop":
             elements.blackBishopsTaken.innerText++;
+            pulseCounter(elements.blackBishopsTaken);
             break;
           case "Rook":
             elements.blackRooksTaken.innerText++;
+            pulseCounter(elements.blackRooksTaken);
             break;
           case "Queen":
             elements.blackQueensTaken.innerText++;
+            pulseCounter(elements.blackQueensTaken);
             break;
           default:
             break;
         }
+        pulseCounter(elements.whitePointsValue);
       } else {
         elements.blackPointsValue.innerText = points;
         switch (pieceName) {
           case "Pawn":
             elements.whitePawnsTaken.innerText++;
+            pulseCounter(elements.whitePawnsTaken);
             break;
           case "Knight":
             elements.whiteKnightsTaken.innerText++;
+            pulseCounter(elements.whiteKnightsTaken);
             break;
           case "Bishop":
             elements.whiteBishopsTaken.innerText++;
+            pulseCounter(elements.whiteBishopsTaken);
             break;
           case "Rook":
             elements.whiteRooksTaken.innerText++;
+            pulseCounter(elements.whiteRooksTaken);
             break;
           case "Queen":
             elements.whiteQueensTaken.innerText++;
+            pulseCounter(elements.whiteQueensTaken);
             break;
           default:
             break;
         }
+        pulseCounter(elements.blackPointsValue);
       }
     });
     connection.on("UpdateMoveHistory", function onUpdateMoveHistory(movingPlayer, moveNotation) {
       const li = document.createElement("li");
       li.classList.add("list-group-item");
+      li.classList.add("is-new-move");
       li.innerText = moveNotation;
       if (movingPlayer.name === state.playerOneName) {
         elements.whiteMoveHistory.appendChild(li);
@@ -1790,11 +1887,16 @@
       if (player.name === state.playerOneName) {
         sourceSquare[0].classList.add("highlight-white");
         targetSquare[0].classList.add("highlight-white");
+        targetSquare[0].classList.add("is-piece-landing");
       } else {
         sourceSquare[0].classList.add("highlight-black");
         targetSquare[0].classList.add("highlight-black");
+        targetSquare[0].classList.add("is-piece-landing");
       }
       scheduleHighlightCleanup(state);
+      setTimeout(() => {
+        targetSquare[0].classList.remove("is-piece-landing");
+      }, 420);
     });
     connection.on("UpdateGameChat", function onUpdateGameChat(message, player) {
       const isBlack = player.name !== state.playerOneName;

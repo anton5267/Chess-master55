@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
 @import url("../lib/bootstrap/dist/css/bootstrap.css");
-@import url("../lib/chessboard-js/chessboard-1.0.0.css");
+@import url("../lib/chessboard-js/dist/chessboard-1.0.0.css");
 @import url("home.css");
 @import url("game.css");
 @import url("about.css");

@@ -63,9 +63,17 @@
         public Player Opponent => this.Player1?.HasToMove ?? false ? this.Player2 : this.Player1;
 
         public IReadOnlyCollection<LegalMove> GetLegalMoves()
+            => this.GetLegalMovesForPlayer(this.MovingPlayer);
+
+        public IReadOnlyCollection<LegalMove> GetLegalMovesForPlayer(Player player)
         {
             var moves = new List<LegalMove>();
-            var movingColor = this.MovingPlayer.Color;
+            if (player == null)
+            {
+                return moves;
+            }
+
+            var movingColor = player.Color;
             var squares = this.ChessBoard.Matrix.SelectMany(x => x).ToArray();
 
             foreach (var source in squares.Where(x => x.Piece != null && x.Piece.Color == movingColor))
@@ -93,27 +101,10 @@
         }
 
         public (bool Resolved, GameOver GameOver, Player WinnerOrActor) ResolveTerminalStateForCurrentMovingPlayer()
-        {
-            if (this.GameOver != GameOver.None)
-            {
-                return (false, this.GameOver, null);
-            }
+            => this.ResolveTerminalStateForPlayer(this.MovingPlayer, this.Opponent);
 
-            if (this.GetLegalMoves().Count > 0)
-            {
-                return (false, GameOver.None, null);
-            }
-
-            var movingPlayerIsCheck = this.checkService.IsCheck(this.MovingPlayer, this.ChessBoard);
-            if (movingPlayerIsCheck)
-            {
-                this.GameOver = GameOver.Checkmate;
-                return (true, this.GameOver, this.Opponent);
-            }
-
-            this.GameOver = GameOver.Stalemate;
-            return (true, this.GameOver, null);
-        }
+        public (bool Resolved, GameOver GameOver, Player WinnerOrActor) ResolveTerminalStateForOpponentAfterMove()
+            => this.ResolveTerminalStateForPlayer(this.Opponent, this.MovingPlayer);
 
         public async Task<bool> MakeMoveAsync(string source, string target, string targetFen, bool persistHistory = true)
         {
@@ -187,6 +178,29 @@
             }
 
             return true;
+        }
+
+        private (bool Resolved, GameOver GameOver, Player WinnerOrActor) ResolveTerminalStateForPlayer(Player playerToMove, Player opponent)
+        {
+            if (this.GameOver != GameOver.None)
+            {
+                return (false, this.GameOver, null);
+            }
+
+            if (this.GetLegalMovesForPlayer(playerToMove).Count > 0)
+            {
+                return (false, GameOver.None, null);
+            }
+
+            var playerToMoveIsInCheck = this.checkService.IsCheck(playerToMove, this.ChessBoard);
+            if (playerToMoveIsInCheck)
+            {
+                this.GameOver = GameOver.Checkmate;
+                return (true, this.GameOver, opponent);
+            }
+
+            this.GameOver = GameOver.Stalemate;
+            return (true, this.GameOver, null);
         }
 
         private bool IsLegalMoveCandidate(Square source, Square target, Color movingColor, out bool isCapture)
@@ -420,11 +434,13 @@
             if (this.checkService.IsCheck(this.Opponent, this.ChessBoard))
             {
                 this.notificationService.SendCheck(this.MovingPlayer);
+            }
 
-                if (this.checkService.IsCheckmate(this.ChessBoard, this.MovingPlayer, this.Opponent, this))
-                {
-                    this.GameOver = GameOver.Checkmate;
-                }
+            var (terminalResolved, _, terminalActor) = this.ResolveTerminalStateForOpponentAfterMove();
+            if (terminalResolved)
+            {
+                this.notificationService.SendGameOver(terminalActor ?? this.MovingPlayer, this.GameOver);
+                return;
             }
 
             this.MovingPlayer.IsThreefoldDrawAvailable = false;
@@ -436,24 +452,19 @@
                 this.notificationService.SendThreefoldDrawAvailability(this.Opponent, true);
             }
 
-            if (this.drawService.IsFivefoldRepetitionDraw(targetFen))
+            if (this.GameOver == GameOver.None && this.drawService.IsFivefoldRepetitionDraw(targetFen))
             {
                 this.GameOver = GameOver.FivefoldDraw;
             }
 
-            if (this.drawService.IsFiftyMoveDraw(this.Move))
+            if (this.GameOver == GameOver.None && this.drawService.IsFiftyMoveDraw(this.Move))
             {
                 this.GameOver = GameOver.FiftyMoveDraw;
             }
 
-            if (this.drawService.IsDraw(this.ChessBoard))
+            if (this.GameOver == GameOver.None && this.drawService.IsDraw(this.ChessBoard))
             {
                 this.GameOver = GameOver.Draw;
-            }
-
-            if (this.drawService.IsStalemate(this.ChessBoard, this.Opponent))
-            {
-                this.GameOver = GameOver.Stalemate;
             }
 
             if (this.GameOver != GameOver.None)

@@ -64,6 +64,35 @@ const legacyReplayTextOnlySelectors = ['div', 'span', 'p', 'small', 'strong', 'l
 let legacyReplayCleanupObserver = null;
 let legacyReplayCleanupScheduled = false;
 
+function restartTransientClass(element, className, durationMs) {
+    if (!element) {
+        return;
+    }
+
+    const timeoutKey = `__${className}Timeout`;
+    if (element[timeoutKey]) {
+        window.clearTimeout(element[timeoutKey]);
+    }
+
+    element.classList.remove(className);
+    void element.offsetWidth;
+    element.classList.add(className);
+
+    element[timeoutKey] = window.setTimeout(() => {
+        element.classList.remove(className);
+        element[timeoutKey] = null;
+    }, durationMs);
+}
+
+export function pulseStatus(elements) {
+    restartTransientClass(elements.statusText?.closest('.status-bar-container'), 'is-status-updating', 320);
+}
+
+export function pulseCounter(element) {
+    restartTransientClass(element, 'is-counter-updating', 420);
+    restartTransientClass(element?.closest('.taken-pieces, .player-points'), 'is-counter-updating', 420);
+}
+
 function scheduleLegacyReplayCleanup() {
     if (legacyReplayCleanupScheduled) {
         return;
@@ -251,6 +280,7 @@ export function updateStatus(elements, state, movingPlayerId, movingPlayerName) 
     if (!activeMovingPlayerName) {
         elements.statusText.innerText = '';
         elements.statusText.style.color = 'inherit';
+        pulseStatus(elements);
         return;
     }
 
@@ -264,6 +294,8 @@ export function updateStatus(elements, state, movingPlayerId, movingPlayerName) 
         elements.statusText.innerText = t('playerTurnFormat', { name: activeMovingPlayerName });
         elements.statusText.style.color = 'red';
     }
+
+    pulseStatus(elements);
 }
 
 export function updateChat(elements, message, chat, isInternalMessage, isBlack) {

@@ -27,6 +27,7 @@
                 return true;
             }
 
+            player.IsCheck = false;
             return false;
         }
 
