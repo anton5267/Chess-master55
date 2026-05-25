@@ -1,6 +1,7 @@
 # Chess-master55
 
 [![GitHub Pages](https://github.com/anton5267/Chess-master55/actions/workflows/github-pages.yml/badge.svg)](https://github.com/anton5267/Chess-master55/actions/workflows/github-pages.yml)
+[![Full App CI](https://github.com/anton5267/Chess-master55/actions/workflows/full-app-ci.yml/badge.svg)](https://github.com/anton5267/Chess-master55/actions/workflows/full-app-ci.yml)
 ![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 

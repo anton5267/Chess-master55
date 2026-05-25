@@ -1,0 +1,78 @@
+name: full-app-ci
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - '.github/workflows/full-app-ci.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - '.github/workflows/full-app-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-app-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+  DOTNET_VERSION: 8.0.x
+  NODE_VERSION: 20
+  SOLUTION_PATH: src/Chess.sln
+  WEB_WORKDIR: src/Web/Chess.Web
+
+jobs:
+  build_test:
+    name: Build and test full app
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ${{ env.WEB_WORKDIR }}/package-lock.json
+
+      - name: Restore Client Libraries
+        run: |
+          dotnet tool install --global Microsoft.Web.LibraryManager.Cli
+          ~/.dotnet/tools/libman restore
+        working-directory: ${{ env.WEB_WORKDIR }}
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: ${{ env.WEB_WORKDIR }}
+
+      - name: Build Frontend Assets
+        run: npm run build:assets
+        working-directory: ${{ env.WEB_WORKDIR }}
+
+      - name: Restore .NET Solution
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Audit .NET Packages
+        run: dotnet list ${{ env.SOLUTION_PATH }} package --vulnerable --include-transitive
+
+      - name: Build .NET Solution
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore --nologo
+
+      - name: Test .NET Solution
+        run: dotnet test ${{ env.SOLUTION_PATH }} --configuration Release --no-build --nologo --verbosity normal

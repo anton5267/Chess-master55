@@ -18,6 +18,7 @@
 - Restored stable client library setup for chessboard.js and SignalR through LibMan.
 - Updated vulnerable/outdated .NET package references, including AutoMapper.
 - Verified package vulnerability scan reports no vulnerable packages.
+- Added a separate `full-app-ci` GitHub Actions workflow for the ASP.NET Core app quality gate.
 
 ### UX
 - Fixed full app game layout so the fixed navbar does not cover the board/status area on desktop or mobile.
