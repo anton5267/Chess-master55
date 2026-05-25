@@ -87,7 +87,7 @@ If you see `CS2012` (`cannot open ... because it is being used by another proces
 - stop running `dotnet watch` / `dotnet run` instances first
 - then run `npm run check:full:safe`
 
-### CI/CD (GitHub Actions -> Azure App Service)
+### Manual Azure CI/CD (GitHub Actions -> Azure App Service)
 Workflow: `.github/workflows/master_chess-bg.yml`
 
 Required secrets for OIDC deployment:
@@ -100,7 +100,6 @@ Required repository variable:
 - `AZURE_WEBAPP_NAME` (example: `your-app-name` without `.azurewebsites.net`)
 
 Deploy runs on:
-- push to `main`
 - manual `workflow_dispatch` for `main`
 
 Pipeline jobs:
@@ -213,7 +212,7 @@ cd src/Web/Chess.Web
 npm run check:full:safe
 ```
 
-### CI/CD деплой (OIDC)
+### Ручний CI/CD деплой в Azure (OIDC)
 Workflow: `.github/workflows/master_chess-bg.yml`
 
 Необхідні GitHub Secrets:
@@ -226,7 +225,6 @@ Workflow: `.github/workflows/master_chess-bg.yml`
 - `AZURE_WEBAPP_NAME` (наприклад: `your-app-name`, без `.azurewebsites.net`)
 
 Pipeline запускається:
-- при push у `main`
 - вручну через `workflow_dispatch` для `main`
 
 Склад pipeline:
