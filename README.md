@@ -10,7 +10,8 @@ Supports real-time PvP, bot mode, localization (EN/UK/DE/PL/ES), ELO stats, and 
 ---
 
 ## Live
-- Production: `https://chess-master55-prod-4a93e5e5.azurewebsites.net`
+- GitHub Pages: `https://anton5267.github.io/Chess-master55/`
+- Azure App Service: `https://chess-master55-prod-4a93e5e5.azurewebsites.net`
 - Ngrok-first dev: `https://nonhostilely-unhampered-noah.ngrok-free.dev`
 
 ## Release Notes
@@ -26,6 +27,7 @@ Supports real-time PvP, bot mode, localization (EN/UK/DE/PL/ES), ELO stats, and 
 - Full identity flow (register/login/manage).
 - Stats page with ELO and historical game metrics.
 - Production CI/CD workflow for Azure App Service.
+- Static GitHub Pages edition in `docs/` for no-cost hosting without the ASP.NET Core backend.
 
 ### Architecture at a Glance
 - **Web**: ASP.NET Core MVC + Razor Views
@@ -140,6 +142,14 @@ Health endpoints:
 - `/healthz/live`
 - `/healthz/ready`
 
+### GitHub Pages
+Workflow: `.github/workflows/github-pages.yml`
+
+The Pages build publishes the static site from `docs/` to:
+`https://anton5267.github.io/Chess-master55/`
+
+GitHub Pages cannot run the ASP.NET Core server, SignalR hubs, Identity, or EF Core database. The static edition keeps the site available for free with local play, bot play, move history, board themes, and browser-local stats.
+
 ---
 
 ## Українська
@@ -150,6 +160,7 @@ Health endpoints:
 - Повний Identity flow (реєстрація, логін, керування акаунтом).
 - Сторінка статистики з ELO та метриками партій.
 - Production CI/CD деплой в Azure App Service.
+- Статична GitHub Pages-версія в `docs/` для безкоштовного хостингу без ASP.NET Core backend.
 
 ### Архітектура (коротко)
 - **Web**: ASP.NET Core MVC + Razor Views
@@ -249,6 +260,14 @@ PowerShell helper (ідемпотентний):
 pwsh ./scripts/bootstrap-azure-oidc.ps1 -Repo anton5267/Chess-master55 -WebAppName "<webapp-name>" -ResourceGroup "<resource-group>"
 ```
 Якщо бракує scoped token, helper автоматично запустить `az login --use-device-code`.
+
+### GitHub Pages
+Workflow: `.github/workflows/github-pages.yml`
+
+Статична версія публікується з `docs/` сюди:
+`https://anton5267.github.io/Chess-master55/`
+
+GitHub Pages не запускає ASP.NET Core server, SignalR hubs, Identity або EF Core базу. Тому Pages-версія працює як безкоштовний статичний сайт: локальна гра, гра проти бота, історія ходів, теми дошки та локальна статистика в браузері.
 
 ---
 

@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Chess Master55 static GitHub Pages edition">
+  <title>Chess Master55</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="Chess Master55">
+      <span class="brand-mark" aria-hidden="true">♞</span>
+      <span>Chess Master55</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="https://github.com/anton5267/Chess-master55" data-i18n="source">Source</a>
+      <select id="languageSelect" aria-label="Language">
+        <option value="en">EN</option>
+        <option value="uk">UK</option>
+        <option value="de">DE</option>
+        <option value="pl">PL</option>
+        <option value="es">ES</option>
+      </select>
+    </nav>
+  </header>
+
+  <main class="app-shell" id="app">
+    <section class="controls-panel" aria-label="Game controls">
+      <label>
+        <span data-i18n="mode">Mode</span>
+        <select id="modeSelect">
+          <option value="bot" data-i18n="modeBot">Bot</option>
+          <option value="local" data-i18n="modeLocal">Local</option>
+        </select>
+      </label>
+      <label id="difficultyField">
+        <span data-i18n="difficulty">Difficulty</span>
+        <select id="difficultySelect">
+          <option value="normal" data-i18n="normal">Normal</option>
+          <option value="easy" data-i18n="easy">Easy</option>
+        </select>
+      </label>
+      <label>
+        <span data-i18n="boardTheme">Board</span>
+        <select id="boardThemeSelect">
+          <option value="classic" data-i18n="classic">Classic</option>
+          <option value="forest" data-i18n="forest">Forest</option>
+          <option value="midnight" data-i18n="midnight">Midnight</option>
+        </select>
+      </label>
+      <label>
+        <span data-i18n="pieceTheme">Pieces</span>
+        <select id="pieceThemeSelect">
+          <option value="wikipedia">Wikipedia</option>
+          <option value="alpha">Alpha</option>
+          <option value="leipzig">Leipzig</option>
+        </select>
+      </label>
+      <label>
+        <span data-i18n="promotion">Promotion</span>
+        <select id="promotionSelect">
+          <option value="q" data-i18n="queen">Queen</option>
+          <option value="r" data-i18n="rook">Rook</option>
+          <option value="b" data-i18n="bishop">Bishop</option>
+          <option value="n" data-i18n="knight">Knight</option>
+        </select>
+      </label>
+      <div class="control-actions">
+        <button id="newGameBtn" type="button" data-i18n="newGame">New game</button>
+        <button id="undoBtn" type="button" data-i18n="undo">Undo</button>
+        <button id="flipBtn" type="button" data-i18n="flip">Flip</button>
+        <button id="drawBtn" type="button" data-i18n="draw">Draw</button>
+        <button id="resignBtn" type="button" data-i18n="resign">Resign</button>
+      </div>
+    </section>
+
+    <section class="game-grid">
+      <aside class="player-panel player-panel-black" aria-label="Black player">
+        <div class="player-heading">
+          <span class="player-color-dot black-dot" aria-hidden="true"></span>
+          <div>
+            <p class="panel-kicker" data-i18n="black">Black</p>
+            <h2 id="blackName">Bot</h2>
+          </div>
+        </div>
+        <div class="score-line">
+          <span data-i18n="points">Points</span>
+          <strong id="blackScore">0</strong>
+        </div>
+        <div class="captured-row" id="blackCaptured"></div>
+      </aside>
+
+      <section class="board-panel" aria-label="Chess board">
+        <div class="status-strip">
+          <span id="statusText" role="status" aria-live="polite">Ready</span>
+          <span id="turnBadge">White</span>
+        </div>
+        <div class="load-error" id="loadError" hidden data-i18n="loadError">
+          The chess libraries did not load. Refresh the page or check the internet connection.
+        </div>
+        <div class="board-frame">
+          <div id="board"></div>
+        </div>
+      </section>
+
+      <aside class="player-panel player-panel-white" aria-label="White player">
+        <div class="player-heading">
+          <span class="player-color-dot white-dot" aria-hidden="true"></span>
+          <div>
+            <p class="panel-kicker" data-i18n="white">White</p>
+            <h2 id="whiteName">You</h2>
+          </div>
+        </div>
+        <div class="score-line">
+          <span data-i18n="points">Points</span>
+          <strong id="whiteScore">0</strong>
+        </div>
+        <div class="captured-row" id="whiteCaptured"></div>
+      </aside>
+    </section>
+
+    <section class="detail-grid">
+      <section class="history-panel" aria-label="Move history">
+        <div class="section-heading">
+          <h2 data-i18n="moveHistory">Move history</h2>
+          <span id="moveCount">0</span>
+        </div>
+        <ol id="moveHistory" class="move-list"></ol>
+      </section>
+
+      <section class="stats-panel" aria-label="Local stats">
+        <div class="section-heading">
+          <h2 data-i18n="localStats">Local stats</h2>
+          <button id="resetStatsBtn" type="button" class="subtle-button" data-i18n="reset">Reset</button>
+        </div>
+        <dl class="stats-grid">
+          <div>
+            <dt data-i18n="games">Games</dt>
+            <dd id="statGames">0</dd>
+          </div>
+          <div>
+            <dt data-i18n="whiteWins">White wins</dt>
+            <dd id="statWhiteWins">0</dd>
+          </div>
+          <div>
+            <dt data-i18n="blackWins">Black wins</dt>
+            <dd id="statBlackWins">0</dd>
+          </div>
+          <div>
+            <dt data-i18n="draws">Draws</dt>
+            <dd id="statDraws">0</dd>
+          </div>
+        </dl>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span data-i18n="footer">Static GitHub Pages edition</span>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+  <script src="assets/static-chess.js"></script>
+</body>
+</html>
