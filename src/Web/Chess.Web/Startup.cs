@@ -123,7 +123,11 @@
         {
             services.AddDbContext<ChessDbContext>(options => options.UseSqlServer(
                 Environment.GetEnvironmentVariable("CONNECTION_STRING") ?? this.configuration.GetChessDbConnectionString(),
-                options => options.EnableRetryOnFailure()));
+                options =>
+                {
+                    options.EnableRetryOnFailure();
+                    options.MigrationsAssembly(typeof(ChessDbContext).Assembly.FullName);
+                }));
         }
 
         private void AddIdentity(IServiceCollection services)

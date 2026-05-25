@@ -10,7 +10,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 public class ChessWebApplicationFactory : WebApplicationFactory<Startup>
 {
@@ -20,11 +22,8 @@ public class ChessWebApplicationFactory : WebApplicationFactory<Startup>
     {
         builder.ConfigureServices(services =>
         {
-            var dbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ChessDbContext>));
-            if (dbContextDescriptor != null)
-            {
-                services.Remove(dbContextDescriptor);
-            }
+            services.RemoveAll<DbContextOptions<ChessDbContext>>();
+            services.RemoveAll<IDbContextOptionsConfiguration<ChessDbContext>>();
 
             services.AddDbContext<ChessDbContext>(options =>
             {

@@ -25,7 +25,7 @@ concurrency:
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_NOLOGO: true
-  DOTNET_VERSION: 8.0.x
+  DOTNET_VERSION: 10.0.x
   NODE_VERSION: 20
   SOLUTION_PATH: src/Chess.sln
   WEB_WORKDIR: src/Web/Chess.Web

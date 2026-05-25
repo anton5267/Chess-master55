@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 env:
-  DOTNET_VERSION: 8.0.x
+  DOTNET_VERSION: 10.0.x
   NODE_VERSION: 20
   SOLUTION_PATH: src/Chess.sln
   WEB_PROJECT_PATH: src/Web/Chess.Web/Chess.Web.csproj

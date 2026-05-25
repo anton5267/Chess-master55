@@ -1000,7 +1000,7 @@
     <value>Partidas en vivo con SignalR</value>
   </data>
   <data name="About_HeroChipCloud" xml:space="preserve">
-    <value>.NET 8 + EF Core</value>
+    <value>.NET 10 + EF Core</value>
   </data>
   <data name="About_HeroChipResponsive" xml:space="preserve">
     <value>Interfaz adaptable</value>

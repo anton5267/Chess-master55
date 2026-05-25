@@ -52,7 +52,7 @@ cd src/Web/Chess.Web
 npm run check:full:safe
 ```
 
-If .NET reports that the .NET 8 runtime is missing, install the .NET 8 SDK/runtime. `DOTNET_ROLL_FORWARD=Major` is acceptable only as a local temporary fallback.
+If .NET reports that `net10.0` is not available, install the .NET 10 SDK/runtime before running the quality gate.
 
 ## Pull Request Checklist
 

@@ -44,7 +44,7 @@ body:
     attributes:
       label: Environment
       description: Browser/OS/.NET version and edition or deployment mode.
-      placeholder: "Windows 11, Chrome 136, .NET 8, full local app at http://localhost:5000 or GitHub Pages demo"
+      placeholder: "Windows 11, Chrome 136, .NET 10, full local app at http://localhost:5000 or GitHub Pages demo"
   - type: textarea
     id: logs
     attributes:

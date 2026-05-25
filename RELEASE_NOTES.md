@@ -19,6 +19,7 @@
 - Updated vulnerable/outdated .NET package references, including AutoMapper.
 - Verified package vulnerability scan reports no vulnerable packages.
 - Added a separate `full-app-ci` GitHub Actions workflow for the ASP.NET Core app quality gate.
+- Upgraded the full ASP.NET Core solution from .NET 8 to .NET 10 LTS.
 
 ### UX
 - Fixed full app game layout so the fixed navbar does not cover the board/status area on desktop or mobile.

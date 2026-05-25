@@ -2,7 +2,7 @@
 
 [![GitHub Pages](https://github.com/anton5267/Chess-master55/actions/workflows/github-pages.yml/badge.svg)](https://github.com/anton5267/Chess-master55/actions/workflows/github-pages.yml)
 [![Full App CI](https://github.com/anton5267/Chess-master55/actions/workflows/full-app-ci.yml/badge.svg)](https://github.com/anton5267/Chess-master55/actions/workflows/full-app-ci.yml)
-![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)
+![.NET](https://img.shields.io/badge/.NET-10.0%20LTS-512BD4)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 Modern chess platform with two editions:
@@ -55,7 +55,7 @@ The old Azure App Service URL is not treated as the live site anymore. Azure dep
 
 ### Prerequisites
 
-- .NET 8 SDK/runtime
+- .NET 10 SDK/runtime
 - Node.js with npm
 - SQL Server Express, LocalDB, or another SQL Server connection string
 - LibMan CLI:
@@ -64,11 +64,8 @@ The old Azure App Service URL is not treated as the live site anymore. Azure dep
 dotnet tool install --global Microsoft.Web.LibraryManager.Cli
 ```
 
-If tests fail because .NET 8 runtime is missing, install the .NET 8 runtime/SDK. On this machine, a temporary fallback is:
-
-```powershell
-$env:DOTNET_ROLL_FORWARD = "Major"
-```
+The full app targets `net10.0`. Install the .NET 10 SDK/runtime before running restore, build, test, or `dotnet run`.
+When using the per-user `dotnet-install` script on Windows, make sure `%USERPROFILE%\.dotnet` is on `PATH`.
 
 ### Full Local Development
 
